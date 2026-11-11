@@ -1,6 +1,7 @@
 
 import '@/components/completeAuthPopup';
 import '@/components/hideScrollbars';
+import '@/components/lockWebPage';
 import '@/components/webAlert';
 import { UpdateAvailableModal } from '@/components/updateAvailableNodal';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
