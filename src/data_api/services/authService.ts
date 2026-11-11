@@ -110,7 +110,9 @@ export const authService = {
 
   verifyGoogleToken: async (idToken: string): Promise<any> => {
     try {
-      const response = await api.post<any>('/auth/verify-google-token', { idToken });
+      // createAccount: this version signs new Google users up directly (no step 2). Older app
+      // versions don't send it and keep their sign-up step.
+      const response = await api.post<any>('/auth/verify-google-token', { idToken, createAccount: true });
       return response.data; // Contient: { access_token, user, isNewUser }
     } catch (error) {
       logError('Google token verification failed');

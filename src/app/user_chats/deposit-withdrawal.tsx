@@ -1273,26 +1273,28 @@ export default function DepositWithdrawalScreen() {
                 )}
                 <View style={st.codeCard}>
                   <Text style={st.codeLabel}>
-                    Code USSD {currentOperator.nom}
+                    {Platform.OS === 'ios' ? `Code de paiement ${currentOperator.nom}` : `Code USSD ${currentOperator.nom}`}
                   </Text>
+                  {/* iOS: the code is not displayed, only copied (the client dials it in the Phone app). */}
+                  {Platform.OS !== 'ios' && (
                   <Text style={[st.codeValue, { color: Colors.primaryGreen }]}>
                     {buildUssdCode(currentOperator, depositNumero, rawAmount)}
                   </Text>
+                  )}
                   <Text style={st.codeInstructions}>
                     {Platform.OS === 'web'
                       ? 'Copiez ce code, puis composez-le sur votre téléphone avec le numéro indiqué. Nous vérifierons la réception de votre paiement.'
                       : Platform.OS === 'ios'
-                      ? 'Téléphone va s’ouvrir et le code est copié. Si le code n’apparaît pas, collez-le dans Téléphone avant de composer.'
+                      ? 'Touchez « Copier le code de paiement », ouvrez l’app Téléphone, collez le code puis appelez. Nous vérifierons la réception de votre paiement.'
                       : 'Nous lancerons le code et vérifierons la réception de votre paiement. Vous pouvez aussi le copier pour le composer sur un autre téléphone.'}
                   </Text>
                 </View>
-                {/* A browser can't dial USSD: on web the client copies the code and dials it on the phone. */}
-                {Platform.OS !== 'web' && (
+                {/* A browser can't dial USSD: on web the client copies the code and dials it on the phone.
+                    iOS keeps only the copy button. */}
+                {Platform.OS === 'android' && (
                 <GreenButton
                   title={depositPaymentAlreadyReceived
                     ? 'Paiement déjà reçu'
-                    : Platform.OS === 'ios'
-                    ? (manualDialOpened ? 'Vérification en cours...' : 'Ouvrir Téléphone →')
                     : creatingTransaction ? 'Enregistrement...' : 'Effectuer le paiement →'}
                   onPress={() => { if (!manualDialOpened) void beginDeposit(); }}
                   disabled={creatingTransaction || depositPaymentAlreadyReceived}
@@ -1307,7 +1309,7 @@ export default function DepositWithdrawalScreen() {
                 >
                   <Copy color={Colors.primaryGreen} size={18} />
                   <Text style={st.copyDepositCodeText}>
-                    {creatingTransaction ? 'Enregistrement...' : 'Copier le code et attendre'}
+                    {creatingTransaction ? 'Enregistrement...' : Platform.OS === 'ios' ? 'Copier le code de paiement' : 'Copier le code et attendre'}
                   </Text>
                 </TouchableOpacity>
                 {processing && (
@@ -1498,6 +1500,7 @@ export default function DepositWithdrawalScreen() {
                   Cliquez sur suivant pour collez votre code de retrait et renseignez votre numéro de téléphone.
                 </Text>
               </View>
+              {Platform.OS !== 'ios' && (
               <TouchableOpacity
                 style={st.xbetBtn}
                 onPress={open1xBet}
@@ -1506,6 +1509,7 @@ export default function DepositWithdrawalScreen() {
                 <ExternalLink color="#fff" size={20} />
                 <Text style={st.xbetBtnText}>Ouvrir 1xBet</Text>
               </TouchableOpacity>
+              )}
               <GreenButton
                 title={"Suivant"}
                 onPress={() => setWithdrawalStep(3)}

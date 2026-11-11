@@ -66,5 +66,5 @@ export function useGoogleAuth() {
     await promptAsync();
   };
 
-  return { signInWithGoogle, loading };
+  return { signInWithGoogle, loading, available: true };
 }

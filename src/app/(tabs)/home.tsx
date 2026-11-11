@@ -23,6 +23,7 @@ import { transactionService } from '@/data_api/services/transactionService';
 import {
   Animated, Dimensions, FlatList,
   Image,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -281,7 +282,7 @@ export default function HomeScreen() {
                   <ArrowUpFromLine color={Colors.primaryGreen} size={26} strokeWidth={2.5} />
                 </View>
                 <Text style={styles.quickActionLabel}>Retrait</Text>
-                <Text style={styles.quickActionSub}>Récupérer vos gains</Text>
+                <Text style={styles.quickActionSub}>{Platform.OS === 'ios' ? 'Retirer vers Mobile Money' : 'Récupérer vos gains'}</Text>
               </View>
             </TouchableOpacity>
 

@@ -51,10 +51,11 @@ export interface CreateUserDto {
 
   email: string;
 
-  password: string;
+  // Optional for Sign in with Apple: Apple already authenticates the account.
+  password?: string;
 
 
-  telephone: string;
+  telephone?: string;
 
 
   role?: string;

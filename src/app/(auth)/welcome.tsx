@@ -87,12 +87,15 @@ export default function WelcomeScreen() {
           />
         </View>
 
+        {/* Not shown on iOS (App Store review). */}
+        {Platform.OS !== 'ios' && (
         <View style={styles.promoContainer}>
           <Text style={styles.promoLabel}>Code promo :</Text>
           <View style={styles.promoCode}>
             <Text style={styles.promoCodeText}>MAE96</Text>
           </View>
         </View>
+        )}
       </Animated.View>
     </View>
   );

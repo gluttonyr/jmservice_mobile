@@ -1,3 +1,21 @@
+// Purpose strings shown by iOS before each permission (App Store guideline 5.1.1(ii)):
+// each one says what the access is for and gives a concrete example.
+const MICROPHONE_PERMISSION =
+  "MatiStore utilise le micro uniquement quand vous enregistrez un message vocal dans un chat, par exemple pour expliquer au support un problème de dépôt.";
+const CAMERA_PERMISSION =
+  "MatiStore utilise l'appareil photo pour prendre une photo à envoyer dans un chat, par exemple le reçu de votre paiement Mobile Money envoyé au support.";
+const PHOTOS_PERMISSION =
+  "MatiStore accède à vos photos pour joindre une image à un message, par exemple la capture d'écran d'un paiement Mobile Money envoyée au support.";
+const SAVE_PHOTOS_PERMISSION =
+  "MatiStore enregistre dans vos photos les images que vous choisissez de télécharger depuis un chat, par exemple un reçu envoyé par le support.";
+
+// iOS OAuth client (Google Cloud Console, type "iOS", bundle com.urbain-diligence.matistore-mobile).
+// Until it is set, Google sign-in is hidden on iOS: the Google SDK crashes without it.
+const GOOGLE_IOS_CLIENT_ID = null;
+const googleIosUrlScheme = GOOGLE_IOS_CLIENT_ID
+  ? `com.googleusercontent.apps.${GOOGLE_IOS_CLIENT_ID.replace(".apps.googleusercontent.com", "")}`
+  : null;
+
 export default ({ config }) => ({
     ...config,
     name: "matistore",
@@ -34,18 +52,23 @@ export default ({ config }) => ({
         ...config.ios?.config,
         usesNonExemptEncryption: false
       },
+      // No LSApplicationQueriesSchemes ("xbet"): the "Ouvrir 1xBet" button is not shown on iOS.
       infoPlist: {
-        ...config.ios?.infoPlist,
-        // Requis (Android a son équivalent via le plugin withExternalAppQueries
-        // ci-dessous) pour que Linking.canOpenURL détecte ces apps si installées.
-        LSApplicationQueriesSchemes: ["xbet"]
+        ...config.ios?.infoPlist
       }
     },
 
     plugins: [
       "expo-router",
       "expo-asset",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          microphonePermission: MICROPHONE_PERMISSION,
+          // Voice messages only play while the app is open: no "audio" background mode (guideline 2.5.4).
+          enableBackgroundPlayback: false
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -67,10 +90,13 @@ export default ({ config }) => ({
         }
       ],
       "expo-web-browser",
-      "expo-secure-store",
+      // Face ID is never used: drop its permission string instead of shipping the English default.
+      ["expo-secure-store", { faceIDPermission: false }],
       "expo-apple-authentication",
 
-      "@react-native-google-signin/google-signin",
+      googleIosUrlScheme
+        ? ["@react-native-google-signin/google-signin", { iosUrlScheme: googleIosUrlScheme }]
+        : "@react-native-google-signin/google-signin",
       [
         "./plugins/withExternalAppQueries",
         {
@@ -81,14 +107,18 @@ export default ({ config }) => ({
       [
         "expo-media-library",
         {
-          granularPermissions: []
+          granularPermissions: [],
+          photosPermission: PHOTOS_PERMISSION,
+          savePhotosPermission: SAVE_PHOTOS_PERMISSION
         }
       ],
       [
         "expo-image-picker",
         {
-          photosPermission: "L'application a besoin d'accéder à vos photos.",
-          cameraPermission: "L'application a besoin d'accéder à votre caméra."
+          photosPermission: PHOTOS_PERMISSION,
+          cameraPermission: CAMERA_PERMISSION,
+          // Same text as expo-audio: this plugin runs later and would otherwise reset it to the English default.
+          microphonePermission: MICROPHONE_PERMISSION
         }
       ],
     ],
@@ -106,6 +136,7 @@ export default ({ config }) => ({
       // pas référencé directement en JS — Google Play Services le retrouve tout
       // seul via le package + SHA-1 enregistrés côté Google Cloud Console.
       // Gardé ici pour documentation/référence.
+      ...(GOOGLE_IOS_CLIENT_ID ? { googleIosClientId: GOOGLE_IOS_CLIENT_ID } : {}),
       googleAndroidClientId:
         "75018713485-sifqq6legg6127vhuendp3a4lf8ot9bf.apps.googleusercontent.com",
       eas: {

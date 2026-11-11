@@ -8,7 +8,8 @@ import { SocialLinks } from '@/components/SocialLinks';
 import { authStorage } from '@/storage/authStorage';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
-import { Check, ChevronRight, Edit3, ImagePlus, LogOut, Mail, Phone, User, X } from 'lucide-react-native';
+import { Check, ChevronRight, Edit3, ImagePlus, LogOut, Mail, Phone, Trash2, User, X } from 'lucide-react-native';
+import { InfoModal } from '@/components/infomodal';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -142,6 +143,27 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
+  // Account deletion from the app (App Store guideline 5.1.1(v)).
+  const deleteAccount = async () => {
+    if (deletingAccount) return;
+    setDeletingAccount(true);
+    try {
+      await userService.deleteMyAccount();
+      Toast.show({ type: 'success', text1: 'Compte supprimé', text2: 'Votre compte et vos données personnelles ont été supprimés.' });
+      await logout();
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Suppression impossible',
+        text2: err?.response?.data?.message ?? 'Vérifiez votre connexion puis réessayez.',
+      });
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
 
   const [prenom, setPrenom] = useState(user?.prenom ?? '');
   const [nom, setNom] = useState(user?.nom ?? '');
@@ -394,8 +416,31 @@ export default function ProfilePage() {
           <Text style={styles.logoutText}>Se déconnecter</Text>
           <ChevronRight color="#FF6B6B" size={16} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
+
+        {/* ── Suppression du compte ── */}
+        <TouchableOpacity
+          style={[styles.logoutBtn, styles.deleteAccountBtn]}
+          onPress={() => setShowDeleteAccount(true)}
+          disabled={deletingAccount}
+          activeOpacity={0.75}
+        >
+          {deletingAccount ? <ActivityIndicator color="#FF6B6B" size="small" /> : <Trash2 color="#FF6B6B" size={18} />}
+          <Text style={styles.logoutText}>Supprimer mon compte</Text>
+          <ChevronRight color="#FF6B6B" size={16} style={{ marginLeft: 'auto' }} />
+        </TouchableOpacity>
         <SocialLinks variant="contact" />
       </ScrollView>
+      <InfoModal
+        visible={showDeleteAccount}
+        onClose={() => setShowDeleteAccount(false)}
+        type="warning"
+        title="Supprimer votre compte ?"
+        message="Votre nom, e-mail, téléphone et photo seront définitivement effacés de votre profil et vous ne pourrez plus vous connecter avec ce compte. L'historique de vos transactions (montants, numéros utilisés, références de paiement) est conservé pour nos obligations légales et comptables. Cette action est irréversible."
+        confirmText="Supprimer définitivement"
+        onConfirm={() => void deleteAccount()}
+        secondaryText="Annuler"
+        onSecondary={() => {}}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -598,4 +643,5 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   logoutText: { color: '#FF6B6B', fontSize: 15, fontWeight: '700' },
+  deleteAccountBtn: { marginTop: 12, backgroundColor: 'transparent' },
 });

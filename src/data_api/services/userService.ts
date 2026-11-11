@@ -159,6 +159,18 @@ formData.append('data', JSON.stringify({ liens }));
     }
   },
 
+  /**
+   * Supprimer définitivement son propre compte (données personnelles effacées côté serveur)
+   */
+  deleteMyAccount: async (): Promise<void> => {
+    try {
+      await api.delete('/users/me');
+    } catch (error) {
+      logError('Delete own account failed');
+      throw error;
+    }
+  },
+
   updateParrain: async (code: string): Promise<User> => {
     try {
       return await api.put<User>(`/users/parrain/${code}`);

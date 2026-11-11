@@ -10,9 +10,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 let configured = false;
+
+const configuredIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
+const iosClientId = typeof configuredIosClientId === 'string' && configuredIosClientId ? configuredIosClientId : undefined;
+// The Google iOS SDK crashes the app when signIn() runs without an iOS client ID,
+// so the button is only shown on iOS once that ID is configured in app.config.js.
+const available = Platform.OS !== 'ios' || !!iosClientId;
 
 export function useGoogleAuth() {
   const queryClient = useQueryClient();
@@ -32,12 +39,14 @@ export function useGoogleAuth() {
 
     GoogleSignin.configure({
       webClientId,
+      iosClientId,
     });
 
     configured = true;
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!available) return;
     setLoading(true);
 
     try {
@@ -214,5 +223,6 @@ export function useGoogleAuth() {
   return {
     signInWithGoogle,
     loading,
+    available,
   };
 }

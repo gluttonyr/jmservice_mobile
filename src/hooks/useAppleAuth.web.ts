@@ -1,6 +1,6 @@
 import { authService } from '@/data_api/services/authService';
 import { authStorage } from '@/storage/authStorage';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -32,6 +32,35 @@ export function consumePendingAppleIdentityToken(): string | null {
   const token = pendingAppleIdentityToken;
   pendingAppleIdentityToken = null;
   return token;
+}
+
+async function openSession(queryClient: QueryClient, result: { access_token: string; user: any }) {
+  await authStorage.setToken(result.access_token);
+  await authStorage.setUser(result.user);
+  queryClient.setQueryData(['user'], result.user);
+  Toast.show({ type: 'success', text1: 'Connexion réussie', text2: 'Vous êtes connecté avec Apple.' });
+  router.replace(result.user?.role === 'ADMIN' ? '/(admin)/admin-home' : '/(tabs)/home');
+}
+
+// Same as useAppleAuth.ts: no password after Sign in with Apple, the session opens right away.
+export async function completeAppleSignUp(
+  queryClient: QueryClient,
+  details: { prenom: string; nom: string; email: string; appleId: string; telephone?: string },
+) {
+  const identityToken = peekPendingAppleIdentityToken();
+  if (!identityToken) throw new Error('La session Apple a expiré. Recommencez avec « Continuer avec Apple ».');
+  await authService.register({
+    ...details,
+    username: [details.nom, details.prenom].filter(Boolean).join(' '),
+    provider: 'apple',
+    identityToken,
+  });
+  const result = await authService.verifyAppleToken(identityToken);
+  if (!result?.access_token) {
+    throw new Error('Votre compte est créé. Touchez « Continuer avec Apple » pour vous connecter.');
+  }
+  consumePendingAppleIdentityToken();
+  await openSession(queryClient, result);
 }
 
 let appleJsPromise: Promise<AppleIDGlobal> | null = null;
@@ -73,11 +102,7 @@ export function useAppleAuth() {
 
       const result = await authService.verifyAppleToken(identityToken);
       if (!result?.isNewUser && result?.access_token) {
-        await authStorage.setToken(result.access_token);
-        await authStorage.setUser(result.user);
-        queryClient.setQueryData(['user'], result.user);
-        Toast.show({ type: 'success', text1: 'Connexion réussie', text2: 'Vous êtes connecté avec Apple.' });
-        router.replace(result.user?.role === 'ADMIN' ? '/(admin)/admin-home' : '/(tabs)/home');
+        await openSession(queryClient, result);
         return;
       }
 
@@ -86,17 +111,15 @@ export function useAppleAuth() {
       }
 
       pendingAppleIdentityToken = identityToken;
-      const givenName = credential.user?.name?.firstName?.trim();
-      const familyName = credential.user?.name?.lastName?.trim();
-      router.push({
-        pathname: '/(auth)/register-step2',
-        params: {
-          prenom: givenName || '',
-          nom: familyName || '',
-          email: result.email,
-          appleId: result.appleId,
-          provider: 'apple',
-        },
+      const prenom = credential.user?.name?.firstName?.trim() || '';
+      const nom = credential.user?.name?.lastName?.trim() || '';
+      // No extra sign-up step: Apple gives the name only on the very first sign-in, and without it the
+      // account starts as "Client" (editable in Profil).
+      await completeAppleSignUp(queryClient, {
+        prenom: prenom || (nom ? '' : 'Client'),
+        nom,
+        email: result.email,
+        appleId: result.appleId,
       });
     } catch (error: any) {
       // Apple JS rejects with { error: 'popup_closed_by_user' } when the window is closed.

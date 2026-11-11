@@ -34,7 +34,7 @@ export default function LoginScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const queryClient = useQueryClient();
-  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
+  const { signInWithGoogle, loading: googleLoading, available: googleAvailable } = useGoogleAuth();
   const { signInWithApple } = useAppleAuth();
   
 
@@ -188,6 +188,7 @@ export default function LoginScreen() {
             <View style={styles.dividerLine} />
           </View>
 
+          {googleAvailable && (
           <TouchableOpacity
             style={styles.googleBtn}
             onPress={signInWithGoogle}
@@ -203,11 +204,13 @@ export default function LoginScreen() {
               {googleLoading ? 'Connexion...' : 'Continuer avec Google'}
             </Text>
           </TouchableOpacity>
+          )}
 
           {Platform.OS === 'ios' && (
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              // White on the dark background: a black button would be invisible (App Store guideline 4).
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
               cornerRadius={10}
               style={styles.appleBtn}
               onPress={signInWithApple}

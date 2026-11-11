@@ -20,7 +20,7 @@ export default function RegisterStep1() {
   const [nom, setNom] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
+  const { signInWithGoogle, loading: googleLoading, available: googleAvailable } = useGoogleAuth();
   const { signInWithApple } = useAppleAuth();
 
   const handleNext = () => {
@@ -128,6 +128,7 @@ export default function RegisterStep1() {
             <View style={styles.dividerLine} />
           </View>
 
+          {googleAvailable && (
           <TouchableOpacity
             style={styles.googleBtn}
             onPress={signInWithGoogle}
@@ -142,11 +143,13 @@ export default function RegisterStep1() {
               {googleLoading ? 'Connexion...' : "S'inscrire avec Google"}
             </Text>
           </TouchableOpacity>
+          )}
 
           {Platform.OS === 'ios' && (
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              // White on the dark background: a black button would be invisible (App Store guideline 4).
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
               cornerRadius={10}
               style={styles.appleBtn}
               onPress={signInWithApple}
