@@ -15,6 +15,7 @@ import ProfileScreen from './profile';
 import Badge from '@/components/ui/Badge';
 import JMLogo from '@/components/ui/JMLogo';
 import { Font } from '@/constants/fonts';
+import { OrbitBackdropContext, OrbitBackground } from '@/components/orbit';
 import { Colors } from '@/constants/colors';
 import { usePushNotificationRegistration } from '@/hooks/usePushNotificationRegistration';
 import { useAdminNotificationCapture } from '@/hooks/useAdminNotificationCapture';
@@ -100,7 +101,10 @@ export default function TabsLayout() {
   }, []);
 
   return (
-    <View style={[styles.root, wide && webSidebarStyles.root]}>
+    <View style={[styles.root, wide && webSidebarStyles.root, wide && webSidebarStyles.rootAdmin]}>
+      {/* Website on a computer: one background behind the whole page column (no seams on its sides). */}
+      {wide && <OrbitBackground variant="admin" orbits={false} style={StyleSheet.absoluteFill} />}
+      <OrbitBackdropContext.Provider value={wide}>
       <PagerView
         ref={pagerRef}
         style={styles.pager}
@@ -114,10 +118,11 @@ export default function TabsLayout() {
           </View>
         ))}
       </PagerView>
+      </OrbitBackdropContext.Provider>
 
-      <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }, wide && webSidebarStyles.tabBar]}>
+      <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }, wide && webSidebarStyles.tabBar, wide && webSidebarStyles.tabBarAdmin]}>
         {wide && (
-          <View style={webSidebarStyles.brand}>
+          <View style={[webSidebarStyles.brand, webSidebarStyles.brandAdmin]}>
             <JMLogo size={90} showText />
           </View>
         )}
@@ -129,7 +134,7 @@ export default function TabsLayout() {
           return (
             <TouchableOpacity
               key={key}
-              style={[styles.tabItem, wide && webSidebarStyles.tabItem, wide && focused && webSidebarStyles.tabItemActive]}
+              style={[styles.tabItem, wide && webSidebarStyles.tabItem, wide && focused && webSidebarStyles.tabItemActive, wide && focused && webSidebarStyles.tabItemActiveAdmin]}
               onPress={() => handleTabPress(index)}
               accessibilityRole="tab"
               accessibilityState={{ selected: focused }}

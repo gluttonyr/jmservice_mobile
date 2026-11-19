@@ -167,7 +167,7 @@ export default function AdminDashboard() {
     const category = getDiscussionCategory(discussion);
     goToTab('chats');
     router.push({
-      pathname: 'admin_chats/[id]',
+      pathname: '/admin_chats/[id]',
       params: {
         id: discussion.trackingId,
         name: discussion.username || discussion.titre,

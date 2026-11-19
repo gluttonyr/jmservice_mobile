@@ -1038,20 +1038,23 @@ export default function DepositWithdrawalScreen() {
           keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
         >
           <OrbitBackground orbits={false}>
-          <FlowHeader
-            title={depositStep === 5 ? 'Effectuer le transfert' : 'Dépôt'}
-            subtitle={`Étape ${depositProgressStep} sur ${depositProgressLabels.length}`}
-            onBack={resetForm}
-            top={insets.top}
-          />
-          {depositStep !== 5 && (
-            <View style={st.stepperWrap}>
-              <StarStepper steps={depositProgressLabels} current={depositProgressStep} />
-            </View>
-          )}
+          {/* Website on a computer: header and steps take the same readable width as the content. */}
+          <View style={wide && webSidebarStyles.readable}>
+            <FlowHeader
+              title={depositStep === 5 ? 'Effectuer le transfert' : 'Dépôt'}
+              subtitle={`Étape ${depositProgressStep} sur ${depositProgressLabels.length}`}
+              onBack={resetForm}
+              top={insets.top}
+            />
+            {depositStep !== 5 && (
+              <View style={st.stepperWrap}>
+                <StarStepper steps={depositProgressLabels} current={depositProgressStep} />
+              </View>
+            )}
+          </View>
 
           {!depositCaptureAvailable && !transaction && (
-            <View style={st.captureUnavailableBox}>
+            <View style={[st.captureUnavailableBox, wide && webSidebarStyles.readable]}>
               <Text style={st.captureUnavailableTitle}>Dépôts temporairement indisponibles</Text>
               <Text style={st.captureUnavailableText}>La vérification des paiements est temporairement indisponible. Vous pourrez reprendre votre dépôt dès que le service sera rétabli.</Text>
             </View>
@@ -1451,9 +1454,11 @@ export default function DepositWithdrawalScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <OrbitBackground orbits={false}>
-        <FlowHeader title="Retrait" subtitle={`Étape ${withdrawalStep + 1} sur 4`} onBack={resetForm} top={insets.top} />
-        <View style={st.stepperWrap}>
-          <StarStepper steps={['Bookmaker', 'Opérateur', 'Compte', 'Code']} current={withdrawalStep + 1} />
+        <View style={wide && webSidebarStyles.readable}>
+          <FlowHeader title="Retrait" subtitle={`Étape ${withdrawalStep + 1} sur 4`} onBack={resetForm} top={insets.top} />
+          <View style={st.stepperWrap}>
+            <StarStepper steps={['Bookmaker', 'Opérateur', 'Compte', 'Code']} current={withdrawalStep + 1} />
+          </View>
         </View>
 
         <ScrollView

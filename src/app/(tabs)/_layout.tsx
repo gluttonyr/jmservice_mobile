@@ -14,6 +14,7 @@ import ProfileScreen from './profile';
 
 import Badge from '@/components/ui/Badge';
 import JMLogo from '@/components/ui/JMLogo';
+import { OrbitBackdropContext, OrbitBackground } from '@/components/orbit';
 import { Colors } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { usePushNotificationRegistration } from '@/hooks/usePushNotificationRegistration';
@@ -97,6 +98,9 @@ export default function TabsLayout() {
 
   return (
     <View style={[styles.root, wide && webSidebarStyles.root]}>
+      {/* Website on a computer: one background behind the whole page column (no seams on its sides). */}
+      {wide && <OrbitBackground variant="client" orbits={false} style={StyleSheet.absoluteFill} />}
+      <OrbitBackdropContext.Provider value={wide}>
       <PagerView
         ref={pagerRef}
         style={styles.pager}
@@ -110,6 +114,7 @@ export default function TabsLayout() {
           </View>
         ))}
       </PagerView>
+      </OrbitBackdropContext.Provider>
 
       <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }, wide && webSidebarStyles.tabBar]}>
         {wide && (

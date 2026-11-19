@@ -1,4 +1,4 @@
-export { OrbitBackground } from './OrbitBackground';
+export { OrbitBackdropContext, OrbitBackground } from './OrbitBackground';
 export { OrbitStar } from './OrbitStar';
 export { Plaque } from './Plaque';
 export { BackButton } from './BackButton';

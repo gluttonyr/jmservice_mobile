@@ -73,7 +73,7 @@ function loadAppleJs(): Promise<AppleIDGlobal> {
       AppleID.auth.init({
         clientId: Constants.expoConfig?.extra?.appleServicesId,
         scope: 'name email',
-        // Must be one of the Return URLs of the Services ID (https://app.matistore.tech).
+        // Must be one of the Return URLs of the Services ID (the website address).
         redirectURI: window.location.origin,
         usePopup: true,
       });

@@ -22,7 +22,17 @@ export default ({ config }) => ({
     slug: "matistore",
     icon: "./assets/jm-icon.png",
     // Web build = single-page app (no server pre-render, which would load native modules on the server).
-    web: { ...config.web, output: "single", favicon: "./assets/jm-icon.png" },
+    // Website: its own title and colours (the app name above is still Matistore's, to change with the branding).
+    web: {
+      ...config.web,
+      output: "single",
+      favicon: "./assets/jm-icon.png",
+      name: "JM Services",
+      shortName: "JM Services",
+      description: "Dépôts et retraits de paris avec Mobile Money.",
+      themeColor: "#060B1E",
+      backgroundColor: "#060B1E",
+    },
 
 
     android: {
@@ -130,10 +140,14 @@ export default ({ config }) => ({
       apiUrl: process.env.JM_API_URL || "https://matistore.tech",
       // Client Web (type "Application Web" dans Google Cloud Console) : utilisé
       // uniquement sur la plateforme web (Platform.OS === 'web').
-      googleWebClientId:
-        "75018713485-93ukdgcl61t6hglt00f2c8ck7h8iiifo.apps.googleusercontent.com",
+      // JM Services Google web client (project "JM Services" in Google Cloud). Also the audience the
+      // backend checks (GOOGLE_CLIENT_ID) and the webClientId of the Android app.
+      // JM_GOOGLE_WEB_CLIENT_ID overrides it; an empty value hides Google sign-in on the website.
+      googleWebClientId: process.env.JM_GOOGLE_WEB_CLIENT_ID ??
+        "353560751754-g2s0t3je705b04nk2iq9rfht85l6leb2.apps.googleusercontent.com",
       // Services ID Apple (developer.apple.com) : connexion Apple sur le web uniquement.
-      appleServicesId: "tech.matistore.web",
+      // JM_APPLE_SERVICES_ID overrides it; an empty value hides Apple sign-in on the website.
+      appleServicesId: process.env.JM_APPLE_SERVICES_ID ?? "tech.matistore.web",
       // Client Android (type "Android", lié au package + SHA-1 du keystore) :
       // pas référencé directement en JS — Google Play Services le retrouve tout
       // seul via le package + SHA-1 enregistrés côté Google Cloud Console.

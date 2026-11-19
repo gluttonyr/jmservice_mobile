@@ -7,3 +7,8 @@ dist
 .idea
 *.apk
 *.aab
+.env
+.env.*
+*.log
+modules/*/android/.gradle
+modules/*/android/build

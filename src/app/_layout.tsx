@@ -4,6 +4,7 @@ import '@/components/hideScrollbars';
 import '@/components/lockWebPage';
 import '@/components/webAlert';
 import { UpdateAvailableModal } from '@/components/updateAvailableNodal';
+import { StartAtRoot } from '@/components/StartAtRoot';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useVersionCheck } from '@/hooks/useVersionChech';
 import { useWideWeb } from '@/hooks/useWideWeb';
@@ -52,6 +53,7 @@ export default function RootLayout() {
       <KeyboardProvider>
         <QueryClientProvider client={queryClientRef.current}>
             <WebTheme>
+            <StartAtRoot />
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(auth)" />

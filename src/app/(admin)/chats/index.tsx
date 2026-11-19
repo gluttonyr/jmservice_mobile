@@ -305,7 +305,7 @@ export default function AdminChatsScreen() {
       'support';
 
     router.push({
-      pathname: 'admin_chats/[id]',
+      pathname: '/admin_chats/[id]',
       params: { id: discussion.trackingId, name: discussion.username || discussion.titre, category },
     });
   };

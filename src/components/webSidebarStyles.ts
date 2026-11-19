@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 
 // Website on a computer: the bottom tab bar becomes a left sidebar (used by the (tabs) and (admin) layouts).
 export const webSidebarStyles = StyleSheet.create({
@@ -25,8 +26,13 @@ export const webSidebarStyles = StyleSheet.create({
     borderRadius: 12,
   },
   tabItemActive: { backgroundColor: Colors.cardBg },
-  tabLabel: { fontSize: 16 },
-  // MatiStore logo at the top of the sidebar
+  tabLabel: { fontSize: 16, fontFamily: Font.bodySemiBold },
+  // Admin space: turquoise night instead of the client blue.
+  rootAdmin: { backgroundColor: Colors.adminBg },
+  tabBarAdmin: { borderRightColor: Colors.adminBorder },
+  tabItemActiveAdmin: { backgroundColor: Colors.adminCard },
+  brandAdmin: { borderBottomColor: Colors.adminBorder },
+  // JM Services logo at the top of the sidebar
   brand: {
     alignItems: 'center',
     paddingVertical: 28,

@@ -12,8 +12,11 @@ import Toast from 'react-native-toast-message';
 export function useGoogleAuth() {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  // Empty when the website was built without JM_GOOGLE_WEB_CLIENT_ID: the button is hidden
+  // (the placeholder only keeps expo-auth-session from throwing; it is never used).
+  const webClientId: string = Constants.expoConfig?.extra?.googleWebClientId ?? '';
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: Constants.expoConfig?.extra?.googleWebClientId,
+    webClientId: webClientId || 'not-configured',
   });
 
   useEffect(() => {
@@ -61,10 +64,10 @@ export function useGoogleAuth() {
   }, [response, queryClient]);
 
   const signInWithGoogle = async () => {
-    if (!request) return;
+    if (!request || !webClientId) return;
     setLoading(true);
     await promptAsync();
   };
 
-  return { signInWithGoogle, loading, available: true };
+  return { signInWithGoogle, loading, available: !!webClientId };
 }

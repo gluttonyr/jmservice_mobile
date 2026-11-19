@@ -4,6 +4,13 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import AppleWebButton from '@/components/AppleWebButton';
 import { Colors } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
+import Constants from 'expo-constants';
+
+// Apple sign-in is switched off for now (iPhone not set up yet for JM Services). Set to true once the
+// Apple identifiers of JM Services exist: Services ID for the website (JM_APPLE_SERVICES_ID), bundle for iOS.
+const APPLE_SIGN_IN_ENABLED = false;
+// Website: Apple sign-in needs a Services ID registered for this domain (JM_APPLE_SERVICES_ID at build time).
+const appleWebConfigured = APPLE_SIGN_IN_ENABLED && !!Constants.expoConfig?.extra?.appleServicesId;
 
 type Props = {
   mode: 'signin' | 'signup';
@@ -16,6 +23,10 @@ type Props = {
 /** "ou" divider, then the Google and Apple buttons, shown exactly as before (same conditions per platform). */
 export function SocialAuthButtons({ mode, googleAvailable, googleLoading, onGoogle, onApple }: Props) {
   const signup = mode === 'signup';
+  const appleIos = APPLE_SIGN_IN_ENABLED && Platform.OS === 'ios';
+  const appleShown = appleIos || (Platform.OS === 'web' && appleWebConfigured);
+  // Nothing to offer (website without Google / Apple identifiers): no "ou" divider either.
+  if (!googleAvailable && !appleShown) return null;
   return (
     <View>
       <View style={styles.dividerRow}>
@@ -33,7 +44,7 @@ export function SocialAuthButtons({ mode, googleAvailable, googleLoading, onGoog
         </TouchableOpacity>
       )}
 
-      {Platform.OS === 'ios' && (
+      {appleIos && (
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={signup
             ? AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP
@@ -45,7 +56,7 @@ export function SocialAuthButtons({ mode, googleAvailable, googleLoading, onGoog
           onPress={onApple}
         />
       )}
-      {Platform.OS === 'web' && (
+      {Platform.OS === 'web' && appleWebConfigured && (
         <AppleWebButton title={signup ? "S'inscrire avec Apple" : 'Continuer avec Apple'} onPress={onApple} />
       )}
     </View>
