@@ -1,26 +1,10 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import Badge from '@/components/ui/Badge';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
+import { OrbitBackground } from '@/components/orbit';
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Discussion, DiscussionType } from '@/data_api/models/discussion.types';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { discussionService } from '@/data_api/services/discussionService';
@@ -38,35 +22,33 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  Platform,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 
 // ✅ Clés alignées sur DiscussionType enum
-const typeConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+// Same colours as the chat backgrounds: deposit/withdrawal gold, support blue, forum chrome.
+const typeConfig: Record<string, { icon: React.ReactNode; colors: readonly [string, string] }> = {
   [DiscussionType.SUPPORT]: {
-    icon: <HeadphonesIcon color="#fff" size={20} />,
-    color: '#4FC3F7',
-    bg: '#1565C0',
+    icon: <HeadphonesIcon color="#fff" size={24} />,
+    colors: ['#3D8BFF', '#1F5FE0'],
   },
   [DiscussionType.DEPOT_RETRAIT]: {
-    icon: <ArrowLeftRight color="#fff" size={20} />,
-    color: Colors.primaryGreen,
-    bg: '#1B5E20',
+    icon: <ArrowLeftRight color="#1A1405" size={24} />,
+    colors: ['#FFD255', '#FF9F1C'],
   },
   [DiscussionType.FORUM]: {
-    icon: <MessageCircle color="#fff" size={20} />,
-    color: '#CE93D8',
-    bg: '#4A148C',
+    icon: <MessageCircle color="#fff" size={24} />,
+    colors: ['#5C6B92', '#2D3A63'],
   },
 };
 
 // Fallback si le type n'est pas reconnu
 const defaultConfig = {
-  icon: <MessageCircle color="#fff" size={20} />,
-  color: '#CE93D8',
-  bg: '#4A148C',
+  icon: <MessageCircle color="#fff" size={24} />,
+  colors: ['#5C6B92', '#2D3A63'] as const,
 };
 
 // Formate la date ISO en heure lisible
@@ -93,6 +75,7 @@ export default function ChatsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth(); // ✅ Récupérez l'utilisateur connecté
+  const insets = useSafeAreaInsets();
 
   const fetchDiscussions = useCallback(async () => {
     if (!user?.trackingId) {
@@ -141,15 +124,15 @@ export default function ChatsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <OrbitBackground orbits={false}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 18 }]}>
         <Text style={styles.headerTitle}>Messages</Text>
       </View>
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Search color={Colors.textSecondary} size={18} />
+        <Search color={Colors.textSecondary} size={20} />
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher une conversation..."
@@ -185,12 +168,12 @@ export default function ChatsScreen() {
                 onPress={() => navigateToChat(item)}
                 activeOpacity={0.75}
               >
-                <View style={[styles.avatarContainer, { backgroundColor: config.bg }]}>
+                <LinearGradient colors={config.colors} style={styles.avatarContainer} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                   {config.icon}
-                </View>
+                </LinearGradient>
                 <View style={styles.convContent}>
                   <View style={styles.convHeader}>
-                    <Text style={styles.convName}>{item.titre}</Text>
+                    <Text style={styles.convName} numberOfLines={1}>{item.titre}</Text>
                     <Text style={styles.convTime}>{formatTime(item.lastMessageAt)}</Text>
                   </View>
                   <View style={styles.convFooter}>
@@ -206,60 +189,57 @@ export default function ChatsScreen() {
           }}
         />
       )}
-    </View>
+    </OrbitBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  headerTitle: { color: Colors.white, fontSize: 24, fontWeight: '900', letterSpacing: 0.5 },
+  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  headerTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 30, textTransform: 'uppercase' },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
+    backgroundColor: Colors.night,
+    borderRadius: 18,
     marginHorizontal: 20,
-    marginBottom: 16,
-    paddingHorizontal: 14,
+    marginBottom: 14,
+    paddingHorizontal: 16,
     gap: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 1.5,
+    borderColor: 'rgba(120,150,230,0.18)',
   },
   searchInput: {
     flex: 1,
-    color: Colors.white,
-    fontSize: 14,
-    paddingVertical: 12,
+    color: Colors.chrome,
+    fontFamily: Font.body,
+    fontSize: 15,
+    paddingVertical: 14,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
   loaderContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyContainer: { flex: 1, alignItems: 'center', paddingTop: 60 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
-  listContent: { paddingBottom: 20 },
-  separator: { height: 1, backgroundColor: Colors.border, marginLeft: 80 },
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
+  listContent: { paddingHorizontal: 16, paddingBottom: 20 },
+  separator: { height: 10 },
   convItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
     paddingVertical: 14,
     gap: 14,
+    borderRadius: 24,
+    backgroundColor: 'rgba(17,28,63,0.9)',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   avatarContainer: {
-    width: 52, height: 52, borderRadius: 26,
+    width: 54, height: 54, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    position: 'relative',
   },
-  convContent: { flex: 1 },
-  convHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  convName: { color: Colors.white, fontSize: 15, fontWeight: '700' },
-  convTime: { color: Colors.textSecondary, fontSize: 12 },
+  convContent: { flex: 1, minWidth: 0 },
+  convHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4, gap: 8 },
+  convName: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
+  convTime: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 12 },
   convFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  convLastMsg: { flex: 1, color: Colors.textSecondary, fontSize: 13, marginRight: 8 },
+  convLastMsg: { flex: 1, color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, marginRight: 8 },
 });

@@ -4,6 +4,7 @@ import { DateSeparator } from '@/components/dateSeparator';
 import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ChatBackground } from '@/components/ChatBackground';
 
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { MessageType } from '@/data_api/models/message.types';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
@@ -43,21 +44,21 @@ const CATEGORY_CONFIG: Record<
 > = {
   deposit: {
     label: 'Dépôt',
-    color: Colors.primaryGreen,
-    bg: 'rgba(125,255,42,0.1)',
-    icon: <ArrowDownToLine color={Colors.primaryGreen} size={16} />,
+    color: Colors.gold,
+    bg: 'rgba(255,194,51,0.14)',
+    icon: <ArrowDownToLine color={Colors.gold} size={18} />,
   },
   withdrawal: {
     label: 'Retrait',
     color: '#F59E0B',
     bg: 'rgba(245,158,11,0.1)',
-    icon: <ArrowUpFromLine color="#F59E0B" size={16} />,
+    icon: <ArrowUpFromLine color="#F59E0B" size={18} />,
   },
   support: {
     label: 'Support',
     color: '#38BDF8',
     bg: 'rgba(56,189,248,0.1)',
-    icon: <HeadphonesIcon color="#38BDF8" size={16} />,
+    icon: <HeadphonesIcon color="#38BDF8" size={18} />,
   },
 };
 
@@ -164,11 +165,11 @@ useEffect(() => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
     >
-      <ChatBackground variant="admin" iconColor="#FFFFFF" />
+      <ChatBackground variant="admin" backgroundColor={Colors.adminBg} />
       {/* ── Header ── */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <ChevronLeft color={Colors.white} size={24} />
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Retour">
+          <ChevronLeft color={Colors.chrome} size={28} />
         </TouchableOpacity>
         <View style={[styles.catIconWrap, { backgroundColor: catConf.bg }]}>
           {catConf.icon}
@@ -197,7 +198,7 @@ useEffect(() => {
               params: { discussionId: id, clientName: name },
             })}
           >
-            <History color={Colors.white} size={20} />
+            <History color={Colors.admin} size={24} />
           </TouchableOpacity>
         )}
       </View>
@@ -205,7 +206,7 @@ useEffect(() => {
       {/* ── Messages ── */}
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.admin} size="large" />
         </View>
       ) : (
         <SectionList
@@ -219,14 +220,15 @@ useEffect(() => {
     <RefreshControl
       refreshing={loadingMore}
       onRefresh={loadMoreHistory}
-      tintColor={Colors.primaryGreen}
-      colors={[Colors.primaryGreen]}
-      progressBackgroundColor={Colors.cardBg}
+      tintColor={Colors.admin}
+      colors={[Colors.admin]}
+      progressBackgroundColor={Colors.adminCard}
     />
   }
-          renderSectionHeader={({ section }) => <DateSeparator label={section.title} />}
+          renderSectionHeader={({ section }) => <DateSeparator accent="admin" label={section.title} />}
           renderItem={({ item }) => (
             <ChatMessage
+              accent="admin"
               item={item}
               currentUserId={currentUserId}
               onImagePress={setPreviewUri}
@@ -248,20 +250,25 @@ useEffect(() => {
       {showQuickReplies && (
         <View style={styles.quickRepliesContainer}>
           <View style={styles.quickRepliesHeader}>
-            <Text style={styles.quickRepliesTitle}>Réponses rapides</Text>
-            <TouchableOpacity onPress={() => setShowQuickReplies(false)}>
-              <ChevronDown color="#A78BFA" size={16} style={{ transform: [{ rotate: '180deg' }] }} />
+            <View style={styles.quickRepliesTitleRow}>
+              <Shield color={Colors.admin} size={18} />
+              <Text style={styles.quickRepliesTitle}>Réponses rapides</Text>
+            </View>
+            <TouchableOpacity onPress={() => setShowQuickReplies(false)} hitSlop={8}>
+              <Text style={styles.quickRepliesHide}>Masquer</Text>
             </TouchableOpacity>
           </View>
-          {QUICK_REPLIES[cat].map((reply, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.quickReplyItem}
-              onPress={() => handleQuickReply(reply)}
-            >
-              <Text style={styles.quickReplyText}>{reply}</Text>
-            </TouchableOpacity>
-          ))}
+          <View style={styles.quickRepliesRow}>
+            {QUICK_REPLIES[cat].map((reply, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.quickReplyItem, reply.includes('✅') && styles.quickReplyItemFirst]}
+                onPress={() => handleQuickReply(reply)}
+              >
+                <Text style={[styles.quickReplyText, reply.includes('✅') && styles.quickReplyTextFirst]}>{reply}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       )}
 
@@ -271,17 +278,17 @@ useEffect(() => {
           style={[styles.quickToggleBtn, showQuickReplies && styles.quickToggleBtnActive]}
           onPress={() => setShowQuickReplies((v) => !v)}
         >
-          <Shield color={showQuickReplies ? '#A78BFA' : Colors.textSecondary} size={14} />
+          <Shield color={showQuickReplies ? Colors.admin : Colors.textSecondary} size={14} />
           <Text
             style={[
               styles.quickToggleText,
-              showQuickReplies && { color: '#A78BFA' },
+              showQuickReplies && { color: Colors.admin },
             ]}
           >
             Réponses rapides
           </Text>
           <ChevronDown
-            color={showQuickReplies ? '#A78BFA' : Colors.textSecondary}
+            color={showQuickReplies ? Colors.admin : Colors.textSecondary}
             size={14}
             style={{ transform: [{ rotate: showQuickReplies ? '180deg' : '0deg' }] }}
           />
@@ -290,6 +297,7 @@ useEffect(() => {
 
       {/* ── Input bar complet (texte, fichier, mic, sticker) ── */}
       <ChatInputBar
+        accent="admin"
         text={text}
         onChangeText={setText}
         onSendText={handleSendText}
@@ -305,97 +313,41 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  quickRepliesTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  quickRepliesHide: { fontFamily: Font.bodyMedium, color: Colors.textSecondary, fontSize: 14 },
+  quickRepliesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  quickReplyItemFirst: { backgroundColor: 'rgba(61,220,151,0.1)', borderColor: 'rgba(61,220,151,0.45)' },
+  quickReplyTextFirst: { color: Colors.success },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 56,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.secondaryBg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: 10,
-  },
+  emptyText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 14, paddingHorizontal: 14, backgroundColor: 'rgba(6,18,24,0.97)', borderBottomWidth: 1, borderBottomColor: Colors.adminBorder, gap: 10 },
   backBtn: { padding: 4 },
-  catIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  catIconWrap: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   headerInfo: { flex: 1 },
-  headerName: { color: Colors.white, fontSize: 15, fontWeight: '700' },
-  headerSubRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
-  catPill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
-  catPillText: { fontSize: 10, fontWeight: '700' },
-  headerStatus: { color: Colors.primaryGreen, fontSize: 11 },
-  transactionsButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+  headerName: { fontFamily: Font.bodyExtraBold, color: Colors.chrome, fontSize: 19 },
+  headerSubRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 },
+  catPill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
+  catPillText: { fontFamily: Font.bodyBold, fontSize: 13 },
+  headerStatus: { fontFamily: Font.body, color: Colors.admin, fontSize: 11 },
+  transactionsButton: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: 'rgba(25,211,197,0.1)', borderWidth: 1, borderColor: 'rgba(25,211,197,0.35)' },
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },
-
-  quickToggleRow: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    backgroundColor: Colors.secondaryBg,
-  },
-  quickToggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
-  },
+  quickToggleRow: { paddingHorizontal: 12, paddingTop: 8, backgroundColor: 'rgba(6,18,24,0.97)' },
+  quickToggleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14, borderWidth: 1, borderColor: Colors.adminBorder, backgroundColor: Colors.adminCard },
   quickToggleBtnActive: {
-    borderColor: 'rgba(167,139,250,0.4)',
-    backgroundColor: 'rgba(167,139,250,0.1)',
+    borderColor: 'rgba(25,211,197,0.4)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
   },
-  quickToggleText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
-
-  quickRepliesContainer: {
-    backgroundColor: Colors.secondaryBg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    padding: 14,
-    gap: 8,
-  },
+  quickToggleText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 13 },
+  quickRepliesContainer: { backgroundColor: 'rgba(6,18,24,0.97)', borderTopWidth: 1, borderTopColor: Colors.adminBorder, padding: 14, gap: 10 },
   quickRepliesHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
   },
-  quickRepliesTitle: {
-    color: '#A78BFA',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  quickReplyItem: {
-    backgroundColor: 'rgba(167,139,250,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.2)',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  quickReplyText: { color: Colors.white, fontSize: 13 },
+  quickRepliesTitle: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 16 },
+  quickReplyItem: { backgroundColor: Colors.adminCard, borderWidth: 1.5, borderColor: 'rgba(25,211,197,0.28)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, maxWidth: '100%' },
+  quickReplyText: { fontFamily: Font.bodySemiBold, color: Colors.chrome, fontSize: 14 },
 });

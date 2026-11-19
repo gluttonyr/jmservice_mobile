@@ -6,6 +6,7 @@ import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
 import { ChatBackground } from '@/components/ChatBackground';
 
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import type { Discussion } from '@/data_api/models/discussion.types';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
@@ -179,18 +180,18 @@ useEffect(() => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ChatBackground variant="forum" iconColor="#FFFFFF" />
+      <ChatBackground variant="forum" backgroundColor={Colors.adminBg} />
       <StatusBar barStyle="light-content" />
 
       {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerIconWrap}>
-            <MessageSquare color="#A78BFA" size={17} strokeWidth={2.5} />
+            <MessageSquare color={Colors.admin} size={17} strokeWidth={2.5} />
           </View>
           <View>
             <View style={styles.adminBadgeRow}>
-              <Shield color="#A78BFA" size={10} />
+              <Shield color={Colors.admin} size={10} />
               <Text style={styles.adminBadgeText}>ADMIN</Text>
             </View>
             <Text style={styles.headerTitle}>Forum</Text>
@@ -200,7 +201,7 @@ useEffect(() => {
           style={[styles.settingsBtn, showSettings && styles.settingsBtnActive]}
           onPress={() => setShowSettings((v) => !v)}
         >
-          <Settings color={showSettings ? '#A78BFA' : Colors.textSecondary} size={18} />
+          <Settings color={showSettings ? Colors.admin : Colors.textSecondary} size={18} />
         </TouchableOpacity>
       </View>
 
@@ -213,8 +214,8 @@ useEffect(() => {
         <View style={[styles.statCard, locked && styles.statCardLocked]}>
           {locked
             ? <Lock color="#F87171" size={14} />
-            : <Unlock color={Colors.primaryGreen} size={14} />}
-          <Text style={[styles.statLabel, { marginTop: 3, color: locked ? '#F87171' : Colors.primaryGreen }]}>
+            : <Unlock color={Colors.admin} size={14} />}
+          <Text style={[styles.statLabel, { marginTop: 3, color: locked ? '#F87171' : Colors.admin }]}>
             {locked ? 'Verrouillé' : 'Ouvert'}
           </Text>
         </View>
@@ -225,7 +226,7 @@ useEffect(() => {
         <View style={styles.settingsPanel}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              {locked ? <Lock color="#F87171" size={16} /> : <Unlock color={Colors.primaryGreen} size={16} />}
+              {locked ? <Lock color="#F87171" size={16} /> : <Unlock color={Colors.admin} size={16} />}
               <Text style={styles.settingLabel}>
                 {locked ? 'Forum verrouillé' : 'Forum ouvert'}
               </Text>
@@ -233,7 +234,7 @@ useEffect(() => {
             <Switch
               value={locked}
               onValueChange={handleToggleLock}
-              trackColor={{ false: Colors.border, true: 'rgba(248,113,113,0.4)' }}
+              trackColor={{ false: Colors.adminBorder, true: 'rgba(248,113,113,0.4)' }}
               thumbColor={locked ? '#F87171' : Colors.textSecondary}
             />
           </View>
@@ -262,7 +263,7 @@ useEffect(() => {
         <ConnectionErrorState onRetry={loadForum} fullscreen />
       ) : forumLoading || loading || !discussionId ? (
         <View style={styles.loader}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.admin} size="large" />
         </View>
       ) : (
         <SectionList
@@ -276,16 +277,17 @@ useEffect(() => {
     <RefreshControl
       refreshing={loadingMore}
       onRefresh={loadMoreHistory}
-      tintColor={Colors.primaryGreen}
-      colors={[Colors.primaryGreen]}
-      progressBackgroundColor={Colors.cardBg}
+      tintColor={Colors.admin}
+      colors={[Colors.admin]}
+      progressBackgroundColor={Colors.adminCard}
     />
   }
-          renderSectionHeader={({ section }) => <DateSeparator label={section.title} />}
+          renderSectionHeader={({ section }) => <DateSeparator accent="admin" label={section.title} />}
           
   
           renderItem={({ item }) => (
             <ChatMessage
+              accent="admin"
               item={item}
               currentUserId={currentUserId}
               onImagePress={setPreviewUri}
@@ -321,12 +323,12 @@ useEffect(() => {
           style={[styles.quickToggleBtn, showQuickReplies && styles.quickToggleBtnActive]}
           onPress={() => setShowQuickReplies((v) => !v)}
         >
-          <Crown color={showQuickReplies ? '#A78BFA' : Colors.textSecondary} size={14} />
-          <Text style={[styles.quickToggleText, showQuickReplies && { color: '#A78BFA' }]}>
+          <Crown color={showQuickReplies ? Colors.admin : Colors.textSecondary} size={14} />
+          <Text style={[styles.quickToggleText, showQuickReplies && { color: Colors.admin }]}>
             Réponses rapides
           </Text>
           <ChevronDown
-            color={showQuickReplies ? '#A78BFA' : Colors.textSecondary}
+            color={showQuickReplies ? Colors.admin : Colors.textSecondary}
             size={14}
             style={{ transform: [{ rotate: showQuickReplies ? '180deg' : '0deg' }] }}
           />
@@ -334,6 +336,7 @@ useEffect(() => {
       </View>
 
       <ChatInputBar
+        accent="admin"
         text={text}
         onChangeText={setText}
         onSendText={() => handleSendText()}
@@ -349,10 +352,10 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
+  emptyText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14 },
 
   header: {
     flexDirection: 'row',
@@ -361,37 +364,37 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: 14,
     paddingHorizontal: 20,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerIconWrap: {
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: 'rgba(167,139,250,0.1)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.25)',
+    borderColor: 'rgba(25,211,197,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   adminBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 2 },
-  adminBadgeText: { color: '#A78BFA', fontSize: 9, fontWeight: '800', letterSpacing: 1.2 },
-  headerTitle: { color: Colors.white, fontSize: 18, fontWeight: '900' },
+  adminBadgeText: { fontFamily: Font.bodyExtraBold, color: Colors.admin, fontSize: 9, letterSpacing: 1.2 },
+  headerTitle: { fontFamily: Font.title, color: Colors.white, fontSize: 18 },
   settingsBtn: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsBtnActive: {
-    backgroundColor: 'rgba(167,139,250,0.1)',
-    borderColor: 'rgba(167,139,250,0.3)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
+    borderColor: 'rgba(25,211,197,0.3)',
   },
 
   statsRow: {
@@ -399,28 +402,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 8,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     alignItems: 'center',
     paddingVertical: 8,
     gap: 2,
   },
   statCardLocked: { borderColor: 'rgba(248,113,113,0.3)', backgroundColor: 'rgba(248,113,113,0.05)' },
-  statNum: { color: Colors.primaryGreen, fontSize: 18, fontWeight: '900' },
-  statLabel: { color: Colors.textSecondary, fontSize: 10, fontWeight: '600' },
+  statNum: { fontFamily: Font.bodyExtraBold, color: Colors.admin, fontSize: 18 },
+  statLabel: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 10 },
 
   settingsPanel: {
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
@@ -429,16 +432,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   settingInfo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  settingLabel: { color: Colors.white, fontSize: 13, fontWeight: '600' },
-  settingHint: { color: Colors.textSecondary, fontSize: 11, paddingHorizontal: 2 },
+  settingLabel: { fontFamily: Font.bodySemiBold, color: Colors.white, fontSize: 13 },
+  settingHint: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11, paddingHorizontal: 2 },
 
   pinnedBar: {
     flexDirection: 'row',
@@ -450,16 +453,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(245,158,11,0.15)',
   },
-  pinnedBarLabel: { color: '#F59E0B', fontSize: 10, fontWeight: '700' },
-  pinnedBarText: { color: Colors.textSecondary, fontSize: 12, marginTop: 1 },
-  unpinLink: { color: '#F59E0B', fontSize: 11, fontWeight: '700' },
+  pinnedBarLabel: { fontFamily: Font.bodyBold, color: '#F59E0B', fontSize: 10 },
+  pinnedBarText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 12, marginTop: 1 },
+  unpinLink: { fontFamily: Font.bodyBold, color: '#F59E0B', fontSize: 11 },
 
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },
 
   quickToggleRow: {
     paddingHorizontal: 12,
     paddingTop: 8,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
   },
   quickToggleBtn: {
     flexDirection: 'row',
@@ -470,36 +473,35 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: Colors.adminBorder,
+    backgroundColor: Colors.adminCard,
   },
   quickToggleBtnActive: {
-    borderColor: 'rgba(167,139,250,0.4)',
-    backgroundColor: 'rgba(167,139,250,0.1)',
+    borderColor: 'rgba(25,211,197,0.4)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
   },
-  quickToggleText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  quickToggleText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 12 },
 
   quickRepliesContainer: {
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors.adminBorder,
     padding: 14,
     gap: 8,
     maxHeight: 200,
   },
-  quickRepliesTitle: {
-    color: '#A78BFA',
+  quickRepliesTitle: { fontFamily: Font.bodyExtraBold,
+    color: Colors.admin,
     fontSize: 10,
-    fontWeight: '800',
     letterSpacing: 1,
   },
   quickReplyItem: {
-    backgroundColor: 'rgba(167,139,250,0.08)',
+    backgroundColor: 'rgba(25,211,197,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.2)',
+    borderColor: 'rgba(25,211,197,0.2)',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  quickReplyText: { color: Colors.white, fontSize: 13 },
+  quickReplyText: { fontFamily: Font.body, color: Colors.white, fontSize: 13 },
 });

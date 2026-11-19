@@ -6,10 +6,14 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/constants/colors';
+import { Colors, Gradients } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 
+// Name kept for the existing screens. « Orbite » buttons: gold = main action,
+// outline = navy with a blue border (e.g. "CRÉER UN COMPTE"), ghost = gold text.
 interface GreenButtonProps {
   title: string;
   onPress: () => void;
@@ -21,6 +25,12 @@ interface GreenButtonProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
+const SIZES = {
+  sm: { paddingVertical: 10, paddingHorizontal: 18, fontSize: 14 },
+  md: { paddingVertical: 15, paddingHorizontal: 26, fontSize: 17 },
+  lg: { paddingVertical: 19, paddingHorizontal: 30, fontSize: 19 },
+};
+
 export default function GreenButton({
   title,
   onPress,
@@ -31,30 +41,21 @@ export default function GreenButton({
   variant = 'primary',
   size = 'md',
 }: GreenButtonProps) {
-  const sizeStyles = {
-    sm: { paddingVertical: 10, paddingHorizontal: 20, fontSize: 13 },
-    md: { paddingVertical: 14, paddingHorizontal: 28, fontSize: 15 },
-    lg: { paddingVertical: 18, paddingHorizontal: 32, fontSize: 17 },
-  };
-
-  const currentSize = sizeStyles[size];
+  const currentSize = SIZES[size];
+  const padding = { paddingVertical: currentSize.paddingVertical, paddingHorizontal: currentSize.paddingHorizontal };
 
   if (variant === 'outline') {
     return (
       <TouchableOpacity
         onPress={onPress}
         disabled={disabled || loading}
-        style={[
-          styles.outlineBtn,
-          { paddingVertical: currentSize.paddingVertical, paddingHorizontal: currentSize.paddingHorizontal },
-          disabled && styles.disabled,
-          style,
-        ]}
+        style={[styles.outlineBtn, padding, disabled && styles.disabled, style]}
         activeOpacity={0.7}
+        accessibilityRole="button"
       >
-        <Text style={[styles.outlineText, { fontSize: currentSize.fontSize }, textStyle]}>
-          {loading ? <ActivityIndicator size="small" color={Colors.primaryGreen} /> : title}
-        </Text>
+        {loading
+          ? <ActivityIndicator size="small" color={Colors.chrome} />
+          : <Text style={[styles.titleText, styles.outlineText, { fontSize: currentSize.fontSize }, textStyle]}>{title}</Text>}
       </TouchableOpacity>
     );
   }
@@ -64,16 +65,13 @@ export default function GreenButton({
       <TouchableOpacity
         onPress={onPress}
         disabled={disabled || loading}
-        style={[
-          { paddingVertical: currentSize.paddingVertical, paddingHorizontal: currentSize.paddingHorizontal },
-          disabled && styles.disabled,
-          style,
-        ]}
+        style={[padding, styles.center, disabled && styles.disabled, style]}
         activeOpacity={0.7}
+        accessibilityRole="button"
       >
-        <Text style={[styles.ghostText, { fontSize: currentSize.fontSize }, textStyle]}>
-          {loading ? <ActivityIndicator size="small" color={Colors.primaryGreen} /> : title}
-        </Text>
+        {loading
+          ? <ActivityIndicator size="small" color={Colors.gold} />
+          : <Text style={[styles.ghostText, { fontSize: currentSize.fontSize - 2 }, textStyle]}>{title}</Text>}
       </TouchableOpacity>
     );
   }
@@ -82,22 +80,24 @@ export default function GreenButton({
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
-      style={[disabled && styles.disabled, style]}
+      activeOpacity={0.85}
+      style={[!disabled && styles.goldGlow, disabled && styles.disabled, style]}
+      accessibilityRole="button"
     >
       <LinearGradient
-        colors={disabled ? ['#444', '#333'] : ['#7DFF2A', '#52D726']}
+        colors={disabled ? ['#2A3558', '#222B48'] : Gradients.gold}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[
-          styles.gradient,
-          { paddingVertical: currentSize.paddingVertical, paddingHorizontal: currentSize.paddingHorizontal },
-        ]}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradient, padding]}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#000" />
+          <ActivityIndicator size="small" color={Colors.onGold} />
         ) : (
-          <Text style={[styles.primaryText, { fontSize: currentSize.fontSize }, textStyle]}>{title}</Text>
+          <View style={styles.center}>
+            <Text style={[styles.titleText, styles.primaryText, disabled && styles.disabledText, { fontSize: currentSize.fontSize }, textStyle]}>
+              {title}
+            </Text>
+          </View>
         )}
       </LinearGradient>
     </TouchableOpacity>
@@ -105,33 +105,40 @@ export default function GreenButton({
 }
 
 const styles = StyleSheet.create({
+  center: { alignItems: 'center', justifyContent: 'center' },
   gradient: {
-    borderRadius: 12,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryText: {
-    color: '#000',
-    fontWeight: '800',
-    letterSpacing: 0.5,
+  goldGlow: {
+    borderRadius: 18,
+    shadowColor: Colors.goldEnd,
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
+  titleText: {
+    fontFamily: Font.title,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    textAlign: 'center',
+  },
+  primaryText: { color: Colors.onGold },
+  disabledText: { color: Colors.textSecondary },
   outlineBtn: {
-    borderRadius: 12,
+    borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: Colors.primaryGreen,
+    borderColor: Colors.blueLight,
+    backgroundColor: Colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  outlineText: {
-    color: Colors.primaryGreen,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  outlineText: { color: Colors.chrome },
   ghostText: {
-    color: Colors.primaryGreen,
-    fontWeight: '600',
+    color: Colors.gold,
+    fontFamily: Font.bodyBold,
   },
-  disabled: {
-    opacity: 0.5,
-  },
+  disabled: { opacity: 0.6 },
 });

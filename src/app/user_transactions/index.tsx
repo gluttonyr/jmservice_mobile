@@ -1,23 +1,16 @@
 import { useWideWeb } from '@/hooks/useWideWeb';
 import { webSidebarStyles } from '@/components/webSidebarStyles';
-import { Colors } from '@/constants/colors';
+import { FlowHeader, OrbitBackground, StarStepper } from '@/components/orbit';
+import { Colors, StatusColors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Transaction, TransactionStatus } from '@/data_api/models/transaction.types';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { transactionService } from '@/data_api/services/transactionService';
 import { socketService } from '@/data_api/services/socketService';
 import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
-import {
-  BadgeCheck,
-  Check,
-  ChevronLeft,
-  CircleX,
-  Clock3,
-  Phone,
-  Smartphone,
-} from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -94,6 +87,28 @@ const STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
 
 const FLOW_STEPS = ['Demande', 'Vérification', 'Terminé'];
 
+// Short label of the status pill on finished transactions.
+const TERMINAL_LABEL: Partial<Record<TransactionStatus, string>> = {
+  VALIDEE: 'Validée',
+  REJETEE: 'Refusée',
+  ANNULEE: 'Annulée',
+};
+
+// "Aujourd'hui à 11:05", "Hier à 09:12", "6 nov. à 19:47".
+function formatWhen(iso: string): string {
+  const date = new Date(iso);
+  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const today = new Date();
+  const yesterday = new Date(today.getTime() - 86_400_000);
+  if (date.toDateString() === today.toDateString()) return `Aujourd'hui à ${time}`;
+  if (date.toDateString() === yesterday.toDateString()) return `Hier à ${time}`;
+  const sameYear = date.getFullYear() === today.getFullYear();
+  const day = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) });
+  return `${day} à ${time}`;
+}
+
+const formatAmount = (value: number) => value.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ');
+
 export default function UserTransactionsScreen() {
   const { token } = useAuth();
   const wide = useWideWeb();
@@ -164,14 +179,11 @@ export default function UserTransactionsScreen() {
     };
   }, [load, token]);
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={st.container}>
-      <View style={st.header}>
-        <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
-          <ChevronLeft color={Colors.white} size={24} />
-        </TouchableOpacity>
-        <Text style={st.headerTitle}>Mes transactions</Text>
-      </View>
+    <OrbitBackground orbits={false}>
+      <FlowHeader title="Mes transactions" onBack={() => router.back()} top={insets.top} />
 
       {loading ? (
         <View style={st.loader}>
@@ -200,7 +212,7 @@ export default function UserTransactionsScreen() {
           ListEmptyComponent={() => (
             <Text style={st.emptyText}>Aucune transaction pour le moment.</Text>
           )}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const config = item.type === 'RETRAIT' && item.statut === 'VALIDEE'
               ? {
                 ...STATUS_CONFIG[item.statut],
@@ -236,84 +248,87 @@ export default function UserTransactionsScreen() {
                   description: `Demande de retrait validée. Votre compte 1XBET a été débité${item.montant > 0 ? ` de ${item.montant.toLocaleString('fr-FR')} FCFA` : ''}. Patientez pendant la préparation de l’envoi au numéro indiqué.`,
               }
                 : STATUS_CONFIG[item.statut];
-            const date = new Date(item.createdAt);
+
+            const tone = StatusColors[item.statut];
+            const finished = !!config.terminal;
+            const rejected = item.statut === 'REJETEE';
+            const credited = item.type === 'DEPOT' && item.statut === 'VALIDEE';
+            const last = index === transactions.length - 1;
+            const amount = item.montant > 0 ? formatAmount(item.montant) : null;
+            const dotColor = finished ? tone.fg : Colors.blueLight;
 
             return (
-              <View style={[st.card, { borderLeftColor: config.color }]}>
-                <View style={st.cardHeader}>
-                  <View style={[st.typeIcon, { backgroundColor: item.type === 'DEPOT' ? 'rgba(125,255,42,0.12)' : 'rgba(245,158,11,0.12)' }]}>
-                    <Smartphone color={item.type === 'DEPOT' ? Colors.primaryGreen : '#F59E0B'} size={18} />
-                  </View>
-                  <View style={st.titleGroup}>
-                    <Text style={st.cardType}>{item.type === 'DEPOT' ? 'Dépôt' : 'Retrait'} · {item.operateur || 'Mobile Money'}</Text>
-                    <Text style={st.cardDate}>
-                      {date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      {' · '}
-                      {date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
-                  <Text style={st.cardAmount}>
-                    {item.montant > 0 ? `${item.montant.toLocaleString('fr-FR')} FCFA` : 'Montant non renseigné'}
-                  </Text>
+              <View style={st.row}>
+                {/* Timeline */}
+                <View style={st.rail}>
+                  <View style={[st.dot, { backgroundColor: dotColor }, !finished && st.dotActive]} />
+                  {!last && <View style={st.railLine} />}
                 </View>
 
-                <View style={[st.statusPanel, { backgroundColor: `${config.color}12`, borderColor: `${config.color}45` }]}>
-                  <View style={[st.statusIcon, { backgroundColor: `${config.color}20` }]}>
-                    {config.terminal === 'success' ? (
-                      <BadgeCheck color={config.color} size={20} />
-                    ) : config.terminal === 'error' ? (
-                      <CircleX color={config.color} size={20} />
+                <View style={[st.card, !finished && st.cardActive, rejected && st.cardRejected]}>
+                  <View style={st.cardHeader}>
+                    <View style={st.titleGroup}>
+                      <Text style={st.cardType} numberOfLines={1}>
+                        {item.type === 'DEPOT' ? 'Dépôt' : 'Retrait'} · {item.operateur || 'Mobile Money'}
+                      </Text>
+                      <View style={st.metaRow}>
+                        {finished && (
+                          <View style={[st.pill, { backgroundColor: tone.bg }]}>
+                            <Text style={[st.pillText, { color: tone.fg }]}>{TERMINAL_LABEL[item.statut]}</Text>
+                          </View>
+                        )}
+                        <Text style={st.cardDate}>{formatWhen(item.createdAt)}</Text>
+                      </View>
+                    </View>
+                    {amount ? (
+                      <View style={st.amountWrap}>
+                        <Text style={[st.cardAmount, credited && { color: Colors.success }, rejected && st.amountMuted]}>
+                          {credited ? `+${amount}` : amount}
+                        </Text>
+                        {!finished && <Text style={st.cardCurrency}>FCFA</Text>}
+                      </View>
                     ) : (
-                      <Clock3 color={config.color} size={20} />
+                      <Text style={st.amountUnknown}>Montant non renseigné</Text>
                     )}
                   </View>
-                  <View style={st.statusCopy}>
-                    <Text style={[st.statusTitle, { color: config.color }]}>{config.label}</Text>
-                    <Text style={st.statusDescription}>{config.description}</Text>
-                  </View>
-                </View>
 
-                <View style={st.progressRow}>
-                  {FLOW_STEPS.map((label, index) => {
-                    const step = index + 1;
-                    const reached = step <= config.step;
-                    const nextReached = step < FLOW_STEPS.length && step + 1 <= config.step;
-                    const activeColor = config.terminal === 'error' || config.terminal === 'neutral'
-                      ? config.color
-                      : Colors.primaryGreen;
-                    return (
-                      <View key={label} style={st.progressItem}>
-                        <View style={st.progressTrack}>
-                          <View style={[st.progressLine, index === 0 && st.progressLineHidden, reached && { backgroundColor: activeColor }]} />
-                          <View style={[st.progressLine, index === FLOW_STEPS.length - 1 && st.progressLineHidden, nextReached && { backgroundColor: activeColor }]} />
-                          <View style={[st.progressDot, reached && { backgroundColor: activeColor, borderColor: activeColor }]}>
-                            {reached && <Check color={Colors.darkBg} size={11} strokeWidth={3} />}
-                          </View>
-                        </View>
-                        <Text style={[st.progressLabel, reached && { color: activeColor }]}>{label}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-
-                <View style={st.details}>
-                  {!!item.numeroTelephone && (
-                    <TransactionDetail icon={<Phone color="#38BDF8" size={15} />} label="Numéro de téléphone" value={item.numeroTelephone} />
-                  )}
-                  {item.statut === 'REJETEE' && !!item.motifRejet && (
-                    <View style={st.rejectionBox}>
-                      <Text style={st.rejectionLabel}>Motif du refus</Text>
-                      <Text style={st.rejectionText}>{item.motifRejet}</Text>
+                  {/* In progress, or a finished case with something to explain (Matistore texts). */}
+                  {(!finished || (item.type === 'RETRAIT' && item.statut === 'VALIDEE')) && (
+                    <View style={[st.statusPanel, { backgroundColor: finished ? tone.bg : 'rgba(47,123,255,0.14)' }]}>
+                      <Text style={[st.statusTitle, { color: finished ? tone.fg : '#7FB2FF' }]}>{config.label}</Text>
+                      <Text style={st.statusDescription}>{config.description}</Text>
                     </View>
                   )}
+
+                  {!finished && (
+                    <StarStepper
+                      steps={FLOW_STEPS}
+                      current={Math.min(FLOW_STEPS.length, config.step)}
+                      color={Colors.blueLight}
+                      activeColor={Colors.pureWhite}
+                      compact
+                    />
+                  )}
+
+                  {rejected && (
+                    <View style={st.rejectionBox}>
+                      <Text style={st.rejectionText}>
+                        <Text style={st.rejectionLabel}>Motif du refus : </Text>
+                        {item.motifRejet || (item.type === 'RETRAIT' ? 'la vérification n’a pas abouti.' : 'la transaction n’a pas été acceptée.')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {!!item.numeroTelephone && (
+                    <Text style={st.detailLine} selectable>Numéro : {item.numeroTelephone}</Text>
+                  )}
+
+                  {rejected && !item.dateTraitementReclamation && (
+                    <TouchableOpacity style={st.claimButton} onPress={() => setClaimTarget(item)} activeOpacity={0.8}>
+                      <Text style={st.claimButtonText}>RÉCLAMER CETTE TRANSACTION</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-
-                {item.statut === 'REJETEE' && !item.dateTraitementReclamation && (
-                  <TouchableOpacity style={st.claimButton} onPress={() => setClaimTarget(item)}>
-                    <Text style={st.claimButtonText}>Réclamer cette transaction</Text>
-                  </TouchableOpacity>
-                )}
-
               </View>
             );
           }}
@@ -352,96 +367,80 @@ export default function UserTransactionsScreen() {
                 onPress={() => void submitClaim()}
               >
                 {claimSubmitting
-                  ? <ActivityIndicator color={Colors.darkBg} size="small" />
+                  ? <ActivityIndicator color={Colors.onGold} size="small" />
                   : <Text style={st.modalConfirmText}>Confirmer</Text>}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </View>
-  );
-}
-
-function TransactionDetail({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return (
-    <View style={st.detailRow}>
-      <View style={st.detailIcon}>{icon}</View>
-      <View style={st.detailCopy}>
-        <Text style={st.detailLabel}>{label}</Text>
-        <Text style={st.detailValue} selectable>{value}</Text>
-      </View>
-    </View>
+    </OrbitBackground>
   );
 }
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingTop: 56,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.secondaryBg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  backBtn: { padding: 4 },
-  headerTitle: { color: Colors.white, fontSize: 16, fontWeight: '700' },
-  list: { padding: 16, gap: 12, flexGrow: 1 },
-  emptyText: { color: Colors.textSecondary, textAlign: 'center', marginTop: 40 },
+  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 32, flexGrow: 1 },
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, textAlign: 'center', marginTop: 40 },
+
+  row: { flexDirection: 'row', gap: 12 },
+  rail: { width: 28, alignItems: 'center', paddingTop: 26 },
+  dot: { width: 16, height: 16, borderRadius: 8 },
+  dotActive: { width: 22, height: 22, borderRadius: 11, borderWidth: 4, borderColor: 'rgba(90,162,255,0.3)' },
+  railLine: { flex: 1, width: 3, borderRadius: 2, backgroundColor: 'rgba(120,150,230,0.2)', marginTop: 6 },
+
   card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
+    flex: 1,
+    backgroundColor: 'rgba(17,28,63,0.95)',
+    borderRadius: 26,
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderLeftWidth: 4,
-    padding: 15,
+    borderColor: 'transparent',
+    padding: 16,
     gap: 14,
+    marginBottom: 14,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  typeIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  titleGroup: { flex: 1, gap: 3 },
-  cardType: { color: Colors.white, fontWeight: '800', fontSize: 14 },
-  cardDate: { color: Colors.textSecondary, fontSize: 10 },
-  cardAmount: { color: Colors.primaryGreen, fontWeight: '900', fontSize: 14 },
-  statusPanel: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, padding: 11 },
-  statusIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  statusCopy: { flex: 1, gap: 3 },
-  statusTitle: { fontSize: 13, fontWeight: '800' },
-  statusDescription: { color: Colors.textSecondary, fontSize: 11, lineHeight: 15 },
-  progressRow: { flexDirection: 'row', marginHorizontal: 4 },
-  progressItem: { flex: 1, alignItems: 'center' },
-  progressTrack: { height: 20, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  progressLine: { height: 2, flex: 1, backgroundColor: Colors.border },
-  progressLineHidden: { backgroundColor: 'transparent' },
-  progressDot: { position: 'absolute', width: 19, height: 19, borderRadius: 10, borderWidth: 2, borderColor: Colors.border, backgroundColor: Colors.cardBg, alignItems: 'center', justifyContent: 'center' },
-  progressLabel: { color: Colors.textSecondary, fontSize: 10, fontWeight: '600', marginTop: 4 },
-  details: { gap: 12, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 13 },
-  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  detailIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' },
-  detailCopy: { flex: 1, gap: 2 },
-  detailLabel: { color: Colors.textSecondary, fontSize: 10 },
-  detailValue: { color: Colors.white, fontSize: 12, fontWeight: '600' },
-  rejectionBox: { backgroundColor: 'rgba(248,113,113,0.08)', borderColor: 'rgba(248,113,113,0.25)', borderWidth: 1, borderRadius: 10, padding: 10, gap: 4 },
-  rejectionLabel: { color: '#F87171', fontSize: 10, fontWeight: '700' },
-  rejectionText: { color: Colors.white, fontSize: 12 },
-  claimButton: { borderWidth: 1, borderColor: 'rgba(192,132,252,0.55)', backgroundColor: 'rgba(192,132,252,0.12)', borderRadius: 10, padding: 12, alignItems: 'center' },
-  claimButtonText: { color: '#D8B4FE', fontWeight: '800', fontSize: 13 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: Colors.secondaryBg, borderRadius: 17, borderWidth: 1, borderColor: Colors.border, padding: 18, gap: 13 },
-  modalTitle: { color: Colors.white, fontSize: 17, fontWeight: '800' },
-  modalIntro: { color: Colors.textSecondary, fontSize: 12, lineHeight: 18 },
-  claimSummary: { backgroundColor: Colors.cardBg, borderRadius: 12, padding: 12, gap: 7 },
-  summaryLine: { color: Colors.white, fontSize: 12, lineHeight: 17 },
-  summaryReason: { color: '#FCA5A5', fontSize: 12, lineHeight: 17, marginTop: 3 },
+  cardActive: { borderColor: 'rgba(90,162,255,0.4)' },
+  cardRejected: { borderColor: 'rgba(255,107,107,0.3)' },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  titleGroup: { flex: 1, gap: 6, minWidth: 0 },
+  cardType: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 17 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  cardDate: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
+  pill: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3 },
+  pillText: { fontFamily: Font.bodyBold, fontSize: 13 },
+  amountWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 4, flexShrink: 0 },
+  cardAmount: { color: Colors.chrome, fontFamily: Font.title, fontSize: 22 },
+  amountMuted: { color: '#A3AECB' },
+  cardCurrency: { color: Colors.textSecondary, fontFamily: Font.titleBold, fontSize: 12 },
+  amountUnknown: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, maxWidth: 100, textAlign: 'right' },
+
+  statusPanel: { borderRadius: 18, paddingHorizontal: 14, paddingVertical: 11, gap: 3 },
+  statusTitle: { fontFamily: Font.bodyBold, fontSize: 15 },
+  statusDescription: { color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
+
+  rejectionBox: { backgroundColor: 'rgba(255,107,107,0.1)', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 11 },
+  rejectionLabel: { color: '#FF9A9A', fontFamily: Font.bodyBold },
+  rejectionText: { color: '#FFC2C2', fontFamily: Font.body, fontSize: 14, lineHeight: 20 },
+
+  detailLine: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
+
+  claimButton: {
+    borderWidth: 1.5, borderColor: Colors.gold, backgroundColor: 'rgba(255,194,51,0.06)',
+    borderRadius: 18, paddingVertical: 14, alignItems: 'center',
+  },
+  claimButtonText: { color: Colors.gold, fontFamily: Font.title, fontSize: 16 },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(3,6,18,0.78)', justifyContent: 'center', padding: 20 },
+  modalCard: { backgroundColor: Colors.secondaryBg, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 20, gap: 13 },
+  modalTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20, textTransform: 'uppercase' },
+  modalIntro: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
+  claimSummary: { backgroundColor: Colors.cardBg, borderRadius: 16, padding: 14, gap: 7 },
+  summaryLine: { color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 18 },
+  summaryReason: { color: '#FFA3A3', fontFamily: Font.body, fontSize: 13, lineHeight: 18, marginTop: 3 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10, marginTop: 2 },
-  modalCancel: { paddingHorizontal: 13, paddingVertical: 10 },
-  modalCancelText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '700' },
-  modalConfirm: { minWidth: 105, alignItems: 'center', backgroundColor: '#C084FC', borderRadius: 9, paddingHorizontal: 16, paddingVertical: 10 },
-  modalConfirmText: { color: Colors.darkBg, fontSize: 13, fontWeight: '900' },
+  modalCancel: { paddingHorizontal: 14, paddingVertical: 11 },
+  modalCancelText: { color: Colors.textSecondary, fontFamily: Font.bodyBold, fontSize: 14 },
+  modalConfirm: { minWidth: 110, alignItems: 'center', backgroundColor: Colors.gold, borderRadius: 14, paddingHorizontal: 18, paddingVertical: 11 },
+  modalConfirmText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 14 },
   buttonDisabled: { opacity: 0.55 },
 });

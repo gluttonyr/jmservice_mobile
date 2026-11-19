@@ -6,13 +6,18 @@ import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ChatBackground } from '@/components/ChatBackground';
 import { InfoModal } from '@/components/infomodal';
 
+import { ChoiceCard, FlowHeader, OrbitBackground, PaymentOrbit, Plaque, StarStepper } from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
-import { Colors } from '@/constants/colors';
+import JMLogo from '@/components/ui/JMLogo';
+import { Colors, Gradients } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { DiscussionStatus } from '@/data_api/models/discussion.types';
 import { MessageType } from '@/data_api/models/message.types';
 import { Operateur } from '@/data_api/models/operateur.types';
 import { operateurService } from '@/data_api/services/operateurService';
+import { bookmakerService } from '@/data_api/services/bookmakerService';
+import { Bookmaker, DEFAULT_BOOKMAKER } from '@/data_api/models/bookmaker.types';
 import { transactionService } from '@/data_api/services/transactionService';
 import { socketService } from '@/data_api/services/socketService';
 import { useServculPlayerValidation } from '@/hooks/useServculPlayerValidation';
@@ -29,14 +34,14 @@ import { resolveFileUrl, useFileUrl } from '@/hooks/useFileUrl';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
-  ArrowDownToLine,
-  ArrowLeft,
-  ArrowUpFromLine,
+  ArrowDown,
+  ArrowUp,
   History,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
+  ClipboardPaste,
   Copy,
   ExternalLink,
   WifiOff,
@@ -70,11 +75,13 @@ import CountryPicker, {
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import Svg, { Ellipse } from 'react-native-svg';
 import { isValidPhoneNumber, parsePhoneNumberFromString, type CountryCode as PhoneCountryCode } from 'libphonenumber-js';
 
 type Mode = 'chat' | 'deposit' | 'withdrawal';
-type DepositStep = 1 | 2 | 3 | 4 | 5;
-type WithdrawalStep = 1 | 2 | 3;
+// 0 = bookmaker, then the existing steps (deposit order: 0 → 1 operator → 4 account → 2 amount → 3 number → 5 transfer).
+type DepositStep = 0 | 1 | 2 | 3 | 4 | 5;
+type WithdrawalStep = 0 | 1 | 2 | 3;
 const LAST_SEEN_TRANSACTIONS_KEY = 'transactions_last_seen_at';
 const LAST_USED_TRANSACTION_INPUTS_KEY = 'transaction_last_inputs:';
 
@@ -85,6 +92,7 @@ type SavedPhoneInput = {
 };
 
 type LastUsedTransactionInputs = {
+  bookmakerCode?: string;
   accountId?: string;
   phoneByOperator?: Record<string, SavedPhoneInput>;
   phoneNumber?: string;
@@ -119,7 +127,7 @@ const getDepositCreationError = (error: unknown) => {
     message: getApiErrorMessage(error)
       .replace(/Servcul/gi, 'notre service de paiement')
       .replace(/l’administrateur|administrateur/gi, 'notre équipe')
-      .replace(/MatiStore/gi, 'nous'),
+      .replace(/MatiStore|JM Services/gi, 'nous'),
   };
 };
 
@@ -158,11 +166,13 @@ const formatPhoneForCountry = (value: string, countryCode: CountryCode) => {
 function OperatorImage({
   imageUrl,
   style,
+  folder = 'operateurs',
 }: {
   imageUrl?: string | null;
   style?: object;
+  folder?: string;
 }) {
-  const uri = useFileUrl('operateurs', imageUrl);
+  const uri = useFileUrl(folder, imageUrl);
   if (!uri) return <View style={[style, { backgroundColor: Colors.border }]} />;
   return <Image source={{ uri }} style={style} resizeMode="contain" />;
 }
@@ -188,8 +198,8 @@ export default function DepositWithdrawalScreen() {
   } = useChat(id);
 
   const [mode, setMode] = useState<Mode>('chat');
-  const [depositStep, setDepositStep] = useState<DepositStep>(1);
-  const [withdrawalStep, setWithdrawalStep] = useState<WithdrawalStep>(1);
+  const [depositStep, setDepositStep] = useState<DepositStep>(0);
+  const [withdrawalStep, setWithdrawalStep] = useState<WithdrawalStep>(0);
   const [lastUsedInputs, setLastUsedInputs] = useState<LastUsedTransactionInputs | null>(null);
 
   useEffect(() => {
@@ -235,6 +245,33 @@ export default function DepositWithdrawalScreen() {
       // Le stockage du dernier numéro ne doit jamais bloquer une transaction confirmée.
     }
   }, [lastUsedInputs, user?.trackingId]);
+
+  // ── Bookmakers depuis l'API ──────────────────────────────────────────────
+  const [bookmakers, setBookmakers] = useState<Bookmaker[]>([]);
+  const [loadingBookmakers, setLoadingBookmakers] = useState(false);
+  const [bookmakerCode, setBookmakerCode] = useState(DEFAULT_BOOKMAKER.code);
+
+  const loadBookmakers = useCallback(() => {
+    setLoadingBookmakers(true);
+    bookmakerService
+      .getAll()
+      .then((items) => setBookmakers(items.length ? items : [DEFAULT_BOOKMAKER]))
+      // A server without the bookmaker list still takes 1XBET deposits: keep the app usable.
+      .catch(() => setBookmakers([DEFAULT_BOOKMAKER]))
+      .finally(() => setLoadingBookmakers(false));
+  }, []);
+
+  useEffect(() => {
+    loadBookmakers();
+  }, [loadBookmakers]);
+
+  // Preselect the last bookmaker used, if it can still be chosen.
+  useEffect(() => {
+    const saved = lastUsedInputs?.bookmakerCode;
+    if (saved && bookmakers.some((b) => b.code === saved && b.disponible)) setBookmakerCode(saved);
+  }, [bookmakers, lastUsedInputs?.bookmakerCode]);
+
+  const currentBookmaker = bookmakers.find((b) => b.code === bookmakerCode && b.disponible);
 
   const adminPresent = useDiscussionPresence(id);
   // ── Opérateurs depuis l'API ──────────────────────────────────────────────
@@ -407,8 +444,8 @@ export default function DepositWithdrawalScreen() {
   }, []));
 
   const currentOperator = operators.find((o) => o.trackingId === operatorId);
-  const depositProgressStep = depositStep === 1 ? 1 : depositStep === 4 ? 2 : depositStep === 5 ? 4 : 3;
-  const depositProgressLabels = ['Bookmaker', 'Compte', 'Paiement', 'Code'];
+  const depositProgressStep = depositStep === 0 ? 1 : depositStep === 1 ? 2 : depositStep === 4 ? 3 : depositStep === 5 ? 5 : 4;
+  const depositProgressLabels = ['Bookmaker', 'Opérateur', 'Compte', 'Paiement', 'Code'];
   const paymentProgressStep = transaction?.creditError
     ? 2
     : transaction?.statut === 'VALIDEE'
@@ -418,6 +455,14 @@ export default function DepositWithdrawalScreen() {
         ? 3
         : 1;
   const paymentProgressLabels = ['Paiement', 'Paiement reçu', 'Crédit en cours', 'Compte crédité'];
+  // Pill in the middle of the payment orbit.
+  const paymentStatus = transaction?.creditError
+    ? { label: 'Crédit à vérifier', bg: 'rgba(255,107,107,0.16)', fg: '#FF8A8A' }
+    : transaction?.statut === 'VALIDEE'
+      ? { label: 'Compte crédité', bg: 'rgba(61,220,151,0.16)', fg: Colors.success }
+      : paymentProgressStep >= 3
+        ? { label: 'Paiement reçu', bg: 'rgba(47,123,255,0.2)', fg: '#8FB4FF' }
+        : { label: 'Paiement en attente', bg: 'rgba(255,194,51,0.16)', fg: Colors.gold };
   // Le montant affiché contient des espaces (séparateurs de milliers) : le code USSD
   // composé, lui, ne doit contenir que des chiffres.
   const rawAmount = amount.replace(/[^0-9]/g, '');
@@ -469,6 +514,7 @@ export default function DepositWithdrawalScreen() {
     }
     if (transaction) return transaction;
     if (!currentOperator) throw new Error('Opérateur introuvable');
+    if (!currentBookmaker) throw new Error('Choisissez votre bookmaker.');
     setCreatingTransaction(true);
     try {
       const created = await transactionService.create({
@@ -477,8 +523,10 @@ export default function DepositWithdrawalScreen() {
         operateur: currentOperator.nom,
         numeroTelephone: phone,
         compteDestinataire: accountId.trim(),
+        bookmaker: currentBookmaker.code,
       });
       void rememberTransactionInputs({
+        bookmakerCode: currentBookmaker.code,
         accountId: accountId.trim(),
         phoneNumber,
         callingCode,
@@ -489,7 +537,7 @@ export default function DepositWithdrawalScreen() {
     } finally {
       setCreatingTransaction(false);
     }
-  }, [accountId, amount, callingCode, countryCode, currentOperator, depositPhoneValid, depositPlayerValidation.player, phone, rememberTransactionInputs, transaction]);
+  }, [accountId, amount, callingCode, countryCode, currentBookmaker, currentOperator, depositPhoneValid, depositPlayerValidation.player, phone, rememberTransactionInputs, transaction]);
 
   const prepareDeposit = async () => {
     if (!depositCaptureAvailable) {
@@ -571,19 +619,19 @@ export default function DepositWithdrawalScreen() {
           PermissionsAndroid.PERMISSIONS.CALL_PHONE,
           {
             title: 'Autorisation requise',
-            message: "Matistore a besoin d'effectuer l'appel USSD pour votre dépôt.",
+            message: "JM Services a besoin d'effectuer l'appel USSD pour votre dépôt.",
             buttonPositive: 'Autoriser',
             buttonNegative: 'Refuser',
           },
         );
         if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
-          throw new Error('Autorisation d’appel refusée. Autorisez CALL_PHONE pour lancer le code depuis MatiStore.');
+          throw new Error('Autorisation d’appel refusée. Autorisez les appels pour lancer le code depuis JM Services.');
         }
         const phoneStatePermission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
           {
             title: 'Choix de la carte SIM',
-            message: 'MatiStore a besoin de voir les cartes SIM disponibles pour vous laisser choisir celle du paiement.',
+            message: 'JM Services a besoin de voir les cartes SIM disponibles pour vous laisser choisir celle du paiement.',
             buttonPositive: 'Autoriser',
             buttonNegative: 'Refuser',
           },
@@ -685,6 +733,11 @@ export default function DepositWithdrawalScreen() {
       Alert.alert('ID 1XBET non vérifié', 'Vérifiez votre compte 1XBET avant de continuer.');
       return;
     }
+    if (!currentBookmaker) {
+      Alert.alert('Bookmaker requis', 'Choisissez votre bookmaker.');
+      setWithdrawalStep(0);
+      return;
+    }
     setWithdrawalSubmitting(true);
     try {
       const created = await transactionService.create({
@@ -693,8 +746,10 @@ export default function DepositWithdrawalScreen() {
         compteDestinataire: withdrawalAccountId.trim(),
         numeroTelephone: withdrawalPhone,
         codeRetrait: withdrawalCode.trim(),
+        bookmaker: currentBookmaker.code,
       });
       void rememberTransactionInputs({
+        bookmakerCode: currentBookmaker.code,
         accountId: withdrawalAccountId.trim(),
         phoneNumber: wPhoneNumber,
         callingCode: wCallingCode,
@@ -737,11 +792,11 @@ export default function DepositWithdrawalScreen() {
   const resetForm = useCallback(() => {
     stopTransactionPolling();
     setMode('chat');
-    setDepositStep(1);
+    setDepositStep(0);
     setProcessing(false);
     setManualDialOpened(false);
     setPaymentCodeCopied(false);
-    setWithdrawalStep(1);
+    setWithdrawalStep(0);
     setOperatorId('');
     setAmount('');
     // Dépôt téléphone
@@ -921,6 +976,55 @@ export default function DepositWithdrawalScreen() {
   const insets = useSafeAreaInsets();
   const wide = useWideWeb();
 
+  // Step 0 of both flows. Bookmakers without an API are listed as "Bientôt" and cannot be chosen.
+  const renderBookmakerStep = (subtitle: string, onNext: () => void) => (
+    <>
+      <Text style={st.pageTitle}>Choisir le bookmaker</Text>
+      <Text style={st.pageSubtitle}>{subtitle}</Text>
+      {loadingBookmakers ? (
+        <ActivityIndicator color={Colors.primaryGreen} style={{ marginVertical: 32 }} />
+      ) : (
+        <View>
+          {bookmakers.map((bm) => (
+            <ChoiceCard
+              key={bm.trackingId}
+              title={bm.nom}
+              caption={bm.disponible ? 'Dépôts et retraits' : 'Bientôt disponible'}
+              selected={bm.disponible && bookmakerCode === bm.code}
+              soon={!bm.disponible}
+              onPress={() => setBookmakerCode(bm.code)}
+              logo={bm.imageUrl
+                ? <OperatorImage folder="bookmakers" imageUrl={bm.imageUrl} style={st.choiceLogoImage} />
+                : <Text style={st.bookmakerLogoText} numberOfLines={1} adjustsFontSizeToFit>{bm.nom}</Text>}
+            />
+          ))}
+        </View>
+      )}
+      <GreenButton
+        title="Suivant →"
+        onPress={() => currentBookmaker && onNext()}
+        disabled={!currentBookmaker || loadingBookmakers}
+        style={st.pageBtn}
+      />
+    </>
+  );
+
+  // Operator list of both flows.
+  const renderOperatorChoices = (list: Operateur[], caption: string) => (
+    <View>
+      {list.map((op) => (
+        <ChoiceCard
+          key={op.trackingId}
+          title={op.nom}
+          caption={caption}
+          selected={operatorId === op.trackingId}
+          onPress={() => selectOperator(op.trackingId)}
+          logo={<OperatorImage imageUrl={op.imageUrl} style={st.choiceLogoImage} />}
+        />
+      ))}
+    </View>
+  );
+
   // ─── DEPOSIT ─────────────────────────────────────────────────────────────
   if (mode === 'deposit') {
     return (
@@ -933,31 +1037,18 @@ export default function DepositWithdrawalScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
         >
-          <View style={st.header}>
-            <TouchableOpacity onPress={resetForm} style={st.backBtn}>
-              <ArrowLeft color={Colors.white} size={24} />
-            </TouchableOpacity>
-            <View style={st.headerInfo}>
-              <Text style={st.headerName} numberOfLines={1} ellipsizeMode="tail">Dépôt</Text>
-              <Text style={st.headerStatus}>Étape {depositProgressStep} sur 4</Text>
+          <OrbitBackground orbits={false}>
+          <FlowHeader
+            title={depositStep === 5 ? 'Effectuer le transfert' : 'Dépôt'}
+            subtitle={`Étape ${depositProgressStep} sur ${depositProgressLabels.length}`}
+            onBack={resetForm}
+            top={insets.top}
+          />
+          {depositStep !== 5 && (
+            <View style={st.stepperWrap}>
+              <StarStepper steps={depositProgressLabels} current={depositProgressStep} />
             </View>
-          </View>
-          <View style={[st.stepBar, { display: 'none' }]}>
-            {depositProgressLabels.map((label, index) => (
-              <View key={label} style={st.depositProgressItem}>
-                <View
-                  style={[
-                    st.stepSegment,
-                    depositProgressStep >= index + 1 && st.stepSegmentActive,
-                  ]}
-                />
-                <Text style={[
-                  st.depositProgressLabel,
-                  depositProgressStep === index + 1 && st.depositProgressLabelActive,
-                ]}>{label}</Text>
-              </View>
-            ))}
-          </View>
+          )}
 
           {!depositCaptureAvailable && !transaction && (
             <View style={st.captureUnavailableBox}>
@@ -970,6 +1061,12 @@ export default function DepositWithdrawalScreen() {
             contentContainerStyle={[st.pageContent, wide && webSidebarStyles.readable]}
             keyboardShouldPersistTaps="handled"
           >
+            {/* ── Étape 0 : Choix bookmaker ──────────────────────────────── */}
+            {depositStep === 0 && renderBookmakerStep(
+              'Sélectionnez le site de paris à recharger',
+              () => setDepositStep(1),
+            )}
+
             {/* ── Étape 1 : Choix opérateur ──────────────────────────────── */}
             {depositStep === 1 && (
               <>
@@ -992,37 +1089,7 @@ export default function DepositWithdrawalScreen() {
                       <Text style={st.retryBtnText}>Réessayer</Text>
                     </TouchableOpacity>
                   </View>
-                ) : (
-                  <View style={st.operatorGrid}>
-                    {operators.map((op) => (
-                      <TouchableOpacity
-                        key={op.trackingId}
-                        style={[
-                          st.operatorCard,
-                          operatorId === op.trackingId && st.operatorCardActive,
-                          {
-                            borderColor:
-                              operatorId === op.trackingId
-                                ? Colors.primaryGreen
-                                : Colors.border,
-                          },
-                        ]}
-                        onPress={() => selectOperator(op.trackingId)}
-                        activeOpacity={0.8}
-                      >
-                        <View style={st.operatorLogoFrame}>
-                          <OperatorImage imageUrl={op.imageUrl} style={st.operatorImage} />
-                        </View>
-                        <Text style={st.operatorCardName}>{op.nom}</Text>
-                        {operatorId === op.trackingId && (
-                          <View style={st.operatorCheckBadge}>
-                            <Check color="#fff" size={12} strokeWidth={3} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                ) : renderOperatorChoices(operators, 'Paiement par code USSD')}
                 <GreenButton
                   title="Suivant →"
                   onPress={() => operatorId && setDepositStep(4)}
@@ -1037,32 +1104,63 @@ export default function DepositWithdrawalScreen() {
               <>
                 <Text style={st.pageTitle}>Montant du dépôt</Text>
                 <Text style={st.pageSubtitle}>Entrez le montant en FCFA</Text>
-                <View style={st.amountInputWrap}>
-                  <TextInput
-                    style={st.amountInput}
-                    placeholder="0"
-                    placeholderTextColor={Colors.textSecondary}
-                    value={amount}
-                    onChangeText={(text) => setAmount(formatAmountInput(text))}
-                    maxLength={9}
-                    keyboardType="numeric"
-                  />
-                  <Text style={st.amountCurrency}>FCFA</Text>
+                <View style={st.amountCard}>
+                  <Svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style={StyleSheet.absoluteFill} pointerEvents="none">
+                    <Ellipse cx="200" cy="110" rx="260" ry="62" transform="rotate(-8 200 110)" stroke="rgba(255,194,51,0.35)" strokeWidth="1.2" fill="none" />
+                  </Svg>
+                  <Text style={st.amountCaption}>VOUS DÉPOSEZ</Text>
+                  <View style={st.amountRow}>
+                    <TextInput
+                      style={[st.amountInput, st.webNoOutline]}
+                      placeholder="0"
+                      placeholderTextColor="rgba(232,237,247,0.35)"
+                      value={amount}
+                      onChangeText={(text) => setAmount(formatAmountInput(text))}
+                      maxLength={9}
+                      keyboardType="numeric"
+                      accessibilityLabel="Montant du dépôt en FCFA"
+                    />
+                    <Text style={st.amountCurrency}>FCFA</Text>
+                  </View>
+                  <Text style={st.amountMinimum}>Minimum 300 FCFA</Text>
                 </View>
                 <View style={st.chips}>
-                  {['5 000', '10 000', '25 000', '50 000', '100 000'].map((v) => (
-                    <TouchableOpacity
-                      key={v}
-                      style={[st.chip, amount === v && st.chipActive]}
-                      onPress={() => setAmount(v)}
-                    >
-                      <Text
-                        style={[st.chipText, amount === v && st.chipTextActive]}
-                      >
-                        {v}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {['5 000', '10 000', '25 000', '50 000', '100 000'].map((v) => {
+                    const active = amount === v;
+                    const label = `${parseAmount(v) / 1000}K`;
+                    return (
+                      <TouchableOpacity key={v} style={st.chip} onPress={() => setAmount(v)} accessibilityLabel={`${v} FCFA`} activeOpacity={0.8}>
+                        {active ? (
+                          <LinearGradient colors={Gradients.gold} style={st.chipInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                            <Text style={[st.chipText, st.chipTextActive]}>{label}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={st.chipInner}><Text style={st.chipText}>{label}</Text></View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <View style={st.summaryCard}>
+                  <View style={st.summaryRow}>
+                    <Text style={st.summaryLabel}>Opérateur</Text>
+                    <Text style={st.summaryValue}>{currentOperator?.nom ?? '—'}</Text>
+                  </View>
+                  <View style={st.summaryRow}>
+                    <Text style={st.summaryLabel}>Compte {currentBookmaker?.nom ?? '1XBET'}</Text>
+                    <Text style={st.summaryValue}>{accountId.trim() || '—'}</Text>
+                  </View>
+                  {!!depositPlayerValidation.player?.name && (
+                    <View style={st.summaryRow}>
+                      <Text style={st.summaryLabel}>Joueur</Text>
+                      <View style={st.summaryPlayer}>
+                        <Check color={Colors.success} size={16} strokeWidth={3} />
+                        <Text style={[st.summaryValue, { color: Colors.success }]} numberOfLines={1}>
+                          {depositPlayerValidation.player.name.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
                 </View>
                 {!!amount && parseAmount(amount) < 300 && (
                   <Text style={st.errorText}>
@@ -1124,7 +1222,7 @@ export default function DepositWithdrawalScreen() {
                   </TouchableOpacity>
                   <View style={st.phoneDivider} />
                   <TextInput
-                    style={st.phoneInput}
+                    style={[st.phoneInput, st.webNoOutline]}
                     placeholder="XX XX XX XX"
                     placeholderTextColor={Colors.textSecondary}
                     value={phoneNumber}
@@ -1171,7 +1269,7 @@ export default function DepositWithdrawalScreen() {
                 )}
                 <View style={st.inputWrapWithIcon}>
                   <TextInput
-                    style={[st.pageInput, { flex: 1 }]}
+                    style={[st.pageInput, st.webNoOutline, { flex: 1 }]}
                     placeholder="Ex: 123456789"
                     placeholderTextColor={Colors.textSecondary}
                     value={accountId}
@@ -1188,13 +1286,13 @@ export default function DepositWithdrawalScreen() {
                     setAccountId((await Clipboard.getString()).trim());
                     }}
                   >
-                    <Copy color={Colors.primaryGreen} size={18} />
+                    <ClipboardPaste color={Colors.blueLight} size={20} />
                   </TouchableOpacity>
                 </View>
                 {depositPlayerValidation.player && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                    <Check color={Colors.primaryGreen} size={16} />
-                    <Text style={{ color: Colors.primaryGreen, marginLeft: 6 }}>
+                  <View style={st.playerFound}>
+                    <Check color={Colors.success} size={16} strokeWidth={3} />
+                    <Text style={st.playerFoundText}>
                       {depositPlayerValidation.player.name
                         ? `Utilisateur trouvé : ${depositPlayerValidation.player.name}`
                         : 'Compte 1XBET trouvé'}
@@ -1221,46 +1319,22 @@ export default function DepositWithdrawalScreen() {
             {/* ── Étape 5 : Effectuer le transfert ──────────────────────── */}
             {depositStep === 5 && currentOperator && (
               <>
-                <Text style={st.pageTitle}>Effectuer le transfert</Text>
-                <Text style={st.pageSubtitle}>
-                  Utilisez le code ci-dessous pour transférer {amount} FCFA via{' '}
-                  {currentOperator.nom} vers le compte de matistore
-                </Text>
-                {transaction && ['EN_ATTENTE_AUTO', 'EN_VERIFICATION'].includes(transaction.statut) && (
-                  <View style={st.depositPendingIndicator}>
-                    <ActivityIndicator color={Colors.primaryGreen} size="small" />
-                    <Text style={st.depositPendingText}>
-                      {transaction.referencePaiement ? 'Paiement reçu, crédit en cours' : 'Paiement en attente'}
-                    </Text>
+                <PaymentOrbit labels={paymentProgressLabels as [string, string, string, string]} current={paymentProgressStep}>
+                  <View style={[st.statusPill, { backgroundColor: paymentStatus.bg }]}>
+                    <View style={[st.statusDot, { backgroundColor: paymentStatus.fg }]} />
+                    <Text style={[st.statusPillText, { color: paymentStatus.fg }]} numberOfLines={1}>{paymentStatus.label}</Text>
                   </View>
-                )}
-                {transaction?.statut === 'EN_ATTENTE_ADMIN' && !transaction.creditError && (
-                  <View style={st.depositPendingIndicator}>
-                    <ActivityIndicator color={Colors.primaryGreen} size="small" />
-                    <Text style={st.depositPendingText}>Paiement reçu, crédit en cours</Text>
-                  </View>
-                )}
-                {transaction && (
-                  <View style={st.paymentProgressCard}>
-                    <Text style={st.paymentProgressTitle}>
-                      {transaction.creditError ? 'Paiement reçu, crédit à vérifier' : 'Suivi de votre dépôt'}
-                    </Text>
-                    <View style={st.paymentProgressTrack}>
-                      {paymentProgressLabels.map((label, index) => (
-                        <View key={label} style={st.paymentProgressItem}>
-                          <View style={[
-                            st.paymentProgressLine,
-                            paymentProgressStep >= index + 1 && st.paymentProgressLineActive,
-                          ]} />
-                          <Text style={[
-                            st.paymentProgressLabel,
-                            paymentProgressStep === index + 1 && st.paymentProgressLabelActive,
-                          ]}>{label}</Text>
-                        </View>
-                      ))}
+                  <Text style={st.orbitAmount} numberOfLines={1} adjustsFontSizeToFit>
+                    {formatAmountInput(String(transaction?.montant ?? rawAmount))}
+                  </Text>
+                  <Text style={st.orbitVia} numberOfLines={1}>FCFA via {currentOperator.nom}</Text>
+                  {(processing || transaction?.statut === 'EN_ATTENTE_ADMIN') && !transaction?.creditError && (
+                    <View style={st.orbitChecking}>
+                      <ActivityIndicator color={Colors.blueLight} size="small" />
+                      <Text style={st.orbitCheckingText}>Vérification…</Text>
                     </View>
-                  </View>
-                )}
+                  )}
+                </PaymentOrbit>
                 {!!transaction?.creditError && (
                   <View style={st.creditErrorBox}>
                     <Text style={st.creditErrorTitle}>Crédit non confirmé</Text>
@@ -1271,24 +1345,24 @@ export default function DepositWithdrawalScreen() {
                     </Text>
                   </View>
                 )}
-                <View style={st.codeCard}>
-                  <Text style={st.codeLabel}>
-                    {Platform.OS === 'ios' ? `Code de paiement ${currentOperator.nom}` : `Code USSD ${currentOperator.nom}`}
-                  </Text>
-                  {/* iOS: the code is not displayed, only copied (the client dials it in the Phone app). */}
-                  {Platform.OS !== 'ios' && (
-                  <Text style={[st.codeValue, { color: Colors.primaryGreen }]}>
-                    {buildUssdCode(currentOperator, depositNumero, rawAmount)}
-                  </Text>
-                  )}
-                  <Text style={st.codeInstructions}>
-                    {Platform.OS === 'web'
-                      ? 'Copiez ce code, puis composez-le sur votre téléphone avec le numéro indiqué. Nous vérifierons la réception de votre paiement.'
-                      : Platform.OS === 'ios'
-                      ? 'Touchez « Copier le code de paiement », ouvrez l’app Téléphone, collez le code puis appelez. Nous vérifierons la réception de votre paiement.'
-                      : 'Nous lancerons le code et vérifierons la réception de votre paiement. Vous pouvez aussi le copier pour le composer sur un autre téléphone.'}
-                  </Text>
-                </View>
+                {/* iOS: the code is not displayed, only copied (the client dials it in the Phone app). */}
+                {Platform.OS !== 'ios' ? (
+                  <Plaque
+                    caption={`Code USSD ${currentOperator.nom}`}
+                    value={buildUssdCode(currentOperator, depositNumero, rawAmount)}
+                    dashes={false}
+                    size="lg"
+                  />
+                ) : (
+                  <Text style={st.codeLabel}>Code de paiement {currentOperator.nom}</Text>
+                )}
+                <Text style={st.codeInstructions}>
+                  {Platform.OS === 'web'
+                    ? 'Copiez ce code, puis composez-le sur votre téléphone avec le numéro indiqué. Nous vérifierons la réception de votre paiement.'
+                    : Platform.OS === 'ios'
+                    ? 'Touchez « Copier le code de paiement », ouvrez l’app Téléphone, collez le code puis appelez. Nous vérifierons la réception de votre paiement.'
+                    : 'Nous lancerons le code et vérifierons la réception de votre paiement. Vous pouvez aussi le copier pour le composer sur un autre téléphone.'}
+                </Text>
                 {/* A browser can't dial USSD: on web the client copies the code and dials it on the phone.
                     iOS keeps only the copy button. */}
                 {Platform.OS === 'android' && (
@@ -1307,15 +1381,14 @@ export default function DepositWithdrawalScreen() {
                   disabled={creatingTransaction || depositPaymentAlreadyReceived}
                   activeOpacity={0.8}
                 >
-                  <Copy color={Colors.primaryGreen} size={18} />
+                  <Copy color={Colors.blueLight} size={20} />
                   <Text style={st.copyDepositCodeText}>
                     {creatingTransaction ? 'Enregistrement...' : Platform.OS === 'ios' ? 'Copier le code de paiement' : 'Copier le code et attendre'}
                   </Text>
                 </TouchableOpacity>
                 {processing && (
-                  <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                    <ActivityIndicator color={Colors.primaryGreen} size="large" />
-                    <Text style={{ color: Colors.textSecondary, marginTop: 12, textAlign: 'center' }}>
+                  <View style={st.processingBox}>
+                    <Text style={st.processingText}>
                       {paymentCodeCopied
                         ? 'Code copié. Composez-le sur le téléphone utilisant le numéro indiqué. Nous vérifierons la réception de votre paiement.'
                         : 'Nous vérifions automatiquement votre paiement.'}
@@ -1331,13 +1404,14 @@ export default function DepositWithdrawalScreen() {
                     activeOpacity={0.8}
                   >
                     {cancellingDeposit
-                      ? <ActivityIndicator color="#ef4444" size="small" />
+                      ? <ActivityIndicator color={Colors.error} size="small" />
                       : <Text style={st.cancelDepositText}>Annuler le dépôt</Text>}
                   </TouchableOpacity>
                 )}
               </>
             )}
           </ScrollView>
+          </OrbitBackground>
         </KeyboardAvoidingView>
         <InfoModal
           visible={showCancelDepositSheet}
@@ -1376,48 +1450,28 @@ export default function DepositWithdrawalScreen() {
         style={st.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={st.header}>
-          <TouchableOpacity onPress={resetForm} style={st.backBtn}>
-            <ArrowLeft color={Colors.white} size={24} />
-          </TouchableOpacity>
-          <View style={st.headerInfo}>
-            <Text style={st.headerName} numberOfLines={1} ellipsizeMode="tail">Retrait</Text>
-            <Text style={st.headerStatus}>Étape {withdrawalStep} sur 3</Text>
-          </View>
-        </View>
-        <View style={st.stepBar}>
-          {[1, 2, 3].map((s) => (
-            <View
-              key={s}
-              style={[
-                st.stepSegment,
-                withdrawalStep >= s && st.stepSegmentActive,
-              ]}
-            />
-          ))}
+        <OrbitBackground orbits={false}>
+        <FlowHeader title="Retrait" subtitle={`Étape ${withdrawalStep + 1} sur 4`} onBack={resetForm} top={insets.top} />
+        <View style={st.stepperWrap}>
+          <StarStepper steps={['Bookmaker', 'Opérateur', 'Compte', 'Code']} current={withdrawalStep + 1} />
         </View>
 
         <ScrollView
           contentContainerStyle={[st.pageContent, wide && webSidebarStyles.readable]}
           keyboardShouldPersistTaps="handled"
         >
+          {withdrawalStep === 0 && renderBookmakerStep(
+            'Sélectionnez le site de paris d’où vient votre retrait',
+            () => setWithdrawalStep(1),
+          )}
+
           {withdrawalStep === 1 && (
             <>
               <Text style={st.pageTitle}>Choisir l'opérateur</Text>
               <Text style={st.pageSubtitle}>Sélectionnez le réseau Mobile Money qui recevra votre retrait.</Text>
-              {loadingOperators ? <ActivityIndicator color={Colors.primaryGreen} style={{ marginVertical: 32 }} /> : (
-                <View style={st.operatorGrid}>
-                  {operators.filter((op) => op.active).map((op) => (
-                    <TouchableOpacity key={op.trackingId} style={[st.operatorCard, operatorId === op.trackingId && st.operatorCardActive, { borderColor: operatorId === op.trackingId ? Colors.primaryGreen : Colors.border }]} onPress={() => selectOperator(op.trackingId)} activeOpacity={0.8}>
-                      <View style={st.operatorLogoFrame}>
-                        <OperatorImage imageUrl={op.imageUrl} style={st.operatorImage} />
-                      </View>
-                      <Text style={st.operatorCardName}>{op.nom}</Text>
-                      {operatorId === op.trackingId && <View style={st.operatorCheckBadge}><Check color="#fff" size={12} strokeWidth={3} /></View>}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+              {loadingOperators
+                ? <ActivityIndicator color={Colors.primaryGreen} style={{ marginVertical: 32 }} />
+                : renderOperatorChoices(operators.filter((op) => op.active), 'Reçoit votre retrait')}
               {!loadingOperators && !operators.some((op) => op.active) && <Text style={st.errorText}>Aucun opérateur disponible. Réessayez plus tard.</Text>}
               <GreenButton title="Suivant →" onPress={() => operatorId && setWithdrawalStep(2)} disabled={!operatorId || loadingOperators} style={st.pageBtn} />
             </>
@@ -1446,7 +1500,7 @@ export default function DepositWithdrawalScreen() {
               )}
               <View style={st.inputWrapWithIcon}>
                 <TextInput
-                  style={[st.pageInput, { flex: 1 }]}
+                  style={[st.pageInput, st.webNoOutline, { flex: 1 }]}
                   placeholder="Ex: 123456789"
                   placeholderTextColor={Colors.textSecondary}
                   value={withdrawalAccountId}
@@ -1461,13 +1515,13 @@ export default function DepositWithdrawalScreen() {
                   style={st.pasteBtn}
                   onPress={async () => setWithdrawalAccountId((await Clipboard.getString()).trim())}
                 >
-                  <Copy color={Colors.primaryGreen} size={18} />
+                  <ClipboardPaste color={Colors.blueLight} size={20} />
                 </TouchableOpacity>
               </View>
               {withdrawalPlayerValidation.player && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                  <Check color={Colors.primaryGreen} size={16} />
-                  <Text style={{ color: Colors.primaryGreen, marginLeft: 6 }}>
+                <View style={st.playerFound}>
+                  <Check color={Colors.success} size={16} strokeWidth={3} />
+                  <Text style={st.playerFoundText}>
                     {withdrawalPlayerValidation.player.name
                       ? `Utilisateur trouvé : ${withdrawalPlayerValidation.player.name}`
                       : 'Compte 1XBET trouvé'}
@@ -1477,36 +1531,27 @@ export default function DepositWithdrawalScreen() {
               {withdrawalPlayerValidation.error && (
                 <Text style={st.errorText}>{withdrawalPlayerValidation.error}</Text>
               )}
-              <Text style={[st.pageTitle, { marginTop: 24 }]}>Comment effectuer un retrait ?</Text>
-              <View style={st.instructionCard}>
-                <Text style={st.instructionStep}>① Connectez-vous à 1xBet</Text>
-                <Text style={st.instructionText}>
-                  Ouvrez l'application 1xBet et accédez à votre
-                  compte.
-                </Text>
-              </View>
-              <View style={st.instructionCard}>
-                <Text style={st.instructionStep}>
-                  ③ Générez votre code de retrait
-                </Text>
-                <Text style={st.instructionText}>
-                  Générez code unique de retrait.
-                  Copiez-le et revenez dans l'application.
-                </Text>
-              </View>
-              <View style={st.instructionCard}>
-                <Text style={st.instructionStep}>④ Revenez ici</Text>
-                <Text style={st.instructionText}>
-                  Cliquez sur suivant pour collez votre code de retrait et renseignez votre numéro de téléphone.
-                </Text>
-              </View>
+              <Text style={st.sectionTitle}>Comment effectuer un retrait ?</Text>
+              {[
+                { title: 'Connectez-vous à 1xBet', text: 'Ouvrez l’application 1xBet et accédez à votre compte.' },
+                { title: 'Générez votre code de retrait', text: 'Générez un code unique de retrait, copiez-le et revenez dans l’application.' },
+                { title: 'Revenez ici', text: 'Touchez « Suivant », collez votre code de retrait et indiquez votre numéro Mobile Money.' },
+              ].map((item, index) => (
+                <View key={item.title} style={st.instructionCard}>
+                  <View style={st.instructionNumber}><Text style={st.instructionNumberText}>{index + 1}</Text></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={st.instructionStep}>{item.title}</Text>
+                    <Text style={st.instructionText}>{item.text}</Text>
+                  </View>
+                </View>
+              ))}
               {Platform.OS !== 'ios' && (
               <TouchableOpacity
                 style={st.xbetBtn}
                 onPress={open1xBet}
                 activeOpacity={0.85}
               >
-                <ExternalLink color="#fff" size={20} />
+                <ExternalLink color={Colors.blueLight} size={20} />
                 <Text style={st.xbetBtnText}>Ouvrir 1xBet</Text>
               </TouchableOpacity>
               )}
@@ -1535,7 +1580,7 @@ export default function DepositWithdrawalScreen() {
               <Text style={st.inputLabel}>Code de retrait 1xBet</Text>
               <View style={st.inputWrapWithIcon}>
                 <TextInput
-                  style={[st.pageInput, { flex: 1 }]}
+                  style={[st.pageInput, st.webNoOutline, { flex: 1 }]}
                   placeholder="Ex: WD-XXXXXXXX"
                   placeholderTextColor={Colors.textSecondary}
                   value={withdrawalCode}
@@ -1549,7 +1594,7 @@ export default function DepositWithdrawalScreen() {
                     setWithdrawalCode(t);
                   }}
                 >
-                  <Copy color={Colors.primaryGreen} size={18} />
+                  <ClipboardPaste color={Colors.blueLight} size={20} />
                 </TouchableOpacity>
               </View>
 
@@ -1584,7 +1629,7 @@ export default function DepositWithdrawalScreen() {
                 </TouchableOpacity>
                 <View style={st.phoneDivider} />
                 <TextInput
-                  style={st.phoneInput}
+                  style={[st.phoneInput, st.webNoOutline]}
                   placeholder="XX XX XX XX"
                   placeholderTextColor={Colors.textSecondary}
                   value={wPhoneNumber}
@@ -1606,6 +1651,7 @@ export default function DepositWithdrawalScreen() {
             </>
           )}
         </ScrollView>
+        </OrbitBackground>
         <InfoModal
           visible={!!withdrawalNotice}
           onClose={() => {
@@ -1629,43 +1675,42 @@ export default function DepositWithdrawalScreen() {
 
   // Deposit / withdrawal cards: under the chat on phones, in a side panel on a computer.
   const actionCards = (
-    <View style={[st.actionRow, wide && st.actionColumn]}>
+    <View style={[st.actionRow, wide && st.actionColumn, !wide && { paddingBottom: 10 }]}>
       <TouchableOpacity
-        style={[st.actionCardDeposit, !depositCaptureAvailable && { opacity: 0.45 }]}
+        style={[st.actionCard, !depositCaptureAvailable && { opacity: 0.45 }]}
         onPress={() => setMode('deposit')}
         activeOpacity={0.85}
         disabled={!depositCaptureAvailable}
+        accessibilityRole="button"
+        accessibilityLabel="Dépôt"
       >
-        <LinearGradient
-          colors={[Colors.primaryGreen, Colors.secondaryGreen]}
-          style={[st.actionCardInner, { flex: 1 }]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={st.actionIconWrap}>
-            <ArrowDownToLine color="#000" size={22} strokeWidth={2.5} />
+        <LinearGradient colors={Gradients.gold} style={st.actionCardInner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <View style={[st.actionIconWrap, st.actionIconGold]}>
+            <ArrowDown color={Colors.onGold} size={22} strokeWidth={2.5} />
           </View>
-          <Text style={st.actionCardTitle}>Dépôt</Text>
-          <Text style={st.actionCardSub}>{depositCaptureAvailable ? 'Recharger votre compte' : 'Dépôts temporairement indisponibles'}</Text>
+          <View style={st.actionCopy}>
+            <Text style={[st.actionCardTitle, { color: Colors.onGold }]}>DÉPÔT</Text>
+            <Text style={[st.actionCardSub, { color: 'rgba(26,20,5,0.8)' }]} numberOfLines={2}>
+              {depositCaptureAvailable ? 'Recharger votre compte' : 'Dépôts temporairement indisponibles'}
+            </Text>
+          </View>
         </LinearGradient>
       </TouchableOpacity>
       <TouchableOpacity
-        style={st.actionCardWithdrawal}
+        style={st.actionCard}
         onPress={() => setMode('withdrawal')}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Retrait"
       >
-        <View style={st.actionCardInner}>
-          <View style={[st.actionIconWrap, st.actionIconWrapOutline]}>
-            <ArrowUpFromLine
-              color={Colors.primaryGreen}
-              size={22}
-              strokeWidth={2.5}
-            />
+        <View style={[st.actionCardInner, st.actionCardOutline]}>
+          <View style={[st.actionIconWrap, st.actionIconNavy]}>
+            <ArrowUp color={Colors.gold} size={22} strokeWidth={2.5} />
           </View>
-          <Text style={[st.actionCardTitle, { color: Colors.primaryGreen }]}>
-            Retrait
-          </Text>
-          <Text style={st.actionCardSub}>Retirer vers Mobile Money</Text>
+          <View style={st.actionCopy}>
+            <Text style={st.actionCardTitle}>RETRAIT</Text>
+            <Text style={st.actionCardSub} numberOfLines={2}>Vers Mobile Money</Text>
+          </View>
         </View>
       </TouchableOpacity>
     </View>
@@ -1678,15 +1723,16 @@ export default function DepositWithdrawalScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ChatBackground variant="finance" />
-      <View style={st.header}>
-        <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
-          <ChevronLeft color={Colors.white} size={24} />
+      <View style={[st.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity onPress={() => router.back()} style={st.backBtn} accessibilityRole="button" accessibilityLabel="Retour">
+          <ChevronLeft color={Colors.chrome} size={28} />
         </TouchableOpacity>
+        <View style={st.headerAvatar}>
+          <JMLogo size={36} />
+        </View>
         <View style={st.headerInfo}>
           <Text style={st.headerName} numberOfLines={1} ellipsizeMode="tail">Dépôt / Retrait</Text>
-          {/* <Text style={st.headerStatus}>
-            {loading ? '' : adminPresent ? 'En ligne' : 'Hors ligne'}
-          </Text> */}
+          <Text style={st.headerStatus} numberOfLines={1}>Équipe JM Services</Text>
         </View>
         <TouchableOpacity
           onPress={async () => {
@@ -1694,9 +1740,11 @@ export default function DepositWithdrawalScreen() {
             setHasUnseenTransaction(false);
             router.push('/user_transactions');
           }}
-          style={[st.backBtn, { position: 'relative' }]}
+          style={st.historyBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Mes transactions"
         >
-          <History color={Colors.white} size={22} />
+          <History color={Colors.gold} size={24} />
           {hasUnseenTransaction && <View style={st.notifDot} />}
         </TouchableOpacity>
       </View>
@@ -1777,6 +1825,41 @@ function WideWrap({ on, style, children }: { on: boolean; style: any; children: 
 }
 
 const st = StyleSheet.create({
+  stepperWrap: { paddingHorizontal: 20, paddingTop: 8 },
+  sectionTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20, textTransform: 'uppercase', marginTop: 26, marginBottom: 12 },
+  playerFound: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  playerFoundText: { color: Colors.success, fontFamily: Font.bodySemiBold, fontSize: 14, flexShrink: 1 },
+  // The browser draws its own focus ring inside our rounded fields.
+  webNoOutline: Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {},
+  choiceLogoImage: { width: '86%', height: '86%' },
+  headerAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.navy, borderWidth: 2, borderColor: 'rgba(90,162,255,0.4)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  historyBtn: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,194,51,0.12)', borderWidth: 1, borderColor: 'rgba(255,194,51,0.35)' },
+  amountCard: { borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(47,123,255,0.55)', backgroundColor: 'rgba(6,11,30,0.75)', paddingVertical: 22, paddingHorizontal: 16, alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
+  amountCaption: { color: Colors.blueLight, fontFamily: Font.bodyExtraBold, fontSize: 13, letterSpacing: 3 },
+  amountRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', marginVertical: 8, maxWidth: '100%' },
+  amountMinimum: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 13 },
+  chipInner: { paddingVertical: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.navy },
+  summaryCard: { backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 14, gap: 10 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  summaryLabel: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15 },
+  summaryValue: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15, flexShrink: 1, textAlign: 'right' },
+  summaryPlayer: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, maxWidth: '100%' },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusPillText: { fontFamily: Font.bodyBold, fontSize: 13 },
+  orbitAmount: { color: Colors.chrome, fontFamily: Font.title, fontSize: 40, lineHeight: 48, marginTop: 6 },
+  orbitVia: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 14 },
+  orbitChecking: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
+  orbitCheckingText: { color: Colors.blueLight, fontFamily: Font.bodyBold, fontSize: 13 },
+  processingBox: { paddingVertical: 14, paddingHorizontal: 8 },
+  processingText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  instructionNumber: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,194,51,0.16)', alignItems: 'center', justifyContent: 'center' },
+  instructionNumberText: { color: Colors.gold, fontFamily: Font.title, fontSize: 15 },
+  actionCard: { flex: 1, borderRadius: 24, overflow: 'hidden' },
+  actionCardOutline: { backgroundColor: Colors.navy, borderWidth: 1.5, borderColor: 'rgba(255,194,51,0.45)' },
+  actionCopy: { flex: 1, minWidth: 0 },
+  actionIconGold: { backgroundColor: 'rgba(26,20,5,0.12)' },
+  actionIconNavy: { backgroundColor: 'rgba(120,150,230,0.14)' },
   container: { flex: 1, backgroundColor: Colors.darkBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: {
@@ -1785,30 +1868,15 @@ const st = StyleSheet.create({
     paddingTop: 80,
     paddingHorizontal: 32,
   },
-  emptyText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  captureUnavailableBox: { marginHorizontal: 16, marginTop: 12, padding: 12, borderRadius: 10, backgroundColor: 'rgba(245,158,11,0.12)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)', gap: 5 },
-  captureUnavailableTitle: { color: '#FBBF24', fontSize: 13, fontWeight: '800' },
-  captureUnavailableText: { color: Colors.textSecondary, fontSize: 12, lineHeight: 17 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 56,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.secondaryBg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: 12,
-  },
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 22 },
+  captureUnavailableBox: { marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 18, backgroundColor: 'rgba(255,176,32,0.12)', borderWidth: 1, borderColor: 'rgba(255,176,32,0.4)', gap: 5 },
+  captureUnavailableTitle: { color: '#FFC94D', fontFamily: Font.bodyExtraBold, fontSize: 13 },
+  captureUnavailableText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 17 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 14, paddingHorizontal: 14, backgroundColor: 'rgba(8,16,44,0.96)', borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 10 },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
-  headerName: { color: Colors.white, fontSize: 16, fontWeight: '700' },
-  headerStatus: { color: Colors.primaryGreen, fontSize: 12 },
+  headerName: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 19 },
+  headerStatus: { color: Colors.success, fontFamily: Font.bodyMedium, fontSize: 14 },
 
   stepBar: {
     flexDirection: 'row',
@@ -1829,25 +1897,12 @@ const st = StyleSheet.create({
   depositProgressItem: { flex: 1, alignItems: 'center', gap: 5 },
   depositProgressLabel: { color: Colors.textSecondary, fontSize: 10, fontWeight: '600' },
   depositProgressLabelActive: { color: Colors.white },
-  notifDot: {
-    position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: 5,
-    backgroundColor: Colors.primaryGreen, borderWidth: 1.5, borderColor: Colors.secondaryBg,
-  },
+  notifDot: { position: 'absolute', top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: '#FF5A5F', borderWidth: 2, borderColor: Colors.night },
 
-  pageContent: { padding: 20, paddingBottom: 40 },
-  pageTitle: {
-    color: Colors.white,
-    fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 6,
-  },
-  pageSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  pageBtn: { width: '100%', marginTop: 20 },
+  pageContent: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 40 },
+  pageTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 28, lineHeight: 34, textTransform: 'uppercase', marginBottom: 4 },
+  pageSubtitle: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, marginBottom: 22, lineHeight: 21 },
+  pageBtn: { width: '100%', marginTop: 22 },
   depositPendingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1858,9 +1913,9 @@ const st = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 16,
     borderRadius: 20,
-    backgroundColor: 'rgba(125,255,42,0.1)',
+    backgroundColor: 'rgba(255,194,51,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.3)',
+    borderColor: 'rgba(255,194,51,0.3)',
   },
   depositPendingText: { color: Colors.primaryGreen, fontSize: 14, fontWeight: '700' },
   paymentProgressCard: {
@@ -1877,45 +1932,15 @@ const st = StyleSheet.create({
   paymentProgressLineActive: { backgroundColor: Colors.primaryGreen },
   paymentProgressLabel: { color: Colors.textSecondary, fontSize: 9, lineHeight: 12 },
   paymentProgressLabelActive: { color: Colors.white, fontWeight: '700' },
-  creditErrorBox: {
-    gap: 8,
-    padding: 14,
-    marginBottom: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.45)',
-    backgroundColor: 'rgba(239,68,68,0.08)',
-  },
-  creditErrorTitle: { color: '#ef4444', fontSize: 14, fontWeight: '800' },
-  creditErrorText: { color: Colors.textSecondary, fontSize: 12, lineHeight: 18 },
-  cancelDepositBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    marginTop: 18,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239,68,68,0.08)',
-  },
+  creditErrorBox: { gap: 8, padding: 14, marginBottom: 16, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,107,107,0.45)', backgroundColor: 'rgba(255,107,107,0.08)' },
+  creditErrorTitle: { color: '#FF8A8A', fontFamily: Font.bodyExtraBold, fontSize: 14 },
+  creditErrorText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 18 },
+  cancelDepositBtn: { alignItems: 'center', justifyContent: 'center', width: '100%', marginTop: 10, paddingVertical: 14 },
   cancelDepositBtnDisabled: { opacity: 0.5 },
-  cancelDepositText: { color: '#ef4444', fontSize: 15, fontWeight: '700' },
-  copyDepositCodeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    width: '100%',
-    marginTop: 12,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.primaryGreen,
-    backgroundColor: 'rgba(125,255,42,0.08)',
-  },
+  cancelDepositText: { color: '#FF7B7B', fontFamily: Font.bodyBold, fontSize: 16 },
+  copyDepositCodeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', marginTop: 12, paddingVertical: 17, borderRadius: 22, borderWidth: 1.5, borderColor: Colors.blueLight, backgroundColor: Colors.navy },
   copyDepositCodeBtnDisabled: { opacity: 0.5 },
-  copyDepositCodeText: { color: Colors.primaryGreen, fontSize: 15, fontWeight: '700' },
+  copyDepositCodeText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
 
   operatorGrid: {
     flexDirection: 'row',
@@ -1933,33 +1958,18 @@ const st = StyleSheet.create({
     borderColor: Colors.border,
     position: 'relative',
   },
-  connectionErrorBox: {
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(245,158,11,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.25)',
-    borderRadius: 16,
-    marginBottom: 8,
-  },
-  connectionErrorText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  connectionErrorBox: { alignItems: 'center', gap: 12, paddingVertical: 32, paddingHorizontal: 20, backgroundColor: 'rgba(255,176,32,0.06)', borderWidth: 1, borderColor: 'rgba(255,176,32,0.25)', borderRadius: 22, marginBottom: 8 },
+  connectionErrorText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 20 },
   retryBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: 'rgba(125,255,42,0.1)',
+    backgroundColor: 'rgba(255,194,51,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.3)',
+    borderColor: 'rgba(255,194,51,0.3)',
   },
-  retryBtnText: { color: Colors.primaryGreen, fontWeight: '700', fontSize: 13 },
-  operatorCardActive: { backgroundColor: 'rgba(125,255,42,0.05)' },
+  retryBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 13 },
+  operatorCardActive: { backgroundColor: 'rgba(255,194,51,0.05)' },
   operatorLogoFrame: {
     width: 88,
     height: 68,
@@ -1972,6 +1982,29 @@ const st = StyleSheet.create({
     overflow: 'hidden',
   },
   operatorImage: { width: '100%', height: '100%' },
+  bookmakerCardSoon: { opacity: 0.55 },
+  bookmakerLogoFrame: {
+    width: 88,
+    height: 68,
+    marginBottom: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: Colors.secondaryBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  bookmakerLogoText: { color: Colors.navy, fontFamily: Font.title, fontSize: 16, paddingHorizontal: 4 },
+  bookmakerSoonBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(245,158,11,0.18)',
+  },
+  bookmakerSoonText: { color: '#f59e0b', fontSize: 10, fontWeight: '800' },
   operatorCardName: {
     color: Colors.white,
     fontSize: 12,
@@ -1990,54 +2023,15 @@ const st = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  amountInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  amountInput: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 32,
-    fontWeight: '800',
-    paddingVertical: 16,
-  },
-  amountCurrency: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  chipActive: {
-    backgroundColor: 'rgba(125,255,42,0.12)',
-    borderColor: Colors.primaryGreen,
-  },
-  chipText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '600' },
-  chipTextActive: { color: Colors.primaryGreen },
+  amountInput: { color: Colors.pureWhite, fontFamily: Font.title, fontSize: 52, lineHeight: 64, paddingVertical: 0, minWidth: 60, textAlign: 'center' },
+  amountCurrency: { color: Colors.gold, fontFamily: Font.title, fontSize: 24, marginLeft: 8, marginBottom: 8 },
+  chips: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  chip: { flex: 1, borderRadius: 18, overflow: 'hidden' },
 
-  phoneInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
-    marginBottom: 4,
-  },
+  chipText: { color: Colors.chrome, fontFamily: Font.title, fontSize: 17 },
+  chipTextActive: { color: Colors.onGold },
+
+  phoneInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingHorizontal: 16, marginBottom: 4 },
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2050,12 +2044,7 @@ const st = StyleSheet.create({
     width: 0,
     height: 0,
   },
-  callingCodeText: {
-    color: Colors.white,
-    fontSize: 15,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
+  callingCodeText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16, marginLeft: 6 },
   phoneDivider: {
     width: 1,
     height: 22,
@@ -2063,13 +2052,8 @@ const st = StyleSheet.create({
     marginHorizontal: 10,
   },
   phoneValidIcon: { marginLeft: 8 },
-  phoneValidationError: { color: '#F87171', fontSize: 11, marginTop: 2, marginBottom: 8 },
-  phoneInput: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 15,
-    paddingVertical: 14,
-  },
+  phoneValidationError: { color: '#FF8A8A', fontFamily: Font.bodyMedium, fontSize: 12, marginTop: 4, marginBottom: 8 },
+  phoneInput: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 16, paddingVertical: 16 },
 
   inputWrap: {
     backgroundColor: Colors.cardBg,
@@ -2079,67 +2063,27 @@ const st = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 4,
   },
-  inputWrapWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
-  },
-  pageInput: { color: Colors.white, fontSize: 16, paddingVertical: 14 },
-  inputLabel: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  pasteBtn: { padding: 8 },
-  lastUsedAccountCard: {
-    minHeight: 74,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginBottom: 12,
-    borderRadius: 14,
-    backgroundColor: 'rgba(125,255,42,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.35)',
-  },
+  inputWrapWithIcon: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingLeft: 16, paddingRight: 6 },
+  pageInput: { color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 17, paddingVertical: 16 },
+  inputLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 14, marginBottom: 8 },
+  pasteBtn: { padding: 10 },
+  lastUsedAccountCard: { minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 11, marginBottom: 14, borderRadius: 20, backgroundColor: 'rgba(255,194,51,0.08)', borderWidth: 1, borderColor: 'rgba(255,194,51,0.35)' },
   lastUsedAccountIcon: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: 'rgba(125,255,42,0.14)',
+    backgroundColor: 'rgba(255,194,51,0.14)',
   },
   lastUsedAccountCopy: { flex: 1, gap: 2 },
-  lastUsedAccountLabel: { color: Colors.textSecondary, fontSize: 11, fontWeight: '600' },
-  lastUsedAccountValue: { color: Colors.white, fontSize: 18, fontWeight: '800', letterSpacing: 0.3 },
-  lastUsedAccountAction: { color: Colors.primaryGreen, fontSize: 12, fontWeight: '800' },
+  lastUsedAccountLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 12 },
+  lastUsedAccountValue: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 18, letterSpacing: 0.3 },
+  lastUsedAccountAction: { color: Colors.gold, fontFamily: Font.bodyExtraBold, fontSize: 13 },
 
-  codeCard: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 20,
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  codeLabel: { color: Colors.textSecondary, fontSize: 13, fontWeight: '600' },
-  codeValue: { fontSize: 28, fontWeight: '900', letterSpacing: 1 },
-  codeInstructions: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 19,
-  },
+  codeLabel: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16, textAlign: 'center', marginBottom: 4 },
+
+  codeInstructions: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 21, marginTop: 14, paddingHorizontal: 8 },
 
   callBtn: {
     flexDirection: 'row',
@@ -2161,10 +2105,10 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(125,255,42,0.07)',
+    backgroundColor: 'rgba(255,194,51,0.07)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.2)',
+    borderColor: 'rgba(255,194,51,0.2)',
     padding: 14,
     marginBottom: 4,
   },
@@ -2175,38 +2119,12 @@ const st = StyleSheet.create({
     lineHeight: 18,
   },
 
+  instructionCard: { flexDirection: 'row', gap: 12, backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 10 },
+  instructionStep: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15, marginBottom: 3 },
+  instructionText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
 
-  instructionCard: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 14,
-    marginBottom: 10,
-  },
-  instructionStep: {
-    color: Colors.primaryGreen,
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  instructionText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-
-  xbetBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 14,
-    marginBottom: 4,
-    backgroundColor: '#e6353a',
-  },
-  xbetBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  xbetBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 22, marginTop: 6, marginBottom: 4, borderWidth: 1.5, borderColor: Colors.blueLight, backgroundColor: Colors.navy },
+  xbetBtnText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
 
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },
 
@@ -2214,50 +2132,14 @@ const st = StyleSheet.create({
   wideBody: { flex: 1, flexDirection: 'row-reverse' },
   wideChat: { flex: 1 },
   widePanel: { width: 340, padding: 20, gap: 16, borderRightWidth: 1, borderRightColor: Colors.border, backgroundColor: Colors.secondaryBg },
-  widePanelTitle: { color: Colors.white, fontSize: 16, fontWeight: '800' },
+  widePanelTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20 },
   actionColumn: { flexDirection: 'column', paddingHorizontal: 0 },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.secondaryBg,
-  },
-  actionCardDeposit: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  actionCardWithdrawal: {
-    flex: 1,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.primaryGreen,
-    backgroundColor: 'rgba(125,255,42,0.04)',
-    overflow: 'hidden',
-  },
-  actionCardInner: {
-    padding: 16,
-    minHeight: 120,
-    justifyContent: 'center',
-  },
-  actionIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  actionIconWrapOutline: { backgroundColor: 'rgba(125,255,42,0.12)' },
-  actionCardTitle: { color: '#000', fontSize: 16, fontWeight: '900' },
-  actionCardSub: { color: 'rgba(0,0,0,0.55)', fontSize: 11, fontWeight: '600' },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+  actionRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: 'rgba(8,16,44,0.96)' },
+
+  actionCardInner: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 24, minHeight: 82 },
+  actionIconWrap: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+
+  actionCardTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20, lineHeight: 24 },
+  actionCardSub: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 12, lineHeight: 16 },
+  errorText: { color: '#FF8A8A', fontFamily: Font.bodySemiBold, fontSize: 13, marginTop: 8, marginBottom: 12, textAlign: 'center' },
 });

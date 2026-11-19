@@ -72,7 +72,7 @@ export function useAdminNotificationCapture() {
           permissionPrompted.current = true;
           Alert.alert(
             'Accès aux notifications requis',
-            'Pour vérifier automatiquement les dépôts, autorisez MatiStore à accéder aux notifications sur ce téléphone administrateur.',
+            'Pour vérifier automatiquement les dépôts, autorisez JM Services à accéder aux notifications sur ce téléphone administrateur.',
             [
               { text: 'Plus tard', style: 'cancel' },
               { text: 'Ouvrir les réglages', onPress: openNotificationSettings },

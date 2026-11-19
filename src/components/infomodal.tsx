@@ -26,7 +26,7 @@ const ICONS: Record<InfoModalType, any> = {
 };
 
 const COLORS_BY_TYPE: Record<InfoModalType, string> = {
-  success: Colors.primaryGreen,
+  success: Colors.success,
   error: '#ef4444',
   warning: '#f59e0b',
   info: Colors.primaryGreen,

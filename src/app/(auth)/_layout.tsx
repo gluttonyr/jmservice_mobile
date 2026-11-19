@@ -16,7 +16,7 @@ export default function AuthLayout() {
     </Stack>
   );
   if (!wide) return stack;
-  // Website on a computer: MatiStore presentation on the left, the page (buttons / form) on the right.
+  // Website on a computer: JM Services presentation on the left, the page (buttons / form) on the right.
   return (
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: Colors.darkBg }}>
       <WebBrandPanel />

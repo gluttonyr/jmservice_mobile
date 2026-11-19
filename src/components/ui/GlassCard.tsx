@@ -18,14 +18,14 @@ export default function GlassCard({ children, style, glow = false }: GlassCardPr
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16,
+    backgroundColor: 'rgba(17,28,63,0.92)',
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: 16,
+    padding: 18,
   },
   glowCard: {
-    borderColor: 'rgba(125,255,42,0.2)',
+    borderColor: 'rgba(255,194,51,0.4)',
     shadowColor: Colors.primaryGreen,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.15,

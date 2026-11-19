@@ -12,7 +12,9 @@ import { Colors } from '@/constants/colors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { useFonts } from 'expo-font';
+import { FONT_ASSETS } from '@/constants/fonts';
 import { StatusBar } from 'expo-status-bar';
 import { useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -39,6 +41,11 @@ export default function RootLayout() {
   const { visible: updateVisible, remindLater, dismiss } = useVersionCheck();
   const wide = useWideWeb();
   const pushedScreen = { animation: 'slide_from_right' as const };
+  // If a font fails to load the app still opens, with the system font.
+  const [fontsLoaded, fontError] = useFonts(FONT_ASSETS);
+  if (!fontsLoaded && !fontError) {
+    return <View style={{ flex: 1, backgroundColor: Colors.darkBg }} />;
+  }
 
   return (
     <GestureHandlerRootView style={wide ? { flex: 1, backgroundColor: Colors.darkBg } : { flex: 1 }}>

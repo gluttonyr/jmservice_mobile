@@ -1,5 +1,6 @@
 import { useWideWeb } from '@/hooks/useWideWeb';
 import { webSidebarStyles } from '@/components/webSidebarStyles';
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { InfoModal } from '@/components/infomodal';
 import type { AdminCaptureStatus, Transaction, TransactionStatus } from '@/data_api/models/transaction.types';
@@ -46,9 +47,9 @@ const STATUS_COLOR: Record<TransactionStatus, string> = {
   EN_ATTENTE_AUTO: '#F59E0B',
   EN_VERIFICATION: '#38BDF8',
   EN_ATTENTE_PREUVE: '#F97316',
-  EN_ATTENTE_ADMIN: '#A78BFA',
+  EN_ATTENTE_ADMIN: Colors.admin,
   EN_RECLAMATION: '#C084FC',
-  VALIDEE: Colors.primaryGreen,
+  VALIDEE: Colors.success,
   REJETEE: '#F87171',
   ANNULEE: Colors.textSecondary,
 };
@@ -296,7 +297,7 @@ export default function AdminTransactionsScreen() {
           {!discussionId && pendingClaimCount > 0 && <Text style={styles.claimCount}>{pendingClaimCount} réclamation(s) à traiter</Text>}
           {!discussionId && pendingCaptureReconciliationCount > 0 && <Text style={styles.captureReconciliationCount}>{pendingCaptureReconciliationCount} dépôt(s) à rapprocher</Text>}
         </View>
-        {!discussionId && <ShieldCheck color={captureStatus?.available ? Colors.primaryGreen : Colors.textSecondary} size={21} />}
+        {!discussionId && <ShieldCheck color={captureStatus?.available ? Colors.admin : Colors.textSecondary} size={21} />}
       </View>
 
       {!discussionId && (
@@ -372,16 +373,16 @@ export default function AdminTransactionsScreen() {
       )}
 
       {loading ? (
-        <View style={styles.loader}><ActivityIndicator color={Colors.primaryGreen} size="large" /></View>
+        <View style={styles.loader}><ActivityIndicator color={Colors.admin} size="large" /></View>
       ) : (
         <FlatList
           data={transactions}
           keyExtractor={(item) => item.trackingId}
           contentContainerStyle={[styles.list, wide && webSidebarStyles.readable]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(1); }} tintColor={Colors.primaryGreen} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(1); }} tintColor={Colors.admin} />}
           onEndReached={() => { if (hasMore && !loadingMore && !loading) void load(page + 1, true); }}
           onEndReachedThreshold={0.4}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primaryGreen} style={{ padding: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.admin} style={{ padding: 16 }} /> : null}
           ListEmptyComponent={<Text style={styles.empty}>{discussionId ? 'Aucune transaction liée à cette discussion.' : 'Aucune transaction.'}</Text>}
           renderItem={({ item }) => {
             const isExpanded = expandedTransactionId === item.trackingId && !!expandedTransaction;
@@ -389,8 +390,8 @@ export default function AdminTransactionsScreen() {
             return (
             <View style={[styles.card, { borderLeftColor: STATUS_COLOR[item.statut] }]}>
               <View style={styles.cardHeading}>
-                <View style={[styles.typeIcon, { backgroundColor: item.type === 'DEPOT' ? 'rgba(125,255,42,0.12)' : 'rgba(245,158,11,0.12)' }]}>
-                  <Smartphone color={item.type === 'DEPOT' ? Colors.primaryGreen : '#F59E0B'} size={18} />
+                <View style={[styles.typeIcon, { backgroundColor: item.type === 'DEPOT' ? 'rgba(25,211,197,0.12)' : 'rgba(245,158,11,0.12)' }]}>
+                  <Smartphone color={item.type === 'DEPOT' ? Colors.admin : '#F59E0B'} size={18} />
                 </View>
                 <View style={styles.cardHeadingCopy}>
                   <Text style={styles.cardTitle}>{item.type === 'DEPOT' ? 'Dépôt' : 'Retrait'} · {item.operateur || 'Mobile Money'}</Text>
@@ -411,7 +412,7 @@ export default function AdminTransactionsScreen() {
 
               <TouchableOpacity style={styles.detailsToggle} onPress={() => void openTransactionDetails(item)}>
                 {detailLoading && expandedTransactionId === item.trackingId
-                  ? <ActivityIndicator color={Colors.primaryGreen} size="small" />
+                  ? <ActivityIndicator color={Colors.admin} size="small" />
                   : <Text style={styles.detailsToggleText}>{isExpanded ? 'Masquer les détails' : 'Afficher les détails'}</Text>}
               </TouchableOpacity>
 
@@ -607,77 +608,77 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16, backgroundColor: Colors.secondaryBg, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16, backgroundColor: Colors.adminSurface, borderBottomWidth: 1, borderBottomColor: Colors.adminBorder },
   backButton: { padding: 4 },
   headerCopy: { flex: 1, gap: 2 },
-  headerTitle: { color: Colors.white, fontSize: 17, fontWeight: '700' },
-  claimCount: { color: '#D8B4FE', fontSize: 10, fontWeight: '700' },
-  captureReconciliationCount: { color: '#FBBF24', fontSize: 10, fontWeight: '700' },
-  headerSubtitle: { color: Colors.textSecondary, fontSize: 11 },
-  capturePanel: { marginHorizontal: 16, marginTop: 12, padding: 10, borderRadius: 10, backgroundColor: Colors.cardBg, gap: 8 },
+  headerTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 17 },
+  claimCount: { fontFamily: Font.bodyBold, color: '#D8B4FE', fontSize: 10 },
+  captureReconciliationCount: { fontFamily: Font.bodyBold, color: '#FBBF24', fontSize: 10 },
+  headerSubtitle: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11 },
+  capturePanel: { marginHorizontal: 16, marginTop: 12, padding: 10, borderRadius: 10, backgroundColor: Colors.adminCard, gap: 8 },
   captureBanner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  captureBannerActive: { backgroundColor: 'rgba(125,255,42,0.08)' },
+  captureBannerActive: { backgroundColor: 'rgba(25,211,197,0.08)' },
   captureDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.textSecondary },
-  captureDotActive: { backgroundColor: Colors.primaryGreen },
-  captureText: { color: Colors.textSecondary, fontSize: 12 },
-  captureLastSeen: { color: Colors.textSecondary, fontSize: 10 },
+  captureDotActive: { backgroundColor: Colors.admin },
+  captureText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 12 },
+  captureLastSeen: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 10 },
   captureAction: { alignSelf: 'flex-start', borderRadius: 8, borderWidth: 1, borderColor: '#F59E0B', paddingVertical: 7, paddingHorizontal: 10 },
-  captureActionText: { color: '#FBBF24', fontSize: 11, fontWeight: '700' },
+  captureActionText: { fontFamily: Font.bodyBold, color: '#FBBF24', fontSize: 11 },
   filters: { gap: 8, paddingTop: 10 },
-  searchInput: { marginHorizontal: 16, color: Colors.white, backgroundColor: Colors.cardBg, borderWidth: 1, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13 },
+  searchInput: { fontFamily: Font.body, marginHorizontal: 16, color: Colors.white, backgroundColor: Colors.adminCard, borderWidth: 1, borderColor: Colors.adminBorder, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13 },
   filterRow: { gap: 7, paddingHorizontal: 16 },
-  filterChip: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 16, backgroundColor: Colors.cardBg, borderWidth: 1, borderColor: Colors.border },
-  filterChipActive: { backgroundColor: 'rgba(125,255,42,0.12)', borderColor: 'rgba(125,255,42,0.4)' },
-  filterChipText: { color: Colors.textSecondary, fontSize: 10, fontWeight: '600' },
-  filterChipTextActive: { color: Colors.primaryGreen },
+  filterChip: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 16, backgroundColor: Colors.adminCard, borderWidth: 1, borderColor: Colors.adminBorder },
+  filterChipActive: { backgroundColor: 'rgba(25,211,197,0.12)', borderColor: 'rgba(25,211,197,0.4)' },
+  filterChipText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 10 },
+  filterChipTextActive: { color: Colors.admin },
   captureReconciliationActions: { gap: 8, padding: 10, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 9 },
-  captureReconciliationHint: { color: '#FCD34D', fontSize: 11, lineHeight: 16 },
+  captureReconciliationHint: { fontFamily: Font.body, color: '#FCD34D', fontSize: 11, lineHeight: 16 },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, gap: 10, flexGrow: 1 },
   empty: { color: Colors.textSecondary, textAlign: 'center', marginTop: 40 },
-  card: { backgroundColor: Colors.cardBg, borderRadius: 14, borderWidth: 1, borderColor: Colors.border, borderLeftWidth: 4, padding: 14, gap: 12 },
+  card: { backgroundColor: Colors.adminCard, borderRadius: 14, borderWidth: 1, borderColor: Colors.adminBorder, borderLeftWidth: 4, padding: 14, gap: 12 },
   cardHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   typeIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   cardHeadingCopy: { flex: 1, gap: 3 },
-  cardTitle: { color: Colors.white, fontWeight: '700', fontSize: 14 },
-  cardSubtitle: { color: Colors.textSecondary, fontSize: 11 },
-  cardAmount: { color: Colors.primaryGreen, fontWeight: '900', fontSize: 13 },
+  cardTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 14 },
+  cardSubtitle: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11 },
+  cardAmount: { fontFamily: Font.bodyExtraBold, color: Colors.admin, fontSize: 13 },
   statusPanel: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, padding: 11 },
-  detailsToggle: { minHeight: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: 'rgba(125,255,42,0.08)' },
-  detailsToggleText: { color: Colors.primaryGreen, fontSize: 11, fontWeight: '700' },
+  detailsToggle: { minHeight: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: 'rgba(25,211,197,0.08)' },
+  detailsToggleText: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 11 },
   statusCopy: { flex: 1, gap: 3 },
-  statusTitle: { fontSize: 13, fontWeight: '800' },
-  details: { gap: 10, borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12 },
+  statusTitle: { fontFamily: Font.bodyExtraBold, fontSize: 13 },
+  details: { gap: 10, borderTopWidth: 1, borderTopColor: Colors.adminBorder, paddingTop: 12 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   detailCopy: { flex: 1, gap: 2 },
-  detailLabel: { color: Colors.textSecondary, fontSize: 10 },
-  detailValue: { color: Colors.white, fontSize: 12, lineHeight: 17 },
+  detailLabel: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 10 },
+  detailValue: { fontFamily: Font.body, color: Colors.white, fontSize: 12, lineHeight: 17 },
   resolveClaimButton: { alignItems: 'center', backgroundColor: 'rgba(192,132,252,0.14)', borderColor: 'rgba(192,132,252,0.45)', borderWidth: 1, borderRadius: 9, padding: 10 },
   rejectTransactionButton: { alignItems: 'center', borderColor: 'rgba(239,68,68,0.45)', borderWidth: 1, borderRadius: 9, padding: 10 },
-  resolveClaimText: { color: '#D8B4FE', fontSize: 12, fontWeight: '800' },
-  claimSummary: { backgroundColor: Colors.cardBg, borderRadius: 10, padding: 11, gap: 6, maxHeight: 260 },
-  claimSummaryText: { color: Colors.white, fontSize: 12, lineHeight: 17 },
+  resolveClaimText: { fontFamily: Font.bodyExtraBold, color: '#D8B4FE', fontSize: 12 },
+  claimSummary: { backgroundColor: Colors.adminCard, borderRadius: 10, padding: 11, gap: 6, maxHeight: 260 },
+  claimSummaryText: { fontFamily: Font.body, color: Colors.white, fontSize: 12, lineHeight: 17 },
   claimModalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 9, alignItems: 'center' },
-  approveClaimButton: { alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryGreen, borderRadius: 8, paddingHorizontal: 15, paddingVertical: 10 },
-  approveClaimText: { color: '#000', fontSize: 12, fontWeight: '800' },
+  approveClaimButton: { alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.admin, borderRadius: 8, paddingHorizontal: 15, paddingVertical: 10 },
+  approveClaimText: { fontFamily: Font.bodyExtraBold, color: '#000', fontSize: 12 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  editStepButton: { justifyContent: 'center', backgroundColor: 'rgba(167,139,250,0.12)', borderColor: 'rgba(167,139,250,0.35)', borderWidth: 1, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 12 },
-  editStepText: { color: '#C4B5FD', fontWeight: '700', fontSize: 12 },
-  validateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: Colors.primaryGreen, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 14 },
-  validateText: { color: '#000', fontWeight: '700', fontSize: 12 },
+  editStepButton: { justifyContent: 'center', backgroundColor: 'rgba(25,211,197,0.12)', borderColor: 'rgba(25,211,197,0.35)', borderWidth: 1, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 12 },
+  editStepText: { fontFamily: Font.bodyBold, color: '#C4B5FD', fontSize: 12 },
+  validateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: Colors.admin, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 14 },
+  validateText: { fontFamily: Font.bodyBold, color: '#000', fontSize: 12 },
   rejectButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: '#ef4444', borderRadius: 8, paddingVertical: 9, paddingHorizontal: 14 },
-  rejectText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  rejectText: { fontFamily: Font.bodyBold, color: '#fff', fontSize: 12 },
   disabled: { opacity: 0.5 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 22 },
-  modalCard: { backgroundColor: Colors.secondaryBg, borderRadius: 16, padding: 18, gap: 14, borderWidth: 1, borderColor: Colors.border },
-  modalTitle: { color: Colors.white, fontWeight: '700', fontSize: 17 },
-  statusOption: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, paddingHorizontal: 11, borderRadius: 9, backgroundColor: Colors.cardBg },
-  statusOptionActive: { borderWidth: 1, borderColor: 'rgba(125,255,42,0.35)' },
+  modalCard: { backgroundColor: Colors.adminSurface, borderRadius: 16, padding: 18, gap: 14, borderWidth: 1, borderColor: Colors.adminBorder },
+  modalTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 17 },
+  statusOption: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, paddingHorizontal: 11, borderRadius: 9, backgroundColor: Colors.adminCard },
+  statusOptionActive: { borderWidth: 1, borderColor: 'rgba(25,211,197,0.35)' },
   statusDot: { width: 9, height: 9, borderRadius: 5 },
-  statusOptionText: { color: Colors.white, flex: 1, fontSize: 12, fontWeight: '600' },
-  reasonInput: { minHeight: 100, color: Colors.white, backgroundColor: Colors.cardBg, borderRadius: 10, padding: 12, textAlignVertical: 'top' },
+  statusOptionText: { fontFamily: Font.bodySemiBold, color: Colors.white, flex: 1, fontSize: 12 },
+  reasonInput: { minHeight: 100, color: Colors.white, backgroundColor: Colors.adminCard, borderRadius: 10, padding: 12, textAlignVertical: 'top' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   modalCancel: { justifyContent: 'center', paddingHorizontal: 12 },
-  modalCancelText: { color: Colors.textSecondary, fontWeight: '600' },
+  modalCancelText: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold },
 });

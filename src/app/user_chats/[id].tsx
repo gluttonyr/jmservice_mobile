@@ -5,14 +5,16 @@ import { HistoryLoader } from '@/components/historyLoader';
 import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ChatBackground } from '@/components/ChatBackground';
 
+import { ChatHeader } from '@/components/orbit';
+import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useChat } from '@/hooks/useChat';
 import { useChatSections } from '@/hooks/useChatSection';
 
 import { useDiscussionPresence } from '@/hooks/useDiscussionPresence';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -88,17 +90,14 @@ useEffect(() => {
     >
       <ChatBackground variant="default" />
       {/* Header */}
-      <View style={st.header}>
-        <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
-          <ChevronLeft color={Colors.white} size={24} />
-        </TouchableOpacity>
-        <View style={st.headerInfo}>
-          <Text style={st.headerName} numberOfLines={1} ellipsizeMode="tail">
-            {name}
-          </Text>
-          {/* <Text style={st.headerStatus}>{loading ? '' : adminPresent ? 'En ligne' : 'Hors ligne'}</Text> */}
-        </View>
-      </View>
+      {/* Presence ("en ligne") stays hidden, as in Matistore. */}
+      <ChatHeader
+        title={name || 'Support'}
+        subtitle="Équipe JM Services"
+        subtitleColor={Colors.success}
+        onBack={() => router.back()}
+        avatar={<View style={st.avatar}><JMLogo size={36} /></View>}
+      />
 
       {/* Messages */}
       {loading ? (
@@ -162,23 +161,10 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.darkBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16,
-    backgroundColor: Colors.secondaryBg,
-    borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 12,
-  },
-  backBtn: { padding: 4 },
-  headerInfo: { flex: 1 },
-  headerName: { color: Colors.white, fontSize: 16, fontWeight: '700' },
-  headerStatus: { color: Colors.primaryGreen, fontSize: 12 },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  headerActionBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.cardBg,
-    alignItems: 'center', justifyContent: 'center',
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
+  avatar: {
+    width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.navy, borderWidth: 2,
+    borderColor: 'rgba(90,162,255,0.4)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
 
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },

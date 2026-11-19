@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { WifiOff } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -21,7 +22,7 @@ export function ConnectionErrorState({
 }: Props) {
   return (
     <View style={[styles.box, fullscreen && styles.fullscreen]}>
-      <WifiOff color="#f59e0b" size={22} />
+      <View style={styles.icon}><WifiOff color={Colors.gold} size={24} /></View>
       <Text style={styles.text}>{message}</Text>
       <TouchableOpacity style={styles.retryBtn} onPress={onRetry} activeOpacity={0.8}>
         <Text style={styles.retryBtnText}>Réessayer</Text>
@@ -34,24 +35,26 @@ const styles = StyleSheet.create({
   box: {
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 32,
+    paddingVertical: 28,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(245,158,11,0.06)',
+    backgroundColor: 'rgba(17,28,63,0.9)',
     borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.25)',
-    borderRadius: 16,
+    borderColor: 'rgba(255,194,51,0.25)',
+    borderRadius: 22,
     marginHorizontal: 16,
     marginTop: 16,
   },
-  fullscreen: { flex: 1, justifyContent: 'center', marginHorizontal: 20, marginTop: 0 },
-  text: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  // Full page: no frame, just the message in the middle.
+  fullscreen: { flex: 1, justifyContent: 'center', marginHorizontal: 24, marginTop: 0, backgroundColor: 'transparent', borderWidth: 0 },
+  icon: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,194,51,0.12)', alignItems: 'center', justifyContent: 'center' },
+  text: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, textAlign: 'center', lineHeight: 22 },
   retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.3)',
+    paddingHorizontal: 22,
+    paddingVertical: 11,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,194,51,0.1)',
+    borderWidth: 1.5,
+    borderColor: Colors.gold,
   },
-  retryBtnText: { color: Colors.primaryGreen, fontWeight: '700', fontSize: 13 },
+  retryBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
 });

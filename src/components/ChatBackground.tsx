@@ -1,55 +1,51 @@
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  BadgeDollarSign,
-  Banknote,
-  ChartNoAxesColumnIncreasing,
+  CircleArrowDown,
+  CircleArrowUp,
   CircleDollarSign,
   Coins,
-  CreditCard,
-  ClipboardList,
-  Crown,
-  Dice5,
-  Dumbbell,
-  Goal,
-  Hash,
-  HeadphonesIcon,
-  Heart,
-  Landmark,
+  Dices,
   Megaphone,
-  Medal,
   MessageCircle,
-  MessageSquare,
-  Pin,
-  QrCode,
-  Receipt,
-  Shield,
+  ShieldCheck,
   Smartphone,
-  Star,
   Ticket,
-  TicketPercent,
+  Timer,
   TrendingUp,
   Trophy,
-  Users,
-  Wallet,
+  Volleyball,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { useMemo } from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Ellipse, Path, Text as SvgText } from 'react-native-svg';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
+// « Des icônes JM en filigrane »: each space has its own icons and colour (design board 12).
+// The JM logo and pairs of stars are mixed into every set.
 const ICON_SETS = {
-  default: [Goal, Trophy, Dice5, CircleDollarSign, Wallet, Medal, Coins, TicketPercent, Dumbbell, Crown, BadgeDollarSign, ChartNoAxesColumnIncreasing, Star, Banknote, Ticket, TrendingUp],
-  finance: [Wallet, Banknote, Coins, CircleDollarSign, CreditCard, Receipt, Smartphone, ArrowDownToLine, ArrowUpFromLine, Landmark, QrCode, ChartNoAxesColumnIncreasing, TicketPercent, BadgeDollarSign, TrendingUp, Goal],
-  admin: [Shield, Crown, Goal, Trophy, Dice5, CircleDollarSign, Wallet, Medal, TicketPercent, BadgeDollarSign, ChartNoAxesColumnIncreasing, Users, ClipboardList, HeadphonesIcon, MessageCircle, Pin],
-  forum: [MessageSquare, Goal, Trophy, Dice5, CircleDollarSign, Medal, Dumbbell, TicketPercent, Hash, Crown, Coins, ChartNoAxesColumnIncreasing, Heart, Star, Wallet, Megaphone],
+  // Client support: blue, sport and trophies.
+  default: [Volleyball, Dices, Trophy, Ticket, Timer, MessageCircle, Coins, TrendingUp],
+  // Deposit / withdrawal: gold, coins and arrows.
+  finance: [CircleDollarSign, CircleArrowUp, CircleArrowDown, Ticket, Smartphone, ShieldCheck, TrendingUp, Coins],
+  // Admin conversations: turquoise, shield.
+  admin: [ShieldCheck, CircleArrowUp, CircleArrowDown, Smartphone, Timer, MessageCircle, Trophy, CircleDollarSign],
+  // General discussion: chrome, bubbles.
+  forum: [MessageCircle, Volleyball, Trophy, Ticket, Dices, Megaphone, Timer, Coins],
 } satisfies Record<string, LucideIcon[]>;
+
+const VARIANT_COLORS: Record<keyof typeof ICON_SETS, string> = {
+  default: '#5AA2FF',
+  finance: '#FFC233',
+  admin: '#19D3C5',
+  forum: '#B9C3DA',
+};
 
 export type ChatBackgroundVariant = keyof typeof ICON_SETS;
 
 type Props = {
   variant?: ChatBackgroundVariant;
+  /** Defaults to the colour of the variant. */
   iconColor?: string;
   opacity?: number;
   spacing?: number;
@@ -69,54 +65,54 @@ function mulberry32(seed: number) {
   };
 }
 
-type Doodle = {
-  key: string;
-  Icon: LucideIcon;
-  isBrand: boolean;
-  x: number;
-  y: number;
-  size: number;
-  rotate: number;
-};
+type Doodle =
+  | { key: string; kind: 'icon'; Icon: LucideIcon; x: number; y: number; size: number; rotate: number }
+  | { key: string; kind: 'brand' | 'stars'; x: number; y: number; size: number; rotate: number };
 
-function MatistoreOutlineIcon({ size }: { size: number }) {
+/** "JM" in an oval, the watermark version of the logo. */
+function JMOutline({ size, color }: { size: number; color: string }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 64" fill="none" preserveAspectRatio="xMidYMid meet">
-      <Path
-        d="M12 61C7 61 5 56 7 51l11-36 5 15c1 3 4 4 7 4 2 0 3-2 1-5L22 8c-2-4 6-7 11-5 3 1 5 3 6 7l8 29c1 4-2 7-6 7-3 0-8-3-13-5L18 59c-1 2-4 3-6 2Z"
-        stroke="#FFFFFF"
-        strokeWidth={5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M88 61c5 0 7-5 5-10L82 15l-5 15c-1 3-4 4-7 4-2 0-3-2-1-5l9-21c2-4-6-7-11-5-3 1-5 3-6 7l-8 29c-1 4 2 7 6 7 3 0 8-3 13-5l10 18c1 2 4 3 6 2Z"
-        stroke="#FFFFFF"
-        strokeWidth={5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M43 11h21c4 0 5 3 4 6l-1 2c-.5 1.5-2 2-4 2H44l2 4h19l-5 9H47c-3 0-4-1-5-4l-4-14c-1-3 1-5 5-5Z"
-        stroke="#FFFFFF"
-        strokeWidth={5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <Svg width={size * 1.7} height={size} viewBox="0 0 68 40">
+      <Ellipse cx="34" cy="20" rx="31" ry="15" transform="rotate(-10 34 20)" stroke={color} strokeWidth={3} fill="none" />
+      <SvgText
+        x="34"
+        y="28"
+        fontSize="22"
+        fontFamily={Font.title}
+        textAnchor="middle"
+        stroke={color}
+        strokeWidth={1.4}
+        fill="none"
+      >
+        JM
+      </SvgText>
+    </Svg>
+  );
+}
+
+const STAR = 'M12 0 C13 8 16 11 24 12 C16 13 13 16 12 24 C11 16 8 13 0 12 C8 11 11 8 12 0 Z';
+
+/** Two four-point stars side by side, filled. */
+function StarPair({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size * 2.2} height={size} viewBox="0 0 53 24">
+      <Path d={STAR} fill={color} transform="translate(0 2) scale(0.85)" />
+      <Path d={STAR} fill={color} transform="translate(29 0)" />
     </Svg>
   );
 }
 
 export function ChatBackground({
   variant = 'default',
-  iconColor = '#FFFFFF',
-  opacity = 0.07,
-  spacing = 44,
-  iconSize = 23,
+  iconColor,
+  opacity = 0.14,
+  spacing = 64,
+  iconSize = 24,
   backgroundColor = Colors.darkBg,
   seed = 7,
 }: Props) {
   const { width, height } = useWindowDimensions();
+  const color = iconColor ?? VARIANT_COLORS[variant];
 
   const doodles = useMemo<Doodle[]>(() => {
     const icons = ICON_SETS[variant];
@@ -129,16 +125,20 @@ export function ChatBackground({
     for (let row = 0; row < rows; row += 1) {
       const rowOffset = row % 2 === 0 ? 0 : spacing / 2;
       for (let column = 0; column < columns; column += 1) {
-        list.push({
+        const roll = random();
+        const base = {
           key: `${row}-${column}`,
-          Icon: icons[iconIndex % icons.length],
-          isBrand: random() < 0.2,
-          x: column * spacing + rowOffset + (random() - 0.5) * spacing * 0.35,
-          y: row * spacing + (random() - 0.5) * spacing * 0.35,
-          size: iconSize + Math.round((random() - 0.5) * 8),
-          rotate: Math.round((random() - 0.5) * 42),
-        });
-        iconIndex += 1 + Math.floor(random() * 2);
+          x: column * spacing + rowOffset + (random() - 0.5) * spacing * 0.2 - iconSize / 2,
+          y: row * spacing + (random() - 0.5) * spacing * 0.2,
+          size: iconSize + Math.round((random() - 0.5) * 6),
+          rotate: Math.round((random() - 0.5) * 30),
+        };
+        if (roll < 0.16) list.push({ ...base, kind: 'brand' });
+        else if (roll < 0.28) list.push({ ...base, kind: 'stars', rotate: 0 });
+        else {
+          list.push({ ...base, kind: 'icon', Icon: icons[iconIndex % icons.length] });
+          iconIndex += 1 + Math.floor(random() * 2);
+        }
       }
     }
     return list;
@@ -146,26 +146,18 @@ export function ChatBackground({
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor }]}>
-      {doodles.map(({ key, Icon, isBrand, x, y, size, rotate }) => (
+      {doodles.map((d) => (
         <View
-          key={key}
-          style={{
-            position: 'absolute',
-            left: x,
-            top: y,
-            width: isBrand ? size : undefined,
-            height: isBrand ? size : undefined,
-            alignItems: isBrand ? 'center' : undefined,
-            justifyContent: isBrand ? 'center' : undefined,
-            opacity: isBrand ? Math.min(opacity * 1.7, 0.16) : opacity,
-            transform: [{ rotate: `${rotate}deg` }],
-          }}
+          key={d.key}
+          style={{ position: 'absolute', left: d.x, top: d.y, opacity, transform: [{ rotate: `${d.rotate}deg` }] }}
         >
-          {isBrand ? (
-            <MatistoreOutlineIcon size={size * 1.14} />
-          ) : (
-            <Icon color={iconColor} size={size} strokeWidth={2.5} />
-          )}
+          {d.kind === 'brand' ? (
+            <JMOutline size={d.size} color={color} />
+          ) : d.kind === 'stars' ? (
+            <StarPair size={d.size * 0.9} color={color} />
+          ) : d.kind === 'icon' ? (
+            <d.Icon color={color} size={d.size} strokeWidth={2} />
+          ) : null}
         </View>
       ))}
     </View>

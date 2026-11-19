@@ -1,4 +1,4 @@
-import { Calendar, MessageCircle, User, Users } from 'lucide-react-native';
+import { Calendar, LayoutGrid, MessageCircle, User, Users } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import PagerView from '@/components/PagerView';
@@ -13,7 +13,8 @@ import ProfileScreen from './profile';
 // ─────────────────────────────────────────────────────────────────────────────
 
 import Badge from '@/components/ui/Badge';
-import MatiLogo from '@/components/ui/MatiLogo';
+import JMLogo from '@/components/ui/JMLogo';
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { usePushNotificationRegistration } from '@/hooks/usePushNotificationRegistration';
 import { useAdminNotificationCapture } from '@/hooks/useAdminNotificationCapture';
@@ -24,7 +25,7 @@ import { useWideWeb } from '@/hooks/useWideWeb';
 import { webSidebarStyles } from '@/components/webSidebarStyles';
 
 const TABS = [
-  { key: 'home',    label: 'Accueil',      Icon: Users,         Screen: HomeScreen },
+  { key: 'home',    label: 'Accueil',      Icon: LayoutGrid,         Screen: HomeScreen },
   { key: 'chats',   label: 'Chats',        Icon: MessageCircle, Screen: ChatsScreen },
   { key: 'events',  label: 'Événements',   Icon: Calendar,      Screen: EventsScreen },
   { key: 'forum',   label: 'Forum',        Icon: Users,         Screen: ForumScreen },
@@ -117,12 +118,12 @@ export default function TabsLayout() {
       <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }, wide && webSidebarStyles.tabBar]}>
         {wide && (
           <View style={webSidebarStyles.brand}>
-            <MatiLogo size={90} showText />
+            <JMLogo size={90} showText />
           </View>
         )}
         {TABS.map(({ key, label, Icon }, index) => {
           const focused = activeIndex === index;
-          const color = focused ? Colors.primaryGreen : Colors.textSecondary;
+          const color = focused ? Colors.admin : Colors.textSecondary;
           const badge = key === 'chats' ? chatsUnread : 0;
           const dot = key === 'forum' && forumHasNew;
           return (
@@ -151,26 +152,26 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.primaryBg ?? '#fff' },
+  root: { flex: 1, backgroundColor: Colors.adminBg ?? '#fff' },
   pager: { flex: 1 },
   page: { flex: 1 },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: '#061218',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: 8,
+    borderTopColor: Colors.adminBorder,
+    paddingTop: 12,
   },
   tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  tabLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3 },
+  tabLabel: { fontFamily: Font.bodySemiBold, fontSize: 11, marginTop: 2 },
   iconContainer: { alignItems: 'center', justifyContent: 'center', position: 'relative' },
   activePill: {
     position: 'absolute',
-    top: -8,
-    width: 24,
-    height: 3,
+    top: -13,
+    width: 32,
+    height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.primaryGreen,
+    backgroundColor: Colors.admin,
   },
   badgePos: { position: 'absolute', top: -6, right: -10 },
 });

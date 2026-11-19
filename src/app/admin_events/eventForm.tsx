@@ -7,6 +7,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { Calendar, ChevronLeft, ChevronDown, ImagePlus, X } from 'lucide-react-native';
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { Categorie } from '@/data_api/models/categorie.types';
 import { categorieService } from '@/data_api/services/categorieService';
@@ -169,11 +170,11 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: Colors.darkBg }}
+      style={{ flex: 1, backgroundColor: Colors.adminBg }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
-      <LinearGradient colors={[Colors.secondaryBg, Colors.darkBg]} style={styles.header}>
+      <LinearGradient colors={[Colors.adminSurface, Colors.adminBg]} style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <ChevronLeft color={Colors.white} size={22} />
         </TouchableOpacity>
@@ -199,7 +200,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
             <View style={styles.previewContainer}>
               <Image source={{ uri: previewUri }} style={styles.previewImage} />
               <LinearGradient
-                colors={['transparent', 'rgba(5,5,5,0.6)']}
+                colors={['transparent', 'rgba(6,11,30,0.6)']}
                 style={StyleSheet.absoluteFill}
               />
               {/* Bouton supprimer (uniquement pour une image nouvellement choisie) */}
@@ -221,13 +222,13 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
           ) : (
             // Zone de drop / sélection
             <View style={[styles.uploadZone, errors.image && styles.uploadZoneError]}>
-              <ImagePlus color={errors.image ? '#ff4d4d' : Colors.primaryGreen} size={32} strokeWidth={1.5} />
+              <ImagePlus color={errors.image ? '#ff4d4d' : Colors.admin} size={32} strokeWidth={1.5} />
               <Text style={styles.uploadTitle}>Ajouter une image</Text>
               <Text style={styles.uploadSub}>Format recommandé : 16/9 · JPG ou PNG</Text>
               <View style={styles.uploadBtns}>
                 <TouchableOpacity style={styles.uploadBtn} onPress={pickFromGallery}>
                   <LinearGradient
-                    colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+                    colors={[Colors.admin, Colors.adminEnd]}
                     style={StyleSheet.absoluteFill}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
@@ -273,7 +274,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
             style={[styles.input, styles.dateInput, errors.dateDebut && styles.inputError]}
             onPress={() => setShowDateDebutPicker(true)}
           >
-            <Calendar color={Colors.primaryGreen} size={16} />
+            <Calendar color={Colors.admin} size={16} />
             <Text style={dateDebut ? styles.dateInputText : styles.dateInputPlaceholder}>
               {dateDebut ? formatDatePretty(dateDebut) : 'Sélectionner une date'}
             </Text>
@@ -285,7 +286,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
             style={[styles.input, styles.dateInput, errors.dateFin && styles.inputError]}
             onPress={() => setShowDateFinPicker(true)}
           >
-            <Calendar color={Colors.primaryGreen} size={16} />
+            <Calendar color={Colors.admin} size={16} />
             <Text style={dateFin ? styles.dateInputText : styles.dateInputPlaceholder}>
               {dateFin ? formatDatePretty(dateFin) : 'Sélectionner une date'}
             </Text>
@@ -323,7 +324,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
         <Field label="Lieu (optionnel)">
           <TextInput
             style={styles.input}
-            placeholder="Ex: MATI STORE - Lomé"
+            placeholder="Ex: JM Services - Lomé"
             placeholderTextColor={Colors.textSecondary}
             value={lieu}
             onChangeText={setLieu}
@@ -333,7 +334,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
         {/* Category */}
         <Field label="Catégorie" error={errors.categorie}>
           {loadingCategories ? (
-            <ActivityIndicator color={Colors.primaryGreen} />
+            <ActivityIndicator color={Colors.admin} />
           ) : (
             <>
               <TouchableOpacity
@@ -378,7 +379,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
         {/* Submit */}
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
           <LinearGradient
-            colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+            colors={[Colors.admin, Colors.adminEnd]}
             style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
@@ -421,43 +422,43 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: 'rgba(255,255,255,0.07)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border,
+    borderWidth: 1, borderColor: Colors.adminBorder,
   },
-  headerTitle: { color: Colors.white, fontSize: 18, fontWeight: '900' },
-  headerSub: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  headerTitle: { fontFamily: Font.title, color: Colors.white, fontSize: 18 },
+  headerSub: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
 
   form: { padding: 20, gap: 20, paddingBottom: 48 },
   field: { gap: 8 },
-  label: { color: Colors.white, fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
+  label: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 13, letterSpacing: 0.3 },
 
   // ── Upload zone ──
   uploadZone: {
-    borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(125,255,42,0.25)',
-    borderStyle: 'dashed', backgroundColor: 'rgba(125,255,42,0.04)',
+    borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(25,211,197,0.25)',
+    borderStyle: 'dashed', backgroundColor: 'rgba(25,211,197,0.04)',
     alignItems: 'center', paddingVertical: 32, gap: 8,
   },
   uploadZoneError: { borderColor: 'rgba(255,77,77,0.4)', backgroundColor: 'rgba(255,77,77,0.04)' },
-  uploadTitle: { color: Colors.white, fontSize: 15, fontWeight: '700', marginTop: 4 },
-  uploadSub: { color: Colors.textSecondary, fontSize: 12 },
+  uploadTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 15, marginTop: 4 },
+  uploadSub: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 12 },
   uploadBtns: { flexDirection: 'row', gap: 10, marginTop: 8 },
   uploadBtn: {
     overflow: 'hidden', borderRadius: 10,
     paddingHorizontal: 22, paddingVertical: 10,
     alignItems: 'center', justifyContent: 'center',
   },
-  uploadBtnText: { color: '#000', fontSize: 13, fontWeight: '800' },
+  uploadBtnText: { fontFamily: Font.bodyExtraBold, color: '#000', fontSize: 13 },
   uploadBtnOutline: {
-    borderRadius: 10, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 10, borderWidth: 1, borderColor: Colors.adminBorder,
     paddingHorizontal: 22, paddingVertical: 10,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
   },
-  uploadBtnOutlineText: { color: Colors.white, fontSize: 13, fontWeight: '700' },
+  uploadBtnOutlineText: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 13 },
 
   // ── Preview ──
   previewContainer: {
     borderRadius: 16, overflow: 'hidden', height: 180,
-    borderWidth: 1, borderColor: Colors.border,
+    borderWidth: 1, borderColor: Colors.adminBorder,
   },
   previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   removeImageBtn: {
@@ -475,45 +476,45 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
-  changeImageText: { color: Colors.white, fontSize: 12, fontWeight: '700' },
+  changeImageText: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 12 },
 
   // ── Inputs ──
-  input: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
+  input: { fontFamily: Font.body,
+    backgroundColor: Colors.adminCard,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13,
     color: Colors.white, fontSize: 14,
   },
   inputError: { borderColor: '#ff4d4d' },
   textarea: { minHeight: 100 },
-  errorText: { color: '#ff4d4d', fontSize: 12, fontWeight: '600', marginTop: -4 },
+  errorText: { fontFamily: Font.bodySemiBold, color: '#ff4d4d', fontSize: 12, marginTop: -4 },
 
   dateInput: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dateInputText: { color: Colors.white, fontSize: 14 },
-  dateInputPlaceholder: { color: Colors.textSecondary, fontSize: 14 },
+  dateInputText: { fontFamily: Font.body, color: Colors.white, fontSize: 14 },
+  dateInputPlaceholder: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14 },
 
   picker: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  pickerText: { color: Colors.white, fontSize: 14 },
+  pickerText: { fontFamily: Font.body, color: Colors.white, fontSize: 14 },
   pickerDropdown: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     borderRadius: 12, marginTop: -8, overflow: 'hidden',
   },
   pickerOption: { paddingHorizontal: 14, paddingVertical: 13 },
-  pickerOptionActive: { backgroundColor: 'rgba(125,255,42,0.1)' },
-  pickerOptionText: { color: Colors.textSecondary, fontSize: 14 },
-  pickerOptionTextActive: { color: Colors.primaryGreen, fontWeight: '700' },
+  pickerOptionActive: { backgroundColor: 'rgba(25,211,197,0.1)' },
+  pickerOptionText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14 },
+  pickerOptionTextActive: { color: Colors.admin, fontFamily: Font.bodyBold },
 
   submitBtn: {
     height: 52, borderRadius: 14,
     overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
-  submitBtnText: { color: '#000', fontSize: 15, fontWeight: '900' },
+  submitBtnText: { fontFamily: Font.bodyExtraBold, color: '#000', fontSize: 15 },
   cancelBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
-  cancelBtnText: { color: Colors.textSecondary, fontSize: 14, fontWeight: '600' },
+  cancelBtnText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 14 },
 });

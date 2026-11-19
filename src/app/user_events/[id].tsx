@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, MapPin, Calendar, Share2, Users } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Calendar, Share2, Trophy, Users } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import Share, { Social } from '@/components/Share';
+import { OrbitStar } from '@/components/orbit';
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWideWeb } from '@/hooks/useWideWeb';
 import { Categorie } from '@/data_api/models/categorie.types';
 import { Evenement } from '@/data_api/models/evenement.types';
@@ -60,6 +63,7 @@ export default function EventDetailScreen() {
    * le titre et la description. Il ne reste plus qu'à choisir le contact.
    */
   const wide = useWideWeb();
+  const insets = useSafeAreaInsets();
 
   const handleShareWhatsApp = async () => {
     if (!event) return;
@@ -122,17 +126,19 @@ export default function EventDetailScreen() {
           {heroUri ? (
             <Image source={{ uri: heroUri }} style={styles.heroImage} />
           ) : (
-            <View style={[styles.heroImage, { backgroundColor: Colors.cardBg }]} />
+            <LinearGradient colors={['#1F4FC4', '#0D1F5C']} style={[styles.heroImage, styles.heroFallback]}>
+              <Trophy color="rgba(255,255,255,0.2)" size={140} strokeWidth={1.4} />
+            </LinearGradient>
           )}
           <LinearGradient colors={['transparent', Colors.darkBg]} style={styles.heroGrad} />
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <ChevronLeft color={Colors.white} size={24} />
+          <TouchableOpacity style={[styles.backBtn, { top: insets.top + 14 }]} onPress={() => router.back()} accessibilityLabel="Retour">
+            <ChevronLeft color={Colors.chrome} size={24} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shareBtn} onPress={handleShareWhatsApp} disabled={sharing}>
+          <TouchableOpacity style={[styles.shareBtn, { top: insets.top + 14 }]} onPress={handleShareWhatsApp} disabled={sharing} accessibilityLabel="Partager">
             {sharing ? (
-              <ActivityIndicator color={Colors.white} size="small" />
+              <ActivityIndicator color={Colors.chrome} size="small" />
             ) : (
-              <Share2 color={Colors.white} size={20} />
+              <Share2 color={Colors.chrome} size={20} />
             )}
           </TouchableOpacity>
           <View style={styles.catBadge}>
@@ -147,18 +153,18 @@ export default function EventDetailScreen() {
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
-                <Calendar color={Colors.primaryGreen} size={18} />
+                <Calendar color={Colors.blueLight} size={20} />
               </View>
-              <View>
+              <View style={styles.metaCopy}>
                 <Text style={styles.metaLabel}>Date</Text>
                 <Text style={styles.metaValue}>{formatEventDate(event.dateDebut, event.dateFin)}</Text>
               </View>
             </View>
             <View style={styles.metaItem}>
               <View style={styles.metaIcon}>
-                <MapPin color={Colors.primaryGreen} size={18} />
+                <MapPin color={Colors.blueLight} size={20} />
               </View>
-              <View>
+              <View style={styles.metaCopy}>
                 <Text style={styles.metaLabel}>Lieu</Text>
                 <Text style={styles.metaValue}>{event.lieu ?? 'Non précisé'}</Text>
               </View>
@@ -172,8 +178,8 @@ export default function EventDetailScreen() {
 
           <GlassCard style={styles.infoCard} glow>
             <View style={styles.infoRow}>
-              <Users color={Colors.primaryGreen} size={20} />
-              <Text style={styles.infoText}>Rejoignez la communauté MATI STORE</Text>
+              <OrbitStar size={18} />
+              <Text style={styles.infoText}>Rejoignez la communauté JM Services</Text>
             </View>
             <View style={styles.infoDivider} />
             <Text style={styles.infoHighlight}>Places limitées — Inscrivez-vous maintenant !</Text>
@@ -195,58 +201,38 @@ export default function EventDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
-  center: { flex: 1, backgroundColor: Colors.darkBg, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
-  errorText: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center' },
-  backBtnInline: {
-    paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12,
-    backgroundColor: 'rgba(125,255,42,0.1)', borderWidth: 1, borderColor: 'rgba(125,255,42,0.25)',
-  },
-  backBtnInlineText: { color: Colors.primaryGreen, fontWeight: '700' },
+  heroFallback: { alignItems: 'center', justifyContent: 'center' },
+  metaCopy: { flex: 1, minWidth: 0 },
+  container: { flex: 1, backgroundColor: Colors.night },
+  center: { flex: 1, backgroundColor: Colors.night, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
+  errorText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, textAlign: 'center' },
+  backBtnInline: { paddingHorizontal: 22, paddingVertical: 11, borderRadius: 14, backgroundColor: 'rgba(255,194,51,0.1)', borderWidth: 1.5, borderColor: Colors.gold },
+  backBtnInlineText: { color: Colors.gold, fontFamily: Font.bodyBold },
   heroContainer: { height: 320, position: 'relative' },
   // website on a computer: picture on the left, details on the right
   wideRow: { flexDirection: 'row', padding: 32, gap: 32, alignItems: 'flex-start' },
   heroWide: { width: '45%', height: 480, borderRadius: 20, overflow: 'hidden' },
   contentWide: { flex: 1, padding: 0, paddingTop: 8 },
   heroImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  heroGrad: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 150 },
-  backBtn: {
-    position: 'absolute', top: 56, left: 20,
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  shareBtn: {
-    position: 'absolute', top: 56, right: 20,
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  catBadge: {
-    position: 'absolute', bottom: 20, left: 20,
-    backgroundColor: 'rgba(125,255,42,0.2)',
-    borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5,
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.4)',
-  },
-  catText: { color: Colors.primaryGreen, fontSize: 12, fontWeight: '700' },
+  heroGrad: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 160 },
+  backBtn: { position: 'absolute', top: 56, left: 20, width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(6,11,30,0.6)', borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  shareBtn: { position: 'absolute', top: 56, right: 20, width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(6,11,30,0.6)', borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  catBadge: { position: 'absolute', bottom: 20, left: 20, backgroundColor: Colors.gold, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 5 },
+  catText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 13 },
   content: { padding: 20, gap: 16 },
-  title: { color: Colors.white, fontSize: 24, fontWeight: '900', lineHeight: 32, letterSpacing: 0.3 },
-  metaRow: { flexDirection: 'row', gap: 20 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  metaIcon: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  metaLabel: { color: Colors.textSecondary, fontSize: 11, fontWeight: '600' },
-  metaValue: { color: Colors.white, fontSize: 13, fontWeight: '700' },
+  title: { color: Colors.chrome, fontFamily: Font.title, fontSize: 28, lineHeight: 34, textTransform: 'uppercase' },
+  metaRow: { gap: 12 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 20, padding: 12 },
+  metaIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(47,123,255,0.16)', alignItems: 'center', justifyContent: 'center' },
+  metaLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 12 },
+  metaValue: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15 },
   descCard: { gap: 10 },
-  descTitle: { color: Colors.white, fontSize: 16, fontWeight: '800', marginBottom: 4 },
-  descText: { color: Colors.textSecondary, fontSize: 14, lineHeight: 22 },
+  descTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, textTransform: 'uppercase', marginBottom: 4 },
+  descText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, lineHeight: 23 },
   infoCard: { gap: 12 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  infoText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
+  infoText: { color: Colors.chrome, fontFamily: Font.bodySemiBold, fontSize: 15, flex: 1 },
   infoDivider: { height: 1, backgroundColor: Colors.border },
-  infoHighlight: { color: Colors.primaryGreen, fontSize: 14, fontWeight: '700' },
+  infoHighlight: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15 },
   shareOutlineBtn: { width: '100%' },
 });

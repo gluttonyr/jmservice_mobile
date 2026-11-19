@@ -1,4 +1,7 @@
-import { Colors } from '@/constants/colors';
+import { OrbitBackground } from '@/components/orbit';
+import { Colors, Gradients } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User as UserModel, UserRole } from '@/data_api/models/user.types';
 import { userService } from '@/data_api/services/userService';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,7 +55,7 @@ function AvatarInitials({
     >
       <View style={styles.avatarRing}>
         <LinearGradient
-          colors={[Colors.primaryGreen, Colors.secondaryGreen ?? '#4caf50']}
+          colors={Gradients.blue}
           style={styles.avatarGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -63,7 +66,7 @@ function AvatarInitials({
         </LinearGradient>
       </View>
       <View pointerEvents="none" style={styles.avatarEditButton}>
-        <ImagePlus color="#000" size={21} />
+        <ImagePlus color={Colors.onGold} size={20} />
       </View>
     </TouchableOpacity>
   );
@@ -74,15 +77,18 @@ const ROLE_COLORS: Record<string, string> = {
   ADMIN: '#FF6B6B',
   VENDEUR: '#FFD93D',
   AFFILIER: '#6BCB77',
-  USER: Colors.primaryGreen,
+  USER: '#5AA2FF',
 };
+
+// Readable role names (the API sends codes).
+const ROLE_LABELS: Record<string, string> = { ADMIN: 'Administrateur', VENDEUR: 'Vendeur', AFFILIER: 'Affilié', USER: 'Client' };
 
 function RoleBadge({ role }: { role: string }) {
   const color = ROLE_COLORS[role] ?? Colors.primaryGreen;
   return (
     <View style={[styles.roleBadge, { borderColor: color + '55', backgroundColor: color + '18' }]}>
       <View style={[styles.roleDot, { backgroundColor: color }]} />
-      <Text style={[styles.roleText, { color }]}>{role}</Text>
+      <Text style={[styles.roleText, { color }]}>{ROLE_LABELS[role] ?? role}</Text>
     </View>
   );
 }
@@ -114,6 +120,7 @@ function EditableField({
           editable={editable}
           placeholderTextColor={Colors.textSecondary}
           keyboardType={keyboardType}
+          accessibilityLabel={label}
           autoCapitalize={autoCapitalize}
           selectTextOnFocus={editable}
         />
@@ -130,6 +137,7 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
   const profileImageUri = useFileUrl('profiles', user?.image);
+  const insets = useSafeAreaInsets();
 
     // const user = {
     //   nom:"John",
@@ -296,24 +304,19 @@ export default function ProfilePage() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <LinearGradient
-        colors={['rgba(125,255,42,0.07)', Colors.darkBg]}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.35 }}
-      />
+      <OrbitBackground orbits={false} style={StyleSheet.absoluteFill} />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header ── */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 18 }]}>
           <Text style={styles.pageTitle}>Mon profil</Text>
 
           {!isEditing ? (
             <TouchableOpacity style={styles.editBtn} onPress={() => setIsEditing(true)} activeOpacity={0.8}>
-              <Edit3 color={Colors.primaryGreen} size={16} />
+              <Edit3 color={Colors.gold} size={16} />
               <Text style={styles.editBtnText}>Modifier</Text>
             </TouchableOpacity>
           ) : (
@@ -328,8 +331,8 @@ export default function ProfilePage() {
                 disabled={!hasChanges || loading}
               >
                 {loading
-                  ? <ActivityIndicator color="#000" size="small" />
-                  : <Check color="#000" size={16} />
+                  ? <ActivityIndicator color={Colors.onGold} size="small" />
+                  : <Check color={Colors.onGold} size={16} />
                 }
                 <Text style={styles.saveBtnText}>Enregistrer</Text>
               </TouchableOpacity>
@@ -357,8 +360,8 @@ export default function ProfilePage() {
         {/* ── Statut compte ── */}
         <View style={styles.statusRow}>
           <View style={[styles.statusPill, user.active ? styles.statusActive : styles.statusInactive]}>
-            <View style={[styles.statusDot, { backgroundColor: user.active ? '#6BCB77' : '#FF6B6B' }]} />
-            <Text style={[styles.statusText, { color: user.active ? '#6BCB77' : '#FF6B6B' }]}>
+            <View style={[styles.statusDot, { backgroundColor: user.active ? Colors.success : '#FF6B6B' }]} />
+            <Text style={[styles.statusText, { color: user.active ? Colors.success : '#FF6B6B' }]}>
               {user.active ? 'Compte actif' : 'Compte inactif'}
             </Text>
           </View>
@@ -375,7 +378,7 @@ export default function ProfilePage() {
             label="Prénom"
             value={prenom}
             onChange={setPrenom}
-            icon={<User color={isEditing ? Colors.primaryGreen : Colors.textSecondary} size={17} />}
+            icon={<User color={isEditing ? Colors.blueLight : Colors.textSecondary} size={17} />}
             editable={isEditing}
             autoCapitalize="words"
           />
@@ -383,7 +386,7 @@ export default function ProfilePage() {
             label="Nom"
             value={nom}
             onChange={setNom}
-            icon={<User color={isEditing ? Colors.primaryGreen : Colors.textSecondary} size={17} />}
+            icon={<User color={isEditing ? Colors.blueLight : Colors.textSecondary} size={17} />}
             editable={isEditing}
             autoCapitalize="words"
           />
@@ -391,7 +394,7 @@ export default function ProfilePage() {
             label="Email"
             value={email}
             onChange={setEmail}
-            icon={<Mail color={isEditing ? Colors.primaryGreen : Colors.textSecondary} size={17} />}
+            icon={<Mail color={isEditing ? Colors.blueLight : Colors.textSecondary} size={17} />}
             editable={isEditing}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -400,7 +403,7 @@ export default function ProfilePage() {
             label="Téléphone"
             value={telephone}
             onChange={setTelephone}
-            icon={<Phone color={isEditing ? Colors.primaryGreen : Colors.textSecondary} size={17} />}
+            icon={<Phone color={isEditing ? Colors.blueLight : Colors.textSecondary} size={17} />}
             editable={isEditing}
             keyboardType="phone-pad"
             autoCapitalize="none"
@@ -447,119 +450,38 @@ export default function ProfilePage() {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.night },
   scroll: { flexGrow: 1, paddingBottom: 48 },
-  centered: { flex: 1, backgroundColor: Colors.darkBg, alignItems: 'center', justifyContent: 'center' },
+  centered: { flex: 1, backgroundColor: Colors.night, alignItems: 'center', justifyContent: 'center' },
 
   // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 56,
-    paddingBottom: 24,
-  },
-  pageTitle: { color: Colors.white, fontSize: 26, fontWeight: '800', letterSpacing: 0.4 },
-  editBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.3)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  editBtnText: { color: Colors.primaryGreen, fontSize: 13, fontWeight: '700' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 20 },
+  pageTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 30, textTransform: 'uppercase' },
+  editBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,194,51,0.1)', borderWidth: 1.5, borderColor: Colors.gold, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
+  editBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
   editActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  cancelBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  saveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.primaryGreen,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
+  cancelBtn: { width: 40, height: 40, borderRadius: 14, backgroundColor: Colors.navy, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.gold, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 9 },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { color: '#000', fontSize: 13, fontWeight: '800' },
+  saveBtnText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 14 },
 
   // Hero
-  heroCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-    marginHorizontal: 24,
-    marginBottom: 16,
-    backgroundColor: Colors.cardBg,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 20,
-  },
-  avatarRing: {
-    width: 72, height: 72, borderRadius: 36,
-    padding: 3,
-    backgroundColor: 'rgba(125,255,42,0.15)',
-    borderWidth: 2,
-    borderColor: 'rgba(125,255,42,0.35)',
-  },
+  heroCard: { flexDirection: 'row', alignItems: 'center', gap: 18, marginHorizontal: 20, marginBottom: 16, backgroundColor: 'rgba(17,28,63,0.92)', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(90,162,255,0.3)', padding: 20 },
+  avatarRing: { width: 76, height: 76, borderRadius: 24, padding: 3, backgroundColor: 'rgba(47,123,255,0.18)', borderWidth: 2, borderColor: 'rgba(90,162,255,0.45)' },
   avatarContainer: { position: 'relative' },
-  avatarGradient: {
-    flex: 1,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 32 },
-  avatarEditButton: {
-    position: 'absolute',
-    right: -7,
-    bottom: -7,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: Colors.primaryGreen,
-    borderWidth: 2,
-    borderColor: Colors.cardBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#000', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
+  avatarGradient: { flex: 1, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarImage: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 20 },
+  avatarEditButton: { position: 'absolute', right: -8, bottom: -8, width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.gold, borderWidth: 3, borderColor: Colors.cardBg, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: Colors.pureWhite, fontFamily: Font.title, fontSize: 26 },
   heroInfo: { flex: 1, gap: 4 },
-  heroName: { color: Colors.white, fontSize: 20, fontWeight: '800', letterSpacing: 0.3 },
-  heroUsername: { color: Colors.textSecondary, fontSize: 13 },
-  roleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    marginTop: 4,
-  },
+  heroName: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 20 },
+  heroUsername: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
+  roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginTop: 4 },
   roleDot: { width: 6, height: 6, borderRadius: 3 },
-  roleText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  roleText: { fontFamily: Font.bodyBold, fontSize: 12 },
 
   // Status
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: 24,
-    marginBottom: 28,
-  },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginHorizontal: 20, marginBottom: 26 },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -569,79 +491,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 5,
   },
-  statusActive: { borderColor: 'rgba(107,203,119,0.3)', backgroundColor: 'rgba(107,203,119,0.1)' },
+  statusActive: { borderColor: 'rgba(61,220,151,0.35)', backgroundColor: 'rgba(61,220,151,0.12)' },
   statusInactive: { borderColor: 'rgba(255,107,107,0.3)', backgroundColor: 'rgba(255,107,107,0.1)' },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
-  statusText: { fontSize: 12, fontWeight: '700' },
-  memberSince: { color: Colors.textSecondary, fontSize: 12 },
+  statusText: { fontFamily: Font.bodyBold, fontSize: 13 },
+  memberSince: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13 },
 
   // Section
-  section: { paddingHorizontal: 24, marginBottom: 8 },
-  sectionTitle: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 16,
-  },
+  section: { marginHorizontal: 20, marginBottom: 8, backgroundColor: 'rgba(17,28,63,0.92)', borderRadius: 28, borderWidth: 1, borderColor: Colors.border, padding: 18 },
+  sectionTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, textTransform: 'uppercase', marginBottom: 14 },
 
   // Champs
   fieldGroup: { marginBottom: 14 },
-  fieldLabel: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 7,
-    letterSpacing: 0.3,
-  },
-  fieldWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
-  },
-  fieldWrapperActive: {
-    borderColor: Colors.primaryGreen,
-    backgroundColor: 'rgba(125,255,42,0.04)',
-  },
-  fieldIcon: { marginRight: 10 },
-  fieldInput: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 15,
-    paddingVertical: 13,
-  },
-  editingDot: {
-    width: 6, height: 6, borderRadius: 3,
-    backgroundColor: Colors.primaryGreen,
-    marginLeft: 6,
-  },
+  fieldLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 13, marginBottom: 7 },
+  fieldWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingHorizontal: 16 },
+  fieldWrapperActive: { borderColor: Colors.blue },
+  fieldIcon: { marginRight: 12 },
+  fieldInput: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 16, paddingVertical: 14, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}) },
+  editingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: Colors.blueLight, marginLeft: 6 },
 
   // Séparateur
-  separator: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginHorizontal: 24,
-    marginVertical: 20,
-  },
+  separator: { height: 1, backgroundColor: 'transparent', marginVertical: 10 },
 
   // Logout
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 24,
-    backgroundColor: 'rgba(255,107,107,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,107,0.2)',
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 15,
-  },
-  logoutText: { color: '#FF6B6B', fontSize: 15, fontWeight: '700' },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 20, backgroundColor: 'rgba(255,107,107,0.08)', borderWidth: 1, borderColor: 'rgba(255,107,107,0.28)', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 16 },
+  logoutText: { color: '#FF7B7B', fontFamily: Font.bodyBold, fontSize: 16 },
   deleteAccountBtn: { marginTop: 12, backgroundColor: 'transparent' },
 });

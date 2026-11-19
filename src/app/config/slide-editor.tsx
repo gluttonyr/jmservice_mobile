@@ -11,6 +11,7 @@
  * - Add a new slide
  */
 
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { banniereService } from '@/data_api/services/banniereService';
@@ -83,7 +84,7 @@ function BannerImagePreview({
 }: { pickedUri?: string | null; image?: string | null; style?: any }) {
   const remoteUri = useFileUrl('banners', image);
   const uri = pickedUri || remoteUri;
-  if (!uri) return <View style={[style, { backgroundColor: Colors.border }]} />;
+  if (!uri) return <View style={[style, { backgroundColor: Colors.adminBorder }]} />;
   return <Image source={{ uri }} style={style} resizeMode="cover" />;
 }
 
@@ -289,7 +290,7 @@ export default function SlideEditorScreen() {
     <View style={styles.container}>
 
       {/* ── Header ── */}
-      <LinearGradient colors={[Colors.secondaryBg, Colors.darkBg]} style={styles.header}>
+      <LinearGradient colors={[Colors.adminSurface, Colors.adminBg]} style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <ArrowLeft color={Colors.white} size={20} />
         </TouchableOpacity>
@@ -315,7 +316,7 @@ export default function SlideEditorScreen() {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.admin} size="large" />
         </View>
       ) : error ? (
         <View style={styles.loaderContainer}>
@@ -385,7 +386,7 @@ export default function SlideEditorScreen() {
                         disabled={index === 0}
                       >
                         <ArrowUp
-                          color={index === 0 ? Colors.border : Colors.textSecondary}
+                          color={index === 0 ? Colors.adminBorder : Colors.textSecondary}
                           size={12}
                         />
                       </TouchableOpacity>
@@ -400,7 +401,7 @@ export default function SlideEditorScreen() {
                         <ArrowDown
                           color={
                             index === slides.length - 1
-                              ? Colors.border
+                              ? Colors.adminBorder
                               : Colors.textSecondary
                           }
                           size={12}
@@ -482,8 +483,8 @@ export default function SlideEditorScreen() {
                       {/* CTA text */}
                       <View style={styles.fieldGroup}>
                         <View style={styles.fieldLabel}>
-                          <ChevronRight color={Colors.primaryGreen} size={12} />
-                          <Text style={[styles.fieldLabelText, { color: Colors.primaryGreen }]}>
+                          <ChevronRight color={Colors.admin} size={12} />
+                          <Text style={[styles.fieldLabelText, { color: Colors.admin }]}>
                             Texte du bouton
                           </Text>
                         </View>
@@ -550,11 +551,11 @@ export default function SlideEditorScreen() {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['rgba(167,139,250,0.15)', 'rgba(167,139,250,0.05)']}
+              colors={['rgba(25,211,197,0.15)', 'rgba(25,211,197,0.05)']}
               style={styles.addSlideBtnGrad}
             >
               <View style={styles.addSlideIconWrap}>
-                <Plus color="#A78BFA" size={18} />
+                <Plus color={Colors.admin} size={18} />
               </View>
               <Text style={styles.addSlideBtnText}>Ajouter une bannière</Text>
             </LinearGradient>
@@ -588,7 +589,7 @@ export default function SlideEditorScreen() {
                   }}
                   activeOpacity={0.7}
                 >
-                  <ChevronRight color="#A78BFA" size={14} />
+                  <ChevronRight color={Colors.admin} size={14} />
                   <Text style={styles.pickerItemText}>{preset.label}</Text>
                   {preset.value !== '__custom__' && (
                     <Text style={styles.pickerItemSub} numberOfLines={1}>
@@ -616,7 +617,7 @@ export default function SlideEditorScreen() {
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
 
   // Header
   header: {
@@ -631,17 +632,17 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerCenter: { flex: 1 },
-  headerTitle: { color: Colors.white, fontSize: 17, fontWeight: '800' },
-  headerSub: { color: Colors.textSecondary, fontSize: 11, marginTop: 1 },
+  headerTitle: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 17 },
+  headerSub: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11, marginTop: 1 },
   saveBtn: {
-    backgroundColor: Colors.primaryGreen,
+    backgroundColor: Colors.admin,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -649,32 +650,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveBtnDone: { backgroundColor: Colors.primaryGreen },
-  saveBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
+  saveBtnDone: { backgroundColor: Colors.admin },
+  saveBtnText: { fontFamily: Font.bodyExtraBold, color: '#000', fontSize: 13 },
 
   // Loader / error
   loaderContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 24 },
-  errorText: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center' },
+  errorText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14, textAlign: 'center' },
   retryBtn: {
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: 'rgba(167,139,250,0.1)',
-    borderWidth: 1, borderColor: 'rgba(167,139,250,0.25)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.25)',
   },
-  retryBtnText: { color: '#A78BFA', fontWeight: '700' },
+  retryBtnText: { color: Colors.admin, fontFamily: Font.bodyBold },
 
   // Info banner
   infoBanner: {
     marginHorizontal: 16,
     marginTop: 14,
     marginBottom: 6,
-    backgroundColor: 'rgba(167,139,250,0.08)',
+    backgroundColor: 'rgba(25,211,197,0.08)',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.2)',
+    borderColor: 'rgba(25,211,197,0.2)',
     padding: 12,
   },
-  infoBannerText: {
-    color: 'rgba(167,139,250,0.8)',
+  infoBannerText: { fontFamily: Font.body,
+    color: 'rgba(25,211,197,0.8)',
     fontSize: 12,
     lineHeight: 18,
   },
@@ -683,10 +684,10 @@ const styles = StyleSheet.create({
   slideCard: {
     marginHorizontal: 16,
     marginTop: 12,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     overflow: 'hidden',
   },
   slideCardHeader: {
@@ -699,45 +700,44 @@ const styles = StyleSheet.create({
     width: 70,
     height: 50,
     borderRadius: 8,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.adminBorder,
   },
   slideCardHeaderInfo: { flex: 1, gap: 3 },
-  slideCardIndex: {
+  slideCardIndex: { fontFamily: Font.bodyBold,
     color: Colors.textSecondary,
     fontSize: 10,
-    fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  slideCardTitle: { color: Colors.white, fontSize: 13, fontWeight: '700' },
+  slideCardTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 13 },
   slideCardCTAChip: {
-    backgroundColor: 'rgba(125,255,42,0.12)',
+    backgroundColor: 'rgba(25,211,197,0.12)',
     borderRadius: 5,
     paddingHorizontal: 7,
     paddingVertical: 2,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.2)',
+    borderColor: 'rgba(25,211,197,0.2)',
   },
-  slideCardCTAText: { color: Colors.primaryGreen, fontSize: 9, fontWeight: '700' },
+  slideCardCTAText: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 9 },
   slideCardHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   reorderCol: { gap: 2 },
   reorderBtn: {
     width: 24,
     height: 24,
     borderRadius: 6,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
   },
   reorderBtnDisabled: { opacity: 0.35 },
 
   // Edit panel
   slideEditPanel: {
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors.adminBorder,
   },
   imageSection: {
     width: '100%',
@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
-  changeImageBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  changeImageBtnText: { fontFamily: Font.bodyBold, color: '#fff', fontSize: 13 },
 
   // Fields
   fieldsContainer: { padding: 14, gap: 14 },
@@ -780,20 +780,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   fieldLabel: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  fieldLabelText: { color: Colors.textSecondary, fontSize: 11, fontWeight: '700' },
-  fieldInput: {
-    backgroundColor: Colors.secondaryBg,
+  fieldLabelText: { fontFamily: Font.bodyBold, color: Colors.textSecondary, fontSize: 11 },
+  fieldInput: { fontFamily: Font.body,
+    backgroundColor: Colors.adminSurface,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     color: Colors.white,
     fontSize: 13,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  fieldInputGreen: { borderColor: 'rgba(125,255,42,0.25)' },
+  fieldInputGreen: { borderColor: 'rgba(25,211,197,0.25)' },
   fieldInputBlue: { borderColor: 'rgba(56,189,248,0.25)' },
-  fieldHint: { color: Colors.textSecondary, fontSize: 10, lineHeight: 14, marginTop: 2 },
+  fieldHint: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 10, lineHeight: 14, marginTop: 2 },
 
   presetBtn: {
     backgroundColor: 'rgba(56,189,248,0.1)',
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(56,189,248,0.25)',
   },
-  presetBtnText: { color: '#38BDF8', fontSize: 10, fontWeight: '700' },
+  presetBtnText: { fontFamily: Font.bodyBold, color: '#38BDF8', fontSize: 10 },
 
   deleteBtn: {
     flexDirection: 'row',
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(248,113,113,0.2)',
     marginTop: 4,
   },
-  deleteBtnText: { color: '#F87171', fontSize: 13, fontWeight: '700' },
+  deleteBtnText: { fontFamily: Font.bodyBold, color: '#F87171', fontSize: 13 },
 
   // Add slide
   addSlideBtn: {
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(167,139,250,0.35)',
+    borderColor: 'rgba(25,211,197,0.35)',
   },
   addSlideBtnGrad: {
     flexDirection: 'row',
@@ -840,11 +840,11 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(167,139,250,0.15)',
+    backgroundColor: 'rgba(25,211,197,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addSlideBtnText: { color: '#A78BFA', fontSize: 14, fontWeight: '700' },
+  addSlideBtnText: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 14 },
 
   // Link picker modal
   pickerOverlay: {
@@ -853,11 +853,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   pickerSheet: {
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
-    borderColor: 'rgba(167,139,250,0.2)',
+    borderColor: 'rgba(25,211,197,0.2)',
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 40,
@@ -867,14 +867,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.adminBorder,
     alignSelf: 'center',
     marginBottom: 14,
   },
-  pickerTitle: {
+  pickerTitle: { fontFamily: Font.bodyExtraBold,
     color: Colors.white,
     fontSize: 15,
-    fontWeight: '800',
     marginBottom: 10,
   },
   pickerItem: {
@@ -883,10 +882,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
   },
-  pickerItemText: { color: Colors.white, fontSize: 14, fontWeight: '600', flex: 0 },
-  pickerItemSub: {
+  pickerItemText: { fontFamily: Font.bodySemiBold, color: Colors.white, fontSize: 14, flex: 0 },
+  pickerItemSub: { fontFamily: Font.body,
     color: Colors.textSecondary,
     fontSize: 11,
     flex: 1,
@@ -899,10 +898,10 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 10,
     paddingVertical: 12,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
   },
-  pickerCancelText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '600' },
+  pickerCancelText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 13 },
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { Font } from '@/constants/fonts';
 
 // Website only: Apple's native button (expo-apple-authentication) does not exist in a browser.
 export default function AppleWebButton({ title, onPress, loading }: { title: string; onPress: () => void; loading?: boolean }) {
@@ -19,16 +20,16 @@ export default function AppleWebButton({ title, onPress, loading }: { title: str
 const styles = StyleSheet.create({
   btn: {
     width: '100%',
-    height: 50,
-    marginTop: 12,
-    borderRadius: 10,
+    height: 54,
+    marginTop: 0,
+    borderRadius: 18,
     backgroundColor: '#000',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#2A3558',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
   },
-  text: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  text: { color: '#fff', fontSize: 16, fontFamily: Font.bodyBold },
 });

@@ -1,10 +1,12 @@
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { StyleSheet, Text, View } from 'react-native';
 
-export function DateSeparator({ label }: { label: string }) {
+/** `accent="admin"`: teal pill of the admin space. */
+export function DateSeparator({ label, accent = 'client' }: { label: string; accent?: 'client' | 'admin' }) {
   return (
     <View style={st.wrap}>
-      <View style={st.pill}>
+      <View style={[st.pill, accent === 'admin' && st.pillAdmin]}>
         <Text style={st.text}>{label}</Text>
       </View>
     </View>
@@ -17,11 +19,9 @@ const st = StyleSheet.create({
     paddingVertical: 8,
   },
   pill: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    paddingHorizontal: 14,
+    backgroundColor: '#16224D',
+    borderRadius: 16,
+    paddingHorizontal: 16,
     paddingVertical: 6,
     // légère ombre pour bien la détacher du fond quand elle "flotte" au scroll
     shadowColor: '#000',
@@ -30,9 +30,10 @@ const st = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  pillAdmin: { backgroundColor: '#13303A' },
   text: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
+    color: Colors.chrome,
+    fontFamily: Font.bodyBold,
+    fontSize: 13,
   },
 });

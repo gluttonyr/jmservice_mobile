@@ -20,9 +20,9 @@ export default ({ config }) => ({
     ...config,
     name: "matistore",
     slug: "matistore",
-    icon: "./assets/logo-ios.png",
+    icon: "./assets/jm-icon.png",
     // Web build = single-page app (no server pre-render, which would load native modules on the server).
-    web: { ...config.web, output: "single", favicon: "./assets/logo-ios.png" },
+    web: { ...config.web, output: "single", favicon: "./assets/jm-icon.png" },
 
 
     android: {
@@ -35,15 +35,15 @@ export default ({ config }) => ({
       ],
       softwareKeyboardLayoutMode: "resize",
       adaptiveIcon: {
-        foregroundImage: "./assets/logo-ios.png",
-        backgroundColor: "#000000"
+        foregroundImage: "./assets/jm-adaptive-icon.png",
+        backgroundColor: "#060B1E"
       },
       "googleServicesFile": "./google-services.json"
     },
 
     ios: {
       ...config.ios,
-      icon: "./assets/logo-ios.png",
+      icon: "./assets/jm-icon.png",
       bundleIdentifier: "com.urbain-diligence.matistore-mobile",
       googleServicesFile: "./GoogleService-Info.plist",
       appleTeamId: "98Y4TRJU7W",
@@ -72,12 +72,12 @@ export default ({ config }) => ({
       [
         "expo-splash-screen",
         {
-          backgroundColor: "#FFFFFF",
-          image: "./assets/logo.png",
-          imageWidth: 180,
+          backgroundColor: "#060B1E",
+          image: "./assets/jm-splash.png",
+          imageWidth: 220,
           dark: {
-            backgroundColor: "#FFFFFF",
-            image: "./assets/logo.png"
+            backgroundColor: "#060B1E",
+            image: "./assets/jm-splash.png"
           }
         }
       ],
@@ -125,7 +125,9 @@ export default ({ config }) => ({
 
     extra: {
       ...config.extra,
-      apiUrl: "https://matistore.tech",
+      // JM_API_URL overrides it, e.g. JM_API_URL=http://localhost:3000 to work against the local backend.
+      // TODO JM Services: replace the Matistore default once the JM Services domain is known.
+      apiUrl: process.env.JM_API_URL || "https://matistore.tech",
       // Client Web (type "Application Web" dans Google Cloud Console) : utilisé
       // uniquement sur la plateforme web (Platform.OS === 'web').
       googleWebClientId:

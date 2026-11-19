@@ -2,7 +2,7 @@ export const mockConversations = [
   {
     id: '1',
     type: 'support',
-    name: 'Support MATI STORE',
+    name: 'Support JM Services',
     lastMessage: "Bonjour, comment puis-je vous aider ?",
     time: '10:30',
     unread: 2,
@@ -43,7 +43,7 @@ export const mockConversations = [
 
 export const mockMessages: Record<string, any[]> = {
   '1': [
-    { id: '1', text: "Bonjour ! Bienvenue sur MATI STORE. Comment puis-je vous aider ?", sender: 'other', time: '10:30', read: true },
+    { id: '1', text: "Bonjour ! Bienvenue sur JM Services. Comment puis-je vous aider ?", sender: 'other', time: '10:30', read: true },
     { id: '2', text: 'Bonjour, j\'ai une question sur mon dépôt.', sender: 'me', time: '10:31', read: true },
     { id: '3', text: 'Bien sûr ! Quel est le problème avec votre dépôt ?', sender: 'other', time: '10:32', read: true },
   ],
@@ -74,7 +74,7 @@ export const mockMessages: Record<string, any[]> = {
 export const mockEvents = [
   {
     id: '1',
-    title: 'Tournoi MATI STORE - Juin 2026',
+    title: 'Tournoi JM Services - Juin 2026',
     description: 'Grand tournoi mensuel avec une cagnotte de 500.000 FCFA à gagner.',
     date: '15 Juin 2026',
     location: 'Lomé, Togo',
@@ -102,7 +102,7 @@ export const mockEvents = [
   {
     id: '4',
     title: 'Webinaire : Stratégies Gagnantes',
-    description: 'Apprenez les meilleures stratégies avec nos experts MATI STORE.',
+    description: 'Apprenez les meilleures stratégies avec nos experts JM Services.',
     date: '25 Juin 2026',
     location: 'En ligne',
     image: 'https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -111,7 +111,7 @@ export const mockEvents = [
 ];
 
 export const mockForumCategories = [
-  { id: '1', name: 'Général', icon: 'MessageSquare', topics: 142, locked: false, description: 'Discussions générales sur MATI STORE' },
+  { id: '1', name: 'Général', icon: 'MessageSquare', topics: 142, locked: false, description: 'Discussions générales sur JM Services' },
   { id: '2', name: 'Support', icon: 'HelpCircle', topics: 89, locked: false, description: 'Aide et assistance technique' },
   { id: '3', name: 'Discussions', icon: 'Users', topics: 215, locked: false, description: 'Échanges entre membres' },
   { id: '4', name: 'Actualités', icon: 'Newspaper', topics: 34, locked: true, description: 'Annonces et actualités officielles' },
@@ -127,18 +127,18 @@ export const mockForumTopics = [
     replies: 12,
     views: 234,
     pinned: true,
-    content: 'Bonjour à tous, je voudrais comprendre comment fonctionne le système de bonus sur MATI STORE...',
+    content: 'Bonjour à tous, je voudrais comprendre comment fonctionne le système de bonus sur JM Services...',
   },
   {
     id: '2',
     categoryId: '1',
-    title: 'Partage ton expérience avec MATI STORE',
+    title: 'Partage ton expérience avec JM Services',
     author: 'Ama_Accra',
     date: '1 Juin 2026',
     replies: 28,
     views: 567,
     pinned: false,
-    content: 'Depuis que j\'utilise MATI STORE, j\'ai eu une expérience formidable...',
+    content: 'Depuis que j\'utilise JM Services, j\'ai eu une expérience formidable...',
   },
   {
     id: '3',
@@ -181,7 +181,7 @@ export const mockNews = [
   {
     id: '1',
     title: 'Nouveau bonus de bienvenue',
-    description: 'MATI STORE lance son nouveau programme de bienvenue avec 100% de bonus.',
+    description: 'JM Services lance son nouveau programme de bienvenue avec 100% de bonus.',
     date: '1 Juin 2026',
     category: 'Bonus',
   },

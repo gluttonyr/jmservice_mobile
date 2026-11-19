@@ -1,7 +1,8 @@
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { MessageType } from '@/data_api/models/message.types';
 import { resolveFileUrl } from '@/hooks/useFileUrl';
-import { Check, CheckCheck, Copy, Pin, PinOff, Trash2 } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, Ban, Check, CheckCheck, Copy, Pin, PinOff, Search, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Clipboard, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -20,12 +21,27 @@ type Props = {
   onDelete?: (messageId: string) => void;
   onPin?: (messageId: string) => void;
   onUnpin?: (messageId: string) => void;
+  /** admin = turquoise theme of the admin space. */
+  accent?: 'client' | 'admin';
 };
 
 // Détecte les messages générés automatiquement (dépôt/retrait) au format
 // "Label : Valeur" ligne par ligne, pour permettre de copier chaque valeur
 // individuellement en tapant dessus.
-type StructuredLine = { text: string; value?: string; copyable: boolean };
+type StructuredLine = { text: string; label?: string; value?: string; copyable: boolean };
+
+// Each sender keeps the same name colour (forum); the team is always blue.
+const SENDER_COLORS = ['#FFC233', '#3DDC97', '#FF9F6B', '#B49CFF', '#FF8FCB', '#5AA2FF'];
+function senderColor(sender: any): string {
+  if (sender?.role === 'ADMIN') return Colors.blueLight;
+  const key = String(sender?.trackingId ?? sender?.username ?? '');
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+  return SENDER_COLORS[Math.abs(hash) % SENDER_COLORS.length];
+}
+
+// "📤 *Demande de retrait*" → "Demande de retrait".
+const requestTitle = (line: string) => line.replace(/[*📤📥]/gu, '').trim();
 
 function parseStructuredLines(content: string): StructuredLine[] | null {
   if (!content) return null;
@@ -46,8 +62,8 @@ function parseStructuredLines(content: string): StructuredLine[] | null {
     if (!match || !shouldCopy) {
       return { text: line, copyable: false };
     }
-    const [, , value] = match;
-    return { text: line, value: value.trim(), copyable: true };
+    const [, label, value] = match;
+    return { text: line, label: label.trim(), value: value.trim(), copyable: true };
   });
 }
 
@@ -59,7 +75,11 @@ export function ChatMessage({
   onDelete,
   onPin,
   onUnpin,
+  accent = 'client',
 }: Props) {
+  const admin = accent === 'admin';
+  const meBubble = admin ? st.bubbleMeAdmin : st.bubbleMe;
+  const otherBubble = admin ? st.bubbleOtherAdmin : st.bubbleOther;
   // Options actuellement affichées dans la bottom-sheet (null = fermée).
   const [sheetOptions, setSheetOptions] = useState<ActionSheetOption[] | null>(null);
 
@@ -154,10 +174,9 @@ export function ChatMessage({
     // ── Message supprimé ──
     content = (
       <View style={[st.msgRow, wide && st.msgRowWide, isMe ? st.msgRowMe : st.msgRowOther]}>
-        <View style={[st.bubble, isMe ? st.bubbleMe : st.bubbleOther, { opacity: 0.6 }]}>
-          <Text style={{ color: Colors.textSecondary, fontSize: 13, fontStyle: 'italic' }}>
-            🚫 Message supprimé
-          </Text>
+        <View style={st.deletedPill}>
+          <Ban color={Colors.textSecondary} size={16} />
+          <Text style={st.deletedText}>Message supprimé</Text>
         </View>
       </View>
     );
@@ -186,10 +205,10 @@ export function ChatMessage({
           onPress={() => onImagePress(imageUri)}
           onLongPress={handleLongPress}
         >
-          <View style={st.imgWrap}>
+          <View style={[st.imgWrap, isMe ? st.imgWrapMe : st.imgWrapOther]}>
             <ShimmerImage source={{ uri: imageUri }} style={st.imageMsg} resizeMode="cover" />
             <View style={st.imgZoomHint}>
-              <Text style={{ color: '#fff', fontSize: 10 }}>🔍</Text>
+              <Search color="#fff" size={16} />
             </View>
           </View>
         </TouchableOpacity>
@@ -197,9 +216,9 @@ export function ChatMessage({
           <Text style={[st.msgTime, isMe && st.msgTimeMe]}>{time}</Text>
           {isMe &&
             (item.lu ? (
-              <CheckCheck color={Colors.primaryGreen} size={12} />
+              <CheckCheck color={Colors.blueLight} size={14} />
             ) : (
-              <Check color={Colors.textSecondary} size={12} />
+              <Check color={Colors.textSecondary} size={14} />
             ))}
         </View>
       </View>
@@ -214,15 +233,15 @@ export function ChatMessage({
         style={[st.msgRow, wide && st.msgRowWide, isMe ? st.msgRowMe : st.msgRowOther]}
       >
         {pinBadge}
-        <View style={[st.bubble, isMe ? st.bubbleMe : st.bubbleOther]}>
+        <View style={[st.bubble, isMe ? meBubble : otherBubble]}>
           <AudioPlayer uri={audioUri} isMe={isMe} />
           <View style={st.msgMeta}>
             <Text style={[st.msgTime, isMe && st.msgTimeMe]}>{time}</Text>
             {isMe &&
               (item.lu ? (
-                <CheckCheck color={Colors.primaryGreen} size={12} />
+                <CheckCheck color={Colors.pureWhite} size={14} />
               ) : (
-                <Check color={Colors.textSecondary} size={12} />
+                <Check color={Colors.textSecondary} size={14} />
               ))}
           </View>
         </View>
@@ -231,17 +250,62 @@ export function ChatMessage({
   } else {
     // ── Texte (défaut) ──
     const structured = parseStructuredLines(item.contenu);
-    content = (
+    const isRequestCard = !!structured && /^\s*(📤|📥)/u.test(item.contenu);
+    const readMark = isMe && (item.lu
+      ? <CheckCheck color={isRequestCard ? Colors.blueLight : Colors.pureWhite} size={14} />
+      : <Check color={isRequestCard ? Colors.textSecondary : 'rgba(255,255,255,0.7)'} size={14} />);
+
+    if (structured && isRequestCard) {
+      // Deposit / withdrawal request sent from the flow: a card with one copyable pill per field.
+      const [header, ...fields] = structured;
+      const withdrawal = item.contenu.includes('📤');
+      content = (
+        <TouchableOpacity
+          activeOpacity={canLongPress ? 0.85 : 1}
+          onLongPress={handleLongPress}
+          style={[st.msgRow, st.msgRowCard, wide && st.msgRowWide, isMe ? st.msgRowMe : st.msgRowOther]}
+        >
+          {pinBadge}
+          <View style={[st.requestCard, admin && st.requestCardAdmin]}>
+            <View style={st.requestHeader}>
+              <View style={st.requestIcon}>
+                {withdrawal
+                  ? <ArrowUp color={Colors.onGold} size={18} strokeWidth={2.6} />
+                  : <ArrowDown color={Colors.onGold} size={18} strokeWidth={2.6} />}
+              </View>
+              <Text style={st.requestTitle} numberOfLines={1}>{requestTitle(header.text)}</Text>
+            </View>
+            <View style={st.requestBody}>
+              {fields.map((line, idx) =>
+                line.copyable ? (
+                  <TouchableOpacity key={idx} onPress={() => handleCopy(line.value!)} activeOpacity={0.6} style={st.requestField}>
+                    <Text style={st.requestLabel} numberOfLines={1}>{line.label}</Text>
+                    <Text style={st.requestValue} numberOfLines={1}>{line.value}</Text>
+                    <Copy color={Colors.blueLight} size={16} />
+                  </TouchableOpacity>
+                ) : line.text.trim() ? (
+                  <Text key={idx} style={[st.msgText, st.msgTextOther]}>{line.text}</Text>
+                ) : null,
+              )}
+              <View style={st.msgMeta}>
+                <Text style={st.msgTime}>{time}</Text>
+                {readMark}
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    } else content = (
       <TouchableOpacity
         activeOpacity={canLongPress ? 0.85 : 1}
         onLongPress={handleLongPress}
         style={[st.msgRow, wide && st.msgRowWide, isMe ? st.msgRowMe : st.msgRowOther]}
       >
-        {!isMe && item.sender?.username && (
-          <Text style={st.senderName}>{item.sender.nom} {item.sender.prenom}</Text>
-        )}
         {pinBadge}
-        <View style={[st.bubble, isMe ? st.bubbleMe : st.bubbleOther]}>
+        <View style={[st.bubble, isMe ? meBubble : otherBubble]}>
+          {!isMe && item.sender?.username && (
+            <Text style={[st.senderName, { color: senderColor(item.sender) }]}>{item.sender.nom} {item.sender.prenom}</Text>
+          )}
           {structured ? (
             <View>
               {structured.map((line, idx) =>
@@ -256,7 +320,7 @@ export function ChatMessage({
                       {line.text}
                     </Text>
                     <Copy
-                      color={isMe ? 'rgba(0,0,0,0.45)' : Colors.textSecondary}
+                      color={isMe ? 'rgba(255,255,255,0.75)' : Colors.textSecondary}
                       size={13}
                       style={{ marginLeft: 6, flexShrink: 0 }}
                     />
@@ -278,12 +342,7 @@ export function ChatMessage({
           )}
           <View style={st.msgMeta}>
             <Text style={[st.msgTime, isMe && st.msgTimeMe]}>{time}</Text>
-            {isMe &&
-              (item.lu ? (
-                <CheckCheck color={Colors.primaryGreen} size={12} />
-              ) : (
-                <Check color={Colors.textSecondary} size={12} />
-              ))}
+            {readMark}
           </View>
         </View>
       </TouchableOpacity>
@@ -305,171 +364,57 @@ export function ChatMessage({
 }
 
 const st = StyleSheet.create({
-  // ============================================================
-  // CONTENEUR DU MESSAGE
-  // ============================================================
-
-  msgRow: {
-    alignSelf: 'flex-start',
-    maxWidth: '80%',
-    marginBottom: 4,
-  },
-
+  msgRow: { alignSelf: 'flex-start', maxWidth: '80%', marginBottom: 6 },
+  // the request card is wider, as in the design
+  msgRowCard: { maxWidth: '88%', minWidth: '72%' },
   // website on a computer: 80% of a wide chat is too long to read
   msgRowWide: { maxWidth: 560 },
+  msgRowMe: { alignSelf: 'flex-end', alignItems: 'flex-end' },
+  msgRowOther: { alignSelf: 'flex-start', alignItems: 'flex-start' },
 
-  msgRowMe: {
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-  },
+  senderName: { fontFamily: Font.bodyBold, fontSize: 13, lineHeight: 17, marginBottom: 3 },
 
-  msgRowOther: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-  },
+  pinBadge: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
+  pinBadgeText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 11, lineHeight: 14, marginLeft: 3 },
 
-  // ============================================================
-  // NOM EXPÉDITEUR
-  // ============================================================
+  bubble: { alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10 },
+  bubbleMe: { backgroundColor: Colors.blue, borderBottomRightRadius: 6 },
+  bubbleOther: { backgroundColor: '#16224D', borderBottomLeftRadius: 6 },
+  bubbleMeAdmin: { backgroundColor: '#0F7C83', borderBottomRightRadius: 6 },
+  bubbleOtherAdmin: { backgroundColor: '#13262E', borderBottomLeftRadius: 6 },
 
-  senderName: {
-    color: Colors.primaryGreen,
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
+  msgText: { fontFamily: Font.body, fontSize: 15, lineHeight: 21 },
+  msgTextMe: { color: Colors.pureWhite },
+  msgTextOther: { color: Colors.chrome },
+  msgTitleLine: { fontFamily: Font.bodyBold, fontSize: 15, lineHeight: 22, marginBottom: 3 },
 
-  // ============================================================
-  // BADGE ÉPINGLÉ
-  // ============================================================
+  fieldRow: { flexDirection: 'row', alignItems: 'flex-start', width: '100%' },
 
-  pinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
+  msgMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4, gap: 5 },
+  msgTime: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 11, lineHeight: 14 },
+  msgTimeMe: { color: 'rgba(255,255,255,0.8)' },
 
-  pinBadgeText: {
-    color: '#F59E0B',
-    fontSize: 10,
-    lineHeight: 13,
-    fontWeight: '700',
-    marginLeft: 3,
-  },
+  deletedPill: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#16224D', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9 },
+  deletedText: { color: Colors.textSecondary, fontFamily: Font.body, fontStyle: 'italic', fontSize: 14 },
 
-  // ============================================================
-  // BULLE
-  // ============================================================
+  requestCard: { width: '100%', borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,194,51,0.45)', backgroundColor: '#111C3F' },
+  requestCardAdmin: { backgroundColor: '#10262D' },
+  requestHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: 'rgba(255,194,51,0.1)' },
+  requestIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
+  requestTitle: { flex: 1, color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 16 },
+  requestBody: { padding: 12, gap: 8 },
+  requestField: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.night, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
+  requestLabel: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, flexShrink: 0, maxWidth: '45%' },
+  requestValue: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 14, textAlign: 'right' },
 
-  bubble: {
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-
-  bubbleMe: {
-    backgroundColor: Colors.primaryGreen,
-    borderBottomRightRadius: 4,
-  },
-
-  bubbleOther: {
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderBottomLeftRadius: 4,
-  },
-
-  // ============================================================
-  // TEXTE
-  // ============================================================
-
-  msgText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-
-  msgTextMe: {
-    color: '#000',
-    fontWeight: '500',
-  },
-
-  msgTextOther: {
-    color: Colors.white,
-  },
-
-  msgTitleLine: {
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: '700',
-    marginBottom: 3,
-  },
-
-  // ============================================================
-  // LIGNES STRUCTURÉES
-  // ============================================================
-
-  fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-
-  // ============================================================
-  // MÉTA
-  // ============================================================
-
-  msgMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: 4,
-    gap: 4,
-  },
-
-  msgTime: {
-    color: Colors.white,
-    fontSize: 10,
-    lineHeight: 13,
-  },
-
-  msgTimeMe: {
-    color: '#000',
-  },
-
-  // ============================================================
-  // IMAGE
-  // ============================================================
-
-  imgWrap: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-
-  imageMsg: {
-    width: 220,
-    height: 160,
-  },
-
+  imgWrap: { borderRadius: 18, overflow: 'hidden', position: 'relative', borderWidth: 4 },
+  imgWrapMe: { borderColor: Colors.blue },
+  imgWrapOther: { borderColor: '#16224D' },
+  imageMsg: { width: 220, height: 160 },
   imgZoomHint: {
-    position: 'absolute',
-    bottom: 6,
-    right: 6,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: 8,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    position: 'absolute', bottom: 8, right: 8, width: 32, height: 32, borderRadius: 16,
+    backgroundColor: 'rgba(6,11,30,0.7)', alignItems: 'center', justifyContent: 'center',
   },
 
-  // ============================================================
-  // STICKER
-  // ============================================================
-
-  stickerMsg: {
-    width: 100,
-    height: 100,
-  },
+  stickerMsg: { width: 100, height: 100 },
 });

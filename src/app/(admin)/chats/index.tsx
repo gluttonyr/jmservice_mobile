@@ -1,5 +1,6 @@
 import { UserAvatar } from '@/components/UserAvatar';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { AdminDiscussionCategory, Discussion, DiscussionStatus, DiscussionType } from '@/data_api/models/discussion.types';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
@@ -57,8 +58,8 @@ const CATEGORIES: {
       key: 'all',
       label: 'Tous',
       icon: <Shield color="#fff" size={14} />,
-      color: '#A78BFA',
-      bg: 'rgba(167,139,250,0.15)',
+      color: Colors.admin,
+      bg: 'rgba(25,211,197,0.15)',
     },
     {
       key: 'unread',
@@ -71,8 +72,8 @@ const CATEGORIES: {
       key: 'depot',
       label: 'Dépôt',
       icon: <ArrowDownToLine color="#fff" size={14} />,
-      color: Colors.primaryGreen,
-      bg: 'rgba(125,255,42,0.12)',
+      color: Colors.admin,
+      bg: 'rgba(25,211,197,0.12)',
     },
     {
       key: 'retrait',
@@ -95,9 +96,9 @@ const TYPE_CONFIG: Record<
   { icon: React.ReactNode; color: string; bg: string }
 > = {
   [DiscussionType.DEPOT_RETRAIT]: {
-    icon: <ArrowDownToLine color={Colors.primaryGreen} size={18} />,
-    color: Colors.primaryGreen,
-    bg: 'rgba(125,255,42,0.1)',
+    icon: <ArrowDownToLine color={Colors.admin} size={18} />,
+    color: Colors.admin,
+    bg: 'rgba(25,211,197,0.1)',
   },
   [DiscussionType.SUPPORT]: {
     icon: <HeadphonesIcon color="#38BDF8" size={18} />,
@@ -118,8 +119,8 @@ const STATUS_CONFIG: Record<
 > = {
   [DiscussionStatus.DEPOT]: {
     label: 'Dépôt',
-    color: Colors.primaryGreen,
-    bg: 'rgba(125,255,42,0.12)',
+    color: Colors.admin,
+    bg: 'rgba(25,211,197,0.12)',
   },
   [DiscussionStatus.RETRAIT]: {
     label: 'Retrait',
@@ -318,7 +319,7 @@ export default function AdminChatsScreen() {
         <View style={styles.headerTop}>
           <View>
             <View style={styles.adminBadge}>
-              <Shield color="#A78BFA" size={12} />
+              <Shield color={Colors.admin} size={12} />
               <Text style={styles.adminBadgeText}>ADMIN</Text>
             </View>
             <Text style={styles.headerTitle}>Messagerie</Text>
@@ -399,7 +400,7 @@ export default function AdminChatsScreen() {
       {/* ── List ── */}
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color="#A78BFA" size="large" />
+          <ActivityIndicator color={Colors.admin} size="large" />
         </View>
       ) : error ? (
         <ConnectionErrorState message={error} onRetry={fetchDiscussions} fullscreen />
@@ -414,7 +415,7 @@ export default function AdminChatsScreen() {
             if (hasMore && !loading && !loadingMore) void fetchDiscussions(page + 1, true);
           }}
           onEndReachedThreshold={0.35}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color="#A78BFA" style={{ padding: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.admin} style={{ padding: 16 }} /> : null}
           ListEmptyComponent={() => (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>Aucune conversation trouvée</Text>
@@ -569,23 +570,23 @@ export default function AdminChatsScreen() {
             </View>
 
             {profileLoading ? (
-              <ActivityIndicator color="#A78BFA" />
+              <ActivityIndicator color={Colors.admin} />
             ) : profileDiscussion?.userProfile ? (
               <View style={styles.profileDetails}>
-                <ProfileDetail icon={<UserRound color="#A78BFA" size={16} />} label="Nom d’utilisateur" value={`@${profileDiscussion.userProfile.username}`} />
-                <ProfileDetail icon={<Mail color="#A78BFA" size={16} />} label="Adresse e-mail" value={profileDiscussion.userProfile.email} />
-                <ProfileDetail icon={<Phone color="#A78BFA" size={16} />} label="Téléphone" value={profileDiscussion.userProfile.telephone || 'Non renseigné'} />
+                <ProfileDetail icon={<UserRound color={Colors.admin} size={16} />} label="Nom d’utilisateur" value={`@${profileDiscussion.userProfile.username}`} />
+                <ProfileDetail icon={<Mail color={Colors.admin} size={16} />} label="Adresse e-mail" value={profileDiscussion.userProfile.email} />
+                <ProfileDetail icon={<Phone color={Colors.admin} size={16} />} label="Téléphone" value={profileDiscussion.userProfile.telephone || 'Non renseigné'} />
                 <View style={styles.profileDetailRow}>
-                  <View style={styles.profileDetailIcon}><Shield color="#A78BFA" size={16} /></View>
+                  <View style={styles.profileDetailIcon}><Shield color={Colors.admin} size={16} /></View>
                   <View style={styles.profileDetailText}>
                     <Text style={styles.profileDetailLabel}>État du compte</Text>
-                    <Text style={[styles.profileDetailValue, { color: profileDiscussion.userProfile.active ? Colors.primaryGreen : '#F87171' }]}>
+                    <Text style={[styles.profileDetailValue, { color: profileDiscussion.userProfile.active ? Colors.admin : '#F87171' }]}>
                       {profileDiscussion.userProfile.active ? 'Actif' : 'Désactivé'}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.profileDetailRow}>
-                  <View style={styles.profileDetailIcon}><AlertCircle color="#A78BFA" size={16} /></View>
+                  <View style={styles.profileDetailIcon}><AlertCircle color={Colors.admin} size={16} /></View>
                   <View style={styles.profileDetailText}>
                     <Text style={styles.profileDetailLabel}>Membre depuis</Text>
                     <Text style={styles.profileDetailValue}>
@@ -621,15 +622,15 @@ function ProfileDetail({ icon, label, value }: { icon: React.ReactNode; label: s
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
 
   header: {
     paddingTop: 56,
     paddingBottom: 16,
     paddingHorizontal: 20,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
     gap: 14,
   },
   headerTop: {
@@ -643,16 +644,14 @@ const styles = StyleSheet.create({
     gap: 4,
     marginBottom: 4,
   },
-  adminBadgeText: {
-    color: '#A78BFA',
+  adminBadgeText: { fontFamily: Font.bodyExtraBold,
+    color: Colors.admin,
     fontSize: 10,
-    fontWeight: '800',
     letterSpacing: 1.5,
   },
-  headerTitle: {
+  headerTitle: { fontFamily: Font.title,
     color: Colors.white,
     fontSize: 26,
-    fontWeight: '900',
     letterSpacing: 0.3,
   },
   alertBanner: {
@@ -666,22 +665,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  alertText: { color: '#F59E0B', fontSize: 12, fontWeight: '700' },
+  alertText: { fontFamily: Font.bodyBold, color: '#F59E0B', fontSize: 12 },
 
   statsRow: { flexDirection: 'row', gap: 10 },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     paddingVertical: 10,
   },
-  statNum: { fontSize: 20, fontWeight: '900' },
-  statLabel: {
+  statNum: { fontFamily: Font.bodyExtraBold, fontSize: 20 },
+  statLabel: { fontFamily: Font.bodySemiBold,
     color: Colors.textSecondary,
     fontSize: 11,
-    fontWeight: '600',
     marginTop: 2,
     textAlign: 'center',
   },
@@ -689,7 +687,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderRadius: 12,
     marginHorizontal: 16,
     marginTop: 14,
@@ -697,9 +695,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
   },
-  searchInput: {
+  searchInput: { fontFamily: Font.body,
     flex: 1,
     color: Colors.white,
     fontSize: 14,
@@ -727,13 +725,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.cardBg,
+    borderColor: Colors.adminBorder,
+    backgroundColor: Colors.adminCard,
   },
-  tabText: {
+  tabText: { fontFamily: Font.bodyBold,
     color: Colors.textSecondary,
     fontSize: 11,
-    fontWeight: '700',
     flexShrink: 0,
   },
   tabCount: {
@@ -745,13 +742,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  tabCountText: { color: Colors.textSecondary, fontSize: 10, fontWeight: '800' },
+  tabCountText: { fontFamily: Font.bodyExtraBold, color: Colors.textSecondary, fontSize: 10 },
 
   loaderContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { paddingBottom: 30 },
-  separator: { height: 1, backgroundColor: Colors.border, marginLeft: 88 },
+  separator: { height: 1, backgroundColor: Colors.adminBorder, marginLeft: 88 },
   emptyState: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
+  emptyText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 14 },
 
   convItem: {
     flexDirection: 'row',
@@ -770,7 +767,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  avatarText: { fontFamily: Font.bodyExtraBold, fontSize: 16, letterSpacing: 0.5 },
 
   convContent: { flex: 1, gap: 3 },
   convTopRow: {
@@ -778,7 +775,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  convName: { color: Colors.white, fontSize: 14, fontWeight: '700', flex: 1, marginRight: 8 },
+  convName: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 14, flex: 1, marginRight: 8 },
 
   // Colonne heure + badge non-lu (aligné à droite, comme WhatsApp)
   convTimeCol: {
@@ -786,20 +783,19 @@ const styles = StyleSheet.create({
     gap: 5,
     minWidth: 20,
   },
-  convTime: { color: Colors.textSecondary, fontSize: 11 },
+  convTime: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11 },
   unreadBadge: {
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: Colors.primaryGreen,
+    backgroundColor: Colors.admin,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 5,
   },
-  unreadBadgeText: {
+  unreadBadgeText: { fontFamily: Font.bodyExtraBold,
     color: '#0B1E00',
     fontSize: 11,
-    fontWeight: '800',
   },
 
 
@@ -819,7 +815,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statusDot: { width: 5, height: 5, borderRadius: 2.5 },
-  statusLabel: { fontSize: 10, fontWeight: '700' },
+  statusLabel: { fontFamily: Font.bodyBold, fontSize: 10 },
   lastMessageRow: {
   flexDirection: 'row',
   alignItems: 'center',
@@ -827,7 +823,7 @@ const styles = StyleSheet.create({
   gap: 8,
 },
 
-convLastMsg: {
+convLastMsg: { fontFamily: Font.body,
   flex: 1,
   minWidth: 0,
   color: Colors.textSecondary,
@@ -841,10 +837,10 @@ convLastMsg: {
     padding: 24,
   },
   profileCard: {
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     padding: 20,
     gap: 20,
   },
@@ -853,16 +849,16 @@ convLastMsg: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(167,139,250,0.15)',
+    backgroundColor: 'rgba(25,211,197,0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.35)',
+    borderColor: 'rgba(25,211,197,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileAvatarText: { color: '#A78BFA', fontWeight: '800', fontSize: 17 },
+  profileAvatarText: { fontFamily: Font.bodyExtraBold, color: Colors.admin, fontSize: 17 },
   profileHeadingText: { flex: 1, gap: 3 },
-  profileName: { color: Colors.white, fontWeight: '800', fontSize: 16 },
-  profileSubtitle: { color: Colors.textSecondary, fontSize: 11 },
+  profileName: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 16 },
+  profileSubtitle: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11 },
   profileClose: { padding: 5 },
   profileDetails: { gap: 14 },
   profileDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
@@ -870,14 +866,14 @@ convLastMsg: {
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: 'rgba(167,139,250,0.1)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileDetailText: { flex: 1, gap: 2 },
-  profileDetailLabel: { color: Colors.textSecondary, fontSize: 10 },
-  profileDetailValue: { color: Colors.white, fontSize: 13, fontWeight: '600' },
-  profileUnavailable: {
+  profileDetailLabel: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 10 },
+  profileDetailValue: { fontFamily: Font.bodySemiBold, color: Colors.white, fontSize: 13 },
+  profileUnavailable: { fontFamily: Font.body,
     color: Colors.textSecondary,
     fontSize: 13,
     textAlign: 'center',

@@ -4,7 +4,10 @@ import { ChatBackground } from '@/components/ChatBackground';
 import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { DateSeparator } from '@/components/dateSeparator';
 import { formatDayLabel } from '@/components/chatGrouping';
+import { ChatHeader } from '@/components/orbit';
+import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import type { AppNotification } from '@/data_api/models/appNotification.types';
 import { notificationService } from '@/data_api/services/notificationService';
 import { markNotificationsSeen } from '@/storage/appNotificationSeen';
@@ -176,9 +179,9 @@ export default function UserNotificationsScreen() {
       <View style={styles.messageCard}>
         <View style={styles.messageHeader}>
           <View style={styles.messageIcon}>
-            <Bell color={Colors.primaryGreen} size={15} />
+            <JMLogo size={18} />
           </View>
-            <Text style={styles.sender}>Matistore</Text>
+            <Text style={styles.sender}>JM Services</Text>
         </View>
         <Text style={styles.title}>{item.title}</Text>
           {!!item.imageUrl && <NotificationImage uri={item.imageUrl} width={Math.min(windowWidth * 0.76, 400)} onPress={() => setPreviewUri(item.imageUrl!)} />}
@@ -191,15 +194,12 @@ export default function UserNotificationsScreen() {
   return (
     <View style={styles.container}>
       <ChatBackground variant="default" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} accessibilityLabel="Retour">
-          <ChevronLeft color={Colors.white} size={24} />
-        </TouchableOpacity>
-        <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          <Text style={styles.headerSubtitle}>Messages de MatiStore</Text>
-        </View>
-      </View>
+      <ChatHeader
+        title="Notifications"
+        subtitle="Messages de JM Services"
+        onBack={() => router.back()}
+        avatar={<View style={styles.headerAvatar}><Bell color={Colors.gold} size={22} /></View>}
+      />
 
       {loading ? (
         <View style={styles.loader}><ActivityIndicator color={Colors.primaryGreen} size="large" /></View>
@@ -233,7 +233,7 @@ export default function UserNotificationsScreen() {
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}><Bell color={Colors.textSecondary} size={24} /></View>
               <Text style={styles.emptyTitle}>{failed ? 'Notifications indisponibles' : 'Aucune notification'}</Text>
-              <Text style={styles.emptyText}>{failed ? 'Vérifiez votre connexion puis actualisez la page.' : 'Les messages envoyés par MatiStore apparaîtront ici.'}</Text>
+              <Text style={styles.emptyText}>{failed ? 'Vérifiez votre connexion puis actualisez la page.' : 'Les messages envoyés par JM Services apparaîtront ici.'}</Text>
               {failed && <TouchableOpacity onPress={() => void load()} style={styles.retryButton}><Text style={styles.retryText}>Réessayer</Text></TouchableOpacity>}
             </View>
           )}
@@ -245,30 +245,27 @@ export default function UserNotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerAvatar: { width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(255,194,51,0.12)', borderWidth: 1, borderColor: 'rgba(255,194,51,0.35)', alignItems: 'center', justifyContent: 'center' },
   container: { flex: 1, backgroundColor: Colors.darkBg },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 56, paddingBottom: 14, paddingHorizontal: 16, backgroundColor: Colors.secondaryBg, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backButton: { padding: 3 },
-  headerCopy: { gap: 2 },
-  headerTitle: { color: Colors.white, fontSize: 17, fontWeight: '800' },
-  headerSubtitle: { color: Colors.textSecondary, fontSize: 11 },
+
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { flexGrow: 1, padding: 14, gap: 10 },
+  list: { flexGrow: 1, padding: 16, gap: 10 },
   emptyList: { justifyContent: 'center' },
   messageWrap: { width: '100%', alignItems: 'flex-start' },
-  messageCard: { alignSelf: 'flex-start', maxWidth: '88%', padding: 13, borderRadius: 15, borderTopLeftRadius: 5, backgroundColor: Colors.secondaryBg, borderWidth: 1, borderColor: Colors.border, gap: 8 },
-  messageHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  messageIcon: { width: 25, height: 25, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: 'rgba(125,255,42,0.1)' },
-  sender: { color: Colors.primaryGreen, fontSize: 11, fontWeight: '800' },
-  date: { color: Colors.textSecondary, fontSize: 9, alignSelf: 'flex-end' },
-  title: { color: Colors.white, fontSize: 14, fontWeight: '800' },
-  body: { color: Colors.white, fontSize: 13, lineHeight: 19 },
-  image: { height: 210, borderRadius: 10, marginTop: 2, backgroundColor: Colors.cardBg },
+  messageCard: { alignSelf: 'flex-start', maxWidth: '88%', padding: 14, borderRadius: 22, borderTopLeftRadius: 6, backgroundColor: '#16224D', gap: 8 },
+  messageHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  messageIcon: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: Colors.navy, overflow: 'hidden' },
+  sender: { color: Colors.blueLight, fontFamily: Font.bodyBold, fontSize: 13 },
+  date: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 11, alignSelf: 'flex-end' },
+  title: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 16 },
+  body: { color: Colors.chrome, fontFamily: Font.body, fontSize: 15, lineHeight: 21 },
+  image: { height: 210, borderRadius: 16, marginTop: 2, backgroundColor: Colors.cardBg },
   imageFallback: { alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: Colors.border },
-  imageFallbackText: { color: Colors.textSecondary, fontSize: 11 },
+  imageFallbackText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12 },
   emptyState: { alignItems: 'center', paddingHorizontal: 28, paddingVertical: 24 },
-  emptyIcon: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: Colors.cardBg, marginBottom: 12 },
-  emptyTitle: { color: Colors.white, fontSize: 15, fontWeight: '800', marginBottom: 5 },
-  emptyText: { color: Colors.textSecondary, fontSize: 12, textAlign: 'center', lineHeight: 18 },
-  retryButton: { marginTop: 14, borderRadius: 9, paddingHorizontal: 16, paddingVertical: 9, backgroundColor: Colors.cardBg },
-  retryText: { color: Colors.primaryGreen, fontWeight: '700', fontSize: 12 },
+  emptyIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: 28, backgroundColor: 'rgba(90,162,255,0.14)', marginBottom: 12 },
+  emptyTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, textTransform: 'uppercase', marginBottom: 5 },
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  retryButton: { marginTop: 14, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1.5, borderColor: Colors.gold, backgroundColor: 'rgba(255,194,51,0.1)' },
+  retryText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
 });

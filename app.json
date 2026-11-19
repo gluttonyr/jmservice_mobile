@@ -4,11 +4,11 @@
     "slug": "matistore",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-ios.png",
+    "icon": "./assets/jm-icon.png",
     "scheme": "matistoremobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/logo-ios.png",
+      "icon": "./assets/jm-icon.png",
       "bundleIdentifier": "com.urbain-diligence.matistore-mobile",
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
@@ -20,7 +20,7 @@
       "package": "com.urbain_diligence.matistore_mobile",
       "adaptiveIcon": {
         "backgroundColor": "#000000",
-        "foregroundImage": "./assets/logo-ios.png"
+        "foregroundImage": "./assets/jm-adaptive-icon.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -31,7 +31,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/logo-ios.png"
+      "favicon": "./assets/jm-icon.png"
     },
     "plugins": [
       "expo-router",

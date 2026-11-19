@@ -141,10 +141,11 @@ export function AudioPlayer({ uri, isMe }: Props) {
 
   const progress = duration > 0 ? position / duration : 0;
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  const fgColor = isMe ? '#000' : Colors.white;
-  const trackColor = isMe ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.25)';
-  const fillColor = isMe ? 'rgba(0,0,0,0.6)' : Colors.primaryGreen;
-  const btnBg = isMe ? 'rgba(0,0,0,0.2)' : Colors.primaryGreen;
+  // Own messages sit on a blue bubble; the others on navy with a blue play button.
+  const fgColor = isMe ? Colors.pureWhite : Colors.chrome;
+  const trackColor = isMe ? 'rgba(255,255,255,0.3)' : 'rgba(141,154,192,0.35)';
+  const fillColor = isMe ? Colors.pureWhite : Colors.blueLight;
+  const btnBg = isMe ? 'rgba(255,255,255,0.22)' : Colors.blue;
 
   if (!available) {
     return <Text style={{ color: fgColor, fontSize: 12 }}>🎵 Audio — {uri.split('/').pop()}</Text>;
@@ -159,9 +160,9 @@ export function AudioPlayer({ uri, isMe }: Props) {
     <TouchableOpacity style={st.wrap} onPress={toggle} activeOpacity={0.8}>
       <View style={[st.btn, { backgroundColor: btnBg }]}>
         {playing ? (
-          <Pause color="#000" size={14} fill="#000" />
+          <Pause color="#fff" size={14} fill="#fff" />
         ) : (
-          <Play color="#000" size={14} fill="#000" style={{ marginLeft: 1 }} />
+          <Play color="#fff" size={14} fill="#fff" style={{ marginLeft: 1 }} />
         )}
       </View>
       <View style={st.track}>

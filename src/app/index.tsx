@@ -1,152 +1,62 @@
-import MatiLogo from '@/components/ui/MatiLogo';
+import { OrbitBackground, OrbitStar } from '@/components/orbit';
+import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { UserRole } from '@/data_api/models/user.types';
 import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
-import { JSX, useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import Svg, { Ellipse } from 'react-native-svg';
 
-const { width } = Dimensions.get('window');
+// Minimum time the splash stays on screen, so the animation is seen even when the session resolves at once.
+const MIN_SPLASH_MS = 2600;
 
-const GREEN = '#7DFF2A';
-const CIRCLE_SIZE = 36;
-const BALL_COUNT = 7;
-const BALL_GAP = 10;
+// Stars placed on the orbit ring around the logo (percent of the ring box), each twinkling with its own delay.
+const RING_STARS = [
+  { left: '8%', top: '62%', size: 22, color: Colors.gold, delay: 0 },
+  { left: '19%', top: '75%', size: 26, color: Colors.gold, delay: 350 },
+  { left: '33%', top: '79%', size: 20, color: Colors.gold, delay: 700 },
+  { left: '52%', top: '76%', size: 28, color: Colors.pureWhite, delay: 1050 },
+  { left: '90%', top: '32%', size: 18, color: '#8FB4FF', delay: 500 },
+] as const;
 
-// Chaque icône dessine UNIQUEMENT les détails du ballon (sans fond),
-// sur fond vert. Le cercle vide est dessiné en dehors.
-const BALL_ICONS: Array<() => JSX.Element> = [
-  // Tennis
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Path d="M20,15 Q50,50 20,85" stroke="white" strokeWidth="8" fill="none" />
-      <Path d="M80,15 Q50,50 80,85" stroke="white" strokeWidth="8" fill="none" />
-    </Svg>
-  ),
-  // Basketball
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Line x1="50" y1="2" x2="50" y2="98" stroke="white" strokeWidth="5" />
-      <Line x1="2" y1="50" x2="98" y2="50" stroke="white" strokeWidth="5" />
-      <Path d="M22,5 Q62,50 22,95" stroke="white" strokeWidth="5" fill="none" />
-      <Path d="M78,5 Q38,50 78,95" stroke="white" strokeWidth="5" fill="none" />
-    </Svg>
-  ),
-  // Bowling
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Circle cx="62" cy="34" r="9" fill="white" />
-      <Circle cx="76" cy="50" r="9" fill="white" />
-      <Circle cx="62" cy="54" r="9" fill="white" />
-    </Svg>
-  ),
-  // Cricket
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Path d="M15,50 Q50,18 85,50" stroke="white" strokeWidth="5" fill="none" strokeDasharray="7,5" />
-      <Path d="M15,50 Q50,82 85,50" stroke="white" strokeWidth="5" fill="none" strokeDasharray="7,5" />
-    </Svg>
-  ),
-  // Football/Soccer
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Path d="M50,18 L63,29 L58,45 L42,45 L37,29 Z" fill="white" />
-      <Path d="M78,38 L88,52 L79,64 L65,60 L62,44 Z" fill="white" />
-      <Path d="M22,38 L12,52 L21,64 L35,60 L38,44 Z" fill="white" />
-      <Path d="M68,74 L57,82 L43,82 L32,74 L38,60 L62,60 Z" fill="white" />
-    </Svg>
-  ),
-  // Volleyball
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Path d="M50,2 Q88,22 88,50" stroke="white" strokeWidth="6" fill="none" />
-      <Path d="M88,50 Q88,80 50,98" stroke="white" strokeWidth="6" fill="none" />
-      <Path d="M50,98 Q12,78 12,50" stroke="white" strokeWidth="6" fill="none" />
-      <Path d="M12,50 Q12,20 50,2" stroke="white" strokeWidth="6" fill="none" />
-      <Path d="M4,33 Q50,48 96,33" stroke="white" strokeWidth="6" fill="none" />
-      <Path d="M4,67 Q50,52 96,67" stroke="white" strokeWidth="6" fill="none" />
-    </Svg>
-  ),
-  // Rugby (ovale)
-  () => (
-    <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="48" fill={GREEN} />
-      <Ellipse cx="50" cy="50" rx="34" ry="22" fill="white" />
-      <Line x1="50" y1="28" x2="50" y2="72" stroke={GREEN} strokeWidth="3" />
-      <Line x1="38" y1="42" x2="62" y2="42" stroke={GREEN} strokeWidth="3" />
-      <Line x1="36" y1="50" x2="64" y2="50" stroke={GREEN} strokeWidth="3" />
-      <Line x1="38" y1="58" x2="62" y2="58" stroke={GREEN} strokeWidth="3" />
-    </Svg>
-  ),
-];
-
-function BallSlot({ index, progress }: { index: number; progress: Animated.Value }) {
-  const [filled, setFilled] = useState(false);
-  const fillScale = useRef(new Animated.Value(0)).current;
-
-  const threshold = (index + 0.95) / BALL_COUNT;
-
+function TwinklingStar({ delay, size, color }: { delay: number; size: number; color: string }) {
+  const opacity = useRef(new Animated.Value(0.25)).current;
   useEffect(() => {
-    const id = progress.addListener(({ value }) => {
-      if (value >= threshold && !filled) {
-        setFilled(true);
-        Animated.spring(fillScale, {
-          toValue: 1,
-          tension: 80,
-          friction: 6,
-          useNativeDriver: true,
-        }).start();
-      }
-    });
-    return () => progress.removeListener(id);
-  }, [filled]);
-
-  const Icon = BALL_ICONS[index];
-
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(opacity, { toValue: 1, duration: 600, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.25, duration: 900, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [delay, opacity]);
   return (
-    <View style={styles.slotContainer}>
-      {/* Cercle vide permanent */}
-      <View style={styles.emptyCircle} />
-      {/* Icône qui apparaît avec bounce */}
-      <Animated.View
-        style={[
-          styles.ballOverlay,
-          { transform: [{ scale: fillScale }] },
-        ]}
-        pointerEvents="none"
-      >
-        <Icon />
-      </Animated.View>
-    </View>
+    <Animated.View style={{ opacity, transform: [{ scale: opacity.interpolate({ inputRange: [0.25, 1], outputRange: [0.75, 1] }) }] }}>
+      <OrbitStar size={size} color={color} />
+    </Animated.View>
   );
 }
 
 export default function SplashScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const textAnim = useRef(new Animated.Value(0)).current;
   const { user, token, authReady } = useAuth();
   const [animationDone, setAnimationDone] = useState(false);
+  const [dots, setDots] = useState('');
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-        Animated.spring(scaleAnim, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }),
-      ]),
-      Animated.timing(glowAnim, { toValue: 1, duration: 600, useNativeDriver: false }),
-      Animated.timing(progressAnim, { toValue: 1, duration: 2200, useNativeDriver: false }),
-    ]).start(() => {
-      setTimeout(() => setAnimationDone(true), 400);
-    });
+    // Visibility only depends on plain timings (never on a spring finishing).
+    Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+    Animated.spring(scaleAnim, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }).start();
+    Animated.timing(textAnim, { toValue: 1, duration: 1300, easing: Easing.in(Easing.quad), useNativeDriver: true }).start();
+    const done = setTimeout(() => setAnimationDone(true), MIN_SPLASH_MS);
+    const dotsTimer = setInterval(() => setDots((d) => (d.length >= 3 ? '' : `${d}.`)), 400);
+    return () => { clearTimeout(done); clearInterval(dotsTimer); };
   }, []);
 
   // On attend à la fois la fin de l'animation ET la résolution réelle de la
@@ -161,96 +71,66 @@ export default function SplashScreen() {
     }
   }, [animationDone, authReady, token, user]);
 
-  const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const textSlide = textAnim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.bgGlow} />
-
-      <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <Animated.View style={[styles.glowRing, { opacity: glowOpacity }]} />
-        <MatiLogo size={180} showText={true} />
-        <Text style={styles.tagline}>LE STORE SÉCURISÉ ET RAPIDE</Text>
-      </Animated.View>
-
-      <View style={styles.progressContainer}>
-        <View style={styles.ballsRow}>
-          {BALL_ICONS.map((_, i) => (
-            <View key={i} style={i < BALL_COUNT - 1 ? { marginRight: BALL_GAP } : {}}>
-              <BallSlot index={i} progress={progressAnim} />
+    <OrbitBackground orbits={false} style={styles.container}>
+      <View style={styles.center}>
+        <Animated.View style={[styles.ringBox, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+          <Svg width="100%" height="100%" viewBox="0 0 400 260" style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Ellipse cx="200" cy="140" rx="190" ry="88" transform="rotate(-6 200 140)" stroke="rgba(255,194,51,0.55)" strokeWidth="1.6" fill="none" />
+            <Ellipse cx="200" cy="140" rx="240" ry="120" transform="rotate(-6 200 140)" stroke="rgba(90,162,255,0.22)" strokeWidth="1" fill="none" />
+          </Svg>
+          <JMLogo size={210} />
+          {RING_STARS.map((star) => (
+            <View key={`${star.left}-${star.top}`} style={[styles.ringStar, { left: star.left, top: star.top }]} pointerEvents="none">
+              <TwinklingStar delay={star.delay} size={star.size} color={star.color} />
             </View>
           ))}
-        </View>
+        </Animated.View>
+
+        <Animated.View style={[styles.texts, { opacity: textAnim, transform: [{ translateY: textSlide }] }]}>
+          <Text style={styles.headline}>
+            VOS TRANSACTIONS <Text style={styles.headlineGold}>EN ORBITE</Text>
+          </Text>
+          <Text style={styles.loading}>Connexion à votre espace{dots}</Text>
+        </Animated.View>
       </View>
-    </View>
+
+      <Text style={styles.footer}>DÉPÔTS & RETRAITS · MOBILE MONEY</Text>
+    </OrbitBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.darkBg,
+  container: { alignItems: 'center', justifyContent: 'center' },
+  center: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  ringBox: {
+    width: '100%',
+    maxWidth: 420,
+    aspectRatio: 400 / 260,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bgGlow: {
+  ringStar: { position: 'absolute' },
+  texts: { alignItems: 'center', marginTop: 40 },
+  headline: {
+    color: Colors.chrome,
+    fontFamily: Font.title,
+    fontSize: 30,
+    lineHeight: 38,
+    textAlign: 'center',
+  },
+  headlineGold: { color: Colors.gold },
+  loading: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 16, marginTop: 16, minWidth: 220, textAlign: 'center' },
+  footer: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(125,255,42,0.04)',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -150 }, { translateY: -200 }],
-  },
-  content: {
-    alignItems: 'center',
-  },
-  glowRing: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.3)',
-    top: -35,
-    alignSelf: 'center',
-  },
-  tagline: {
+    bottom: 48,
     color: Colors.textSecondary,
-    fontSize: 11,
+    fontFamily: Font.bodyBold,
+    fontSize: 12,
     letterSpacing: 3,
-    marginTop: 16,
-    textTransform: 'uppercase',
-  },
-  progressContainer: {
-    position: 'absolute',
-    bottom: 100,
-    alignItems: 'center',
-  },
-  ballsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  slotContainer: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyCircle: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    borderRadius: CIRCLE_SIZE / 2,
-    borderWidth: 2,
-    borderColor: 'rgba(125,255,42,0.35)',
-    position: 'absolute',
-  },
-  ballOverlay: {
-    position: 'absolute',
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    borderRadius: CIRCLE_SIZE / 2,
-    overflow: 'hidden',
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
 });

@@ -1,3 +1,4 @@
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { Categorie } from '@/data_api/models/categorie.types';
 import { Evenement } from '@/data_api/models/evenement.types';
@@ -15,6 +16,7 @@ import {
     MapPin,
     Pencil,
     Plus,
+    Trophy,
     ShieldCheck, Tag,
     Trash2,
     X,
@@ -38,7 +40,13 @@ import {
 // ─── Composant image (respecte les règles des hooks dans une liste) ───────────
 function EventCoverImage({ coverImage, style }: { coverImage?: string | null; style?: any }) {
   const uri = useFileUrl('events', coverImage);
-  if (!uri) return <View style={[style, { backgroundColor: Colors.border }]} />;
+  if (!uri) {
+    return (
+      <LinearGradient colors={['#0F4A50', '#0A1F26']} style={[style, { alignItems: 'center', justifyContent: 'center' }]}>
+        <Trophy color="rgba(25,211,197,0.25)" size={90} strokeWidth={1.6} />
+      </LinearGradient>
+    );
+  }
   return <Image source={{ uri }} style={style} />;
 }
 
@@ -203,11 +211,11 @@ export default function AdminEventsScreen() {
   return (
     <View style={styles.container}>
       {/* ── Header ── */}
-      <LinearGradient colors={[Colors.secondaryBg, Colors.darkBg]} style={styles.header}>
+      <LinearGradient colors={[Colors.adminSurface, Colors.adminBg]} style={styles.header}>
         <View style={styles.headerRow}>
           <View>
             <View style={styles.adminBadge}>
-              <ShieldCheck color={Colors.primaryGreen} size={12} />
+              <ShieldCheck color={Colors.admin} size={12} />
               <Text style={styles.adminBadgeText}>ADMIN</Text>
             </View>
             <Text style={styles.headerTitle}>Gestion des Événements</Text>
@@ -222,12 +230,15 @@ export default function AdminEventsScreen() {
             onPress={activeTab === 'events' ? handleCreateEvent : openCreateCat}
           >
             <LinearGradient
-              colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+              colors={[Colors.admin, Colors.adminEnd]}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <Plus color="#000" size={22} strokeWidth={3} />
+            {/* zIndex: on the web the absolute gradient would otherwise cover the icon. */}
+            <View style={{ zIndex: 1 }}>
+              <Plus color={Colors.adminBg} size={24} strokeWidth={3} />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -239,13 +250,13 @@ export default function AdminEventsScreen() {
           >
             {activeTab === 'events' && (
               <LinearGradient
-                colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+                colors={[Colors.admin, Colors.adminEnd]}
                 style={StyleSheet.absoluteFill}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
             )}
-            <Calendar color={activeTab === 'events' ? '#000' : Colors.textSecondary} size={15} />
+            <View style={{ zIndex: 1 }}><Calendar color={activeTab === 'events' ? Colors.adminBg : Colors.textSecondary} size={15} /></View>
             <Text style={[styles.tabText, activeTab === 'events' && styles.tabTextActive]}>
               Événements
             </Text>
@@ -257,13 +268,13 @@ export default function AdminEventsScreen() {
           >
             {activeTab === 'categories' && (
               <LinearGradient
-                colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+                colors={[Colors.admin, Colors.adminEnd]}
                 style={StyleSheet.absoluteFill}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
             )}
-            <Tag color={activeTab === 'categories' ? '#000' : Colors.textSecondary} size={15} />
+            <View style={{ zIndex: 1 }}><Tag color={activeTab === 'categories' ? Colors.adminBg : Colors.textSecondary} size={15} /></View>
             <Text style={[styles.tabText, activeTab === 'categories' && styles.tabTextActive]}>
               Catégories
             </Text>
@@ -315,7 +326,7 @@ export default function AdminEventsScreen() {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.admin} size="large" />
         </View>
       ) : error ? (
         <View style={styles.empty}>
@@ -351,7 +362,7 @@ export default function AdminEventsScreen() {
                   <View style={[styles.card, expired && styles.cardExpired]}>
                     <EventCoverImage coverImage={item.coverImage} style={[styles.cardImage, expired && styles.cardImageExpired]} />
                     <LinearGradient
-                      colors={['transparent', 'rgba(5,5,5,0.75)']}
+                      colors={['transparent', 'rgba(6,11,30,0.75)']}
                       style={styles.cardImageGrad}
                     />
                     <View style={styles.catBadge}>
@@ -368,17 +379,17 @@ export default function AdminEventsScreen() {
                       <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
                       <View style={styles.cardMeta}>
                         <View style={styles.metaItem}>
-                          <Calendar color={expired ? '#ff4d4d' : Colors.primaryGreen} size={13} />
+                          <Calendar color={expired ? '#ff4d4d' : Colors.admin} size={13} />
                           <Text style={styles.metaText}>{formatEventDate(item.dateDebut, item.dateFin)}</Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <MapPin color={expired ? '#ff4d4d' : Colors.primaryGreen} size={13} />
+                          <MapPin color={expired ? '#ff4d4d' : Colors.admin} size={13} />
                           <Text style={styles.metaText}>{item.lieu ?? 'Lieu non précisé'}</Text>
                         </View>
                       </View>
                       <View style={styles.actions}>
                         <TouchableOpacity style={styles.editBtn} onPress={() => handleEditEvent(item.trackingId)}>
-                          <Pencil color={Colors.primaryGreen} size={15} />
+                          <Pencil color={Colors.admin} size={15} />
                           <Text style={styles.editBtnText}>Modifier</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteEvent(item.trackingId)}>
@@ -414,7 +425,7 @@ export default function AdminEventsScreen() {
                   <View style={styles.catCard}>
                     <View style={styles.catCardLeft}>
                       <View style={styles.catIconCircle}>
-                        <Tag color={Colors.primaryGreen} size={16} />
+                        <Tag color={Colors.admin} size={16} />
                       </View>
                       <View>
                         <Text style={styles.catCardName}>{item.libelle}</Text>
@@ -425,7 +436,7 @@ export default function AdminEventsScreen() {
                     </View>
                     <View style={styles.catCardActions}>
                       <TouchableOpacity style={styles.catEditBtn} onPress={() => openEditCat(item)}>
-                        <Pencil color={Colors.primaryGreen} size={15} />
+                        <Pencil color={Colors.admin} size={15} />
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.catDeleteBtn} onPress={() => handleDeleteCat(item)}>
                         <Trash2 color="#ff4d4d" size={15} />
@@ -500,7 +511,7 @@ export default function AdminEventsScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveCat} disabled={savingCat}>
                 <LinearGradient
-                  colors={[Colors.primaryGreen, Colors.secondaryGreen]}
+                  colors={[Colors.admin, Colors.adminEnd]}
                   style={StyleSheet.absoluteFill}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -509,7 +520,7 @@ export default function AdminEventsScreen() {
                   <ActivityIndicator color="#000" size="small" />
                 ) : (
                   <>
-                    <Check color="#000" size={16} strokeWidth={3} />
+                    <View style={{ zIndex: 1 }}><Check color={Colors.adminBg} size={16} strokeWidth={3} /></View>
                     <Text style={styles.modalSaveText}>
                       {editingCat ? 'Enregistrer' : 'Créer'}
                     </Text>
@@ -525,7 +536,7 @@ export default function AdminEventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
 
   // ── Header ──
   header: { paddingTop: 60, paddingBottom: 0, paddingHorizontal: 20 },
@@ -535,14 +546,14 @@ const styles = StyleSheet.create({
   },
   adminBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(125,255,42,0.1)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
     borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.25)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.25)',
     alignSelf: 'flex-start', marginBottom: 6,
   },
-  adminBadgeText: { color: Colors.primaryGreen, fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '900', letterSpacing: 0.4 },
-  headerSub: { color: Colors.textSecondary, fontSize: 13, marginTop: 2 },
+  adminBadgeText: { fontFamily: Font.bodyExtraBold, color: Colors.admin, fontSize: 10, letterSpacing: 1 },
+  headerTitle: { fontFamily: Font.title, color: Colors.white, fontSize: 22, letterSpacing: 0.4 },
+  headerSub: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 13, marginTop: 2 },
   createBtn: {
     width: 48, height: 48, borderRadius: 24,
     overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
@@ -557,12 +568,12 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 7, paddingVertical: 10, borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard,
+    borderWidth: 1, borderColor: Colors.adminBorder,
   },
   tabActive: { borderColor: 'transparent' },
-  tabText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '700' },
-  tabTextActive: { color: '#000', fontWeight: '900' },
+  tabText: { fontFamily: Font.bodyBold, color: Colors.textSecondary, fontSize: 13 },
+  tabTextActive: { color: '#000', fontFamily: Font.bodyExtraBold },
 
   // ── Filtre actifs / expirés ──
   eventFilterScroll: { flexGrow: 0, flexShrink: 0, maxHeight: 50, marginBottom: 16 },
@@ -570,12 +581,12 @@ const styles = StyleSheet.create({
   eventFilterChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20,
-    backgroundColor: Colors.cardBg, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard, borderWidth: 1, borderColor: Colors.adminBorder,
   },
-  eventFilterChipActive: { backgroundColor: 'rgba(125,255,42,0.15)', borderColor: 'rgba(125,255,42,0.4)' },
+  eventFilterChipActive: { backgroundColor: 'rgba(25,211,197,0.15)', borderColor: 'rgba(25,211,197,0.4)' },
   eventFilterChipExpiredActive: { backgroundColor: 'rgba(255,77,77,0.12)', borderColor: 'rgba(255,77,77,0.4)' },
-  eventFilterText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '700', flexShrink: 0 },
-  eventFilterTextActive: { color: Colors.primaryGreen },
+  eventFilterText: { fontFamily: Font.bodyBold, color: Colors.textSecondary, fontSize: 12, flexShrink: 0 },
+  eventFilterTextActive: { color: Colors.admin },
   eventFilterTextExpiredActive: { color: '#ff4d4d' },
   eventFilterCount: {
     minWidth: 20, height: 20, borderRadius: 10,
@@ -583,9 +594,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 5,
   },
-  eventFilterCountActive: { backgroundColor: 'rgba(125,255,42,0.2)' },
+  eventFilterCountActive: { backgroundColor: 'rgba(25,211,197,0.2)' },
   eventFilterCountExpiredActive: { backgroundColor: 'rgba(255,77,77,0.2)' },
-  eventFilterCountText: { color: Colors.white, fontSize: 11, fontWeight: '800' },
+  eventFilterCountText: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 11 },
 
   // ── Loader ──
   loaderContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -596,8 +607,8 @@ const styles = StyleSheet.create({
   // ── Event card ──
   card: {
     borderRadius: 20, overflow: 'hidden',
-    backgroundColor: Colors.cardBg,
-    borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard,
+    borderWidth: 1, borderColor: Colors.adminBorder,
   },
   cardExpired: { borderColor: 'rgba(255,77,77,0.3)', opacity: 0.8 },
   cardImage: { width: '100%', height: 160, resizeMode: 'cover' },
@@ -605,11 +616,11 @@ const styles = StyleSheet.create({
   cardImageGrad: { position: 'absolute', top: 80, left: 0, right: 0, height: 80 },
   catBadge: {
     position: 'absolute', top: 12, left: 12,
-    backgroundColor: 'rgba(125,255,42,0.2)',
+    backgroundColor: 'rgba(25,211,197,0.2)',
     borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.3)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.3)',
   },
-  catText: { color: Colors.primaryGreen, fontSize: 11, fontWeight: '700' },
+  catText: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 11 },
   expiredBadge: {
     position: 'absolute', top: 12, right: 12,
     flexDirection: 'row', alignItems: 'center', gap: 4,
@@ -617,53 +628,53 @@ const styles = StyleSheet.create({
     borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4,
     borderWidth: 1, borderColor: 'rgba(255,77,77,0.4)',
   },
-  expiredBadgeText: { color: '#ff4d4d', fontSize: 11, fontWeight: '700' },
+  expiredBadgeText: { fontFamily: Font.bodyBold, color: '#ff4d4d', fontSize: 11 },
   cardContent: { padding: 14, gap: 8 },
-  cardTitle: { color: Colors.white, fontSize: 16, fontWeight: '800' },
-  cardDesc: { color: Colors.textSecondary, fontSize: 13, lineHeight: 19 },
+  cardTitle: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 16 },
+  cardDesc: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 13, lineHeight: 19 },
   cardMeta: { flexDirection: 'row', gap: 16 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  metaText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  metaText: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 12 },
   actions: {
     flexDirection: 'row', gap: 10, marginTop: 4,
-    paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border,
+    paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.adminBorder,
   },
   editBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 9, borderRadius: 10,
-    backgroundColor: 'rgba(125,255,42,0.08)',
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.2)',
+    backgroundColor: 'rgba(25,211,197,0.08)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.2)',
   },
-  editBtnText: { color: Colors.primaryGreen, fontSize: 13, fontWeight: '700' },
+  editBtnText: { fontFamily: Font.bodyBold, color: Colors.admin, fontSize: 13 },
   deleteBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 9, borderRadius: 10,
     backgroundColor: 'rgba(255,77,77,0.08)',
     borderWidth: 1, borderColor: 'rgba(255,77,77,0.2)',
   },
-  deleteBtnText: { color: '#ff4d4d', fontSize: 13, fontWeight: '700' },
+  deleteBtnText: { fontFamily: Font.bodyBold, color: '#ff4d4d', fontSize: 13 },
 
   // ── Category card ──
   catCard: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 16, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminCard,
+    borderRadius: 16, borderWidth: 1, borderColor: Colors.adminBorder,
     padding: 14,
   },
   catCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   catIconCircle: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.2)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
-  catCardName: { color: Colors.white, fontSize: 15, fontWeight: '800' },
-  catCardCount: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  catCardName: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 15 },
+  catCardCount: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
   catCardActions: { flexDirection: 'row', gap: 8 },
   catEditBtn: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(125,255,42,0.08)',
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.2)',
+    backgroundColor: 'rgba(25,211,197,0.08)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
   catDeleteBtn: {
@@ -675,13 +686,13 @@ const styles = StyleSheet.create({
 
   // ── Empty ──
   empty: { alignItems: 'center', paddingTop: 60, gap: 16 },
-  emptyText: { color: Colors.textSecondary, fontSize: 15, textAlign: 'center', paddingHorizontal: 20 },
+  emptyText: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 15, textAlign: 'center', paddingHorizontal: 20 },
   emptyBtn: {
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.25)',
+    backgroundColor: 'rgba(25,211,197,0.1)',
+    borderWidth: 1, borderColor: 'rgba(25,211,197,0.25)',
   },
-  emptyBtnText: { color: Colors.primaryGreen, fontWeight: '700' },
+  emptyBtnText: { color: Colors.admin, fontFamily: Font.bodyBold },
 
   // ── Modal ──
   modalOverlay: {
@@ -689,40 +700,40 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    borderWidth: 1, borderColor: Colors.border,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     padding: 24, paddingBottom: 40, gap: 14,
   },
   modalHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  modalTitle: { color: Colors.white, fontSize: 17, fontWeight: '900' },
+  modalTitle: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 17 },
   modalCloseBtn: {
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.07)',
     alignItems: 'center', justifyContent: 'center',
   },
-  modalLabel: { color: Colors.textSecondary, fontSize: 13, fontWeight: '600' },
-  modalInput: {
-    backgroundColor: Colors.darkBg,
-    borderWidth: 1, borderColor: Colors.border,
+  modalLabel: { fontFamily: Font.bodySemiBold, color: Colors.textSecondary, fontSize: 13 },
+  modalInput: { fontFamily: Font.body,
+    backgroundColor: Colors.adminBg,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13,
     color: Colors.white, fontSize: 15,
   },
   modalInputError: { borderColor: '#ff4d4d' },
-  modalErrorText: { color: '#ff4d4d', fontSize: 12, fontWeight: '600', marginTop: -8 },
+  modalErrorText: { fontFamily: Font.bodySemiBold, color: '#ff4d4d', fontSize: 12, marginTop: -8 },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   modalCancelBtn: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
-    backgroundColor: Colors.darkBg,
-    borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.adminBg,
+    borderWidth: 1, borderColor: Colors.adminBorder,
     alignItems: 'center',
   },
-  modalCancelText: { color: Colors.textSecondary, fontSize: 14, fontWeight: '700' },
+  modalCancelText: { fontFamily: Font.bodyBold, color: Colors.textSecondary, fontSize: 14 },
   modalSaveBtn: {
     flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 7, paddingVertical: 13, borderRadius: 12, overflow: 'hidden',
   },
-  modalSaveText: { color: '#000', fontSize: 14, fontWeight: '900' },
+  modalSaveText: { fontFamily: Font.bodyExtraBold, color: '#000', fontSize: 14 },
 });

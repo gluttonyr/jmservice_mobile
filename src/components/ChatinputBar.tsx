@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
 import { MessageType } from '@/data_api/models/message.types';
 import { Sticker } from '@/data_api/models/sticker.types';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +16,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -37,6 +39,9 @@ type Props = {
   audio: AudioHook;
   /** Les stickers ne sont pour l'instant disponibles que côté admin. */
   allowStickers?: boolean;
+  placeholder?: string;
+  /** admin = turquoise theme of the admin space. */
+  accent?: 'client' | 'admin';
 };
 
 export function ChatInputBar({
@@ -48,7 +53,11 @@ export function ChatInputBar({
   sending,
   audio,
   allowStickers = true,
+  placeholder = 'Message',
+  accent = 'client',
 }: Props) {
+  const admin = accent === 'admin';
+  const btnIcon = admin ? Colors.adminBg : Colors.pureWhite;
   const [showStickers, setShowStickers] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -173,7 +182,7 @@ const pickAndSendImageFromGallery = async () => {
         <View style={st.attachMenu}>
           <TouchableOpacity style={st.attachOption} onPress={handlePickImage}>
             <View style={st.attachIcon}>
-              <ImageIcon color={Colors.primaryGreen} size={22} />
+              <ImageIcon color={Colors.blueLight} size={22} />
             </View>
             <Text style={st.attachLabel}>Image</Text>
           </TouchableOpacity>
@@ -191,71 +200,68 @@ const pickAndSendImageFromGallery = async () => {
         </View>
       )}
 
-      {/* Input bar */}
-      <View style={[
-    st.inputContainer,
-    {
-      paddingBottom: Math.max(insets.bottom, 10),
-    },
-  ]}>
-        <TouchableOpacity
-          style={st.iconBtn}
-          onPress={() => {
-            setShowAttachMenu((v) => !v);
-            setShowStickers(false);
-            setShowEmojiPicker(false);
-          }}
-        >
-          <Paperclip color={showAttachMenu ? Colors.primaryGreen : Colors.textSecondary} size={20} />
-        </TouchableOpacity>
+      {/* Input bar: emoji, text and attachment in one field; the round button records when empty, sends otherwise. */}
+      <View style={[st.inputContainer, admin && st.inputContainerAdmin, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+        <View style={[st.field, admin && st.fieldAdmin]}>
+          <TouchableOpacity
+            style={st.iconBtn}
+            onPress={() => {
+              setShowAttachMenu(false);
+              setShowStickers(false);
+              setShowEmojiPicker(true);
+            }}
+            accessibilityLabel="Emojis"
+          >
+            <Smile color={showEmojiPicker ? Colors.gold : Colors.textSecondary} size={22} />
+          </TouchableOpacity>
 
-        <TextInput
-          style={st.textInput}
-          placeholder="Message..."
-          placeholderTextColor={Colors.textSecondary}
-          value={text}
-          onChangeText={onChangeText}
-          multiline
-          maxLength={2000}
-          onFocus={() => {
-            setShowAttachMenu(false);
-            setShowStickers(false);
-            setShowEmojiPicker(false);
-          }}
-        />
+          <TextInput
+            style={st.textInput}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.textSecondary}
+            value={text}
+            onChangeText={onChangeText}
+            multiline
+            // Web: a textarea defaults to two rows; one row keeps the text level with the icons.
+            {...(Platform.OS === 'web' ? { numberOfLines: 1 } : {})}
+            maxLength={2000}
+            onFocus={() => {
+              setShowAttachMenu(false);
+              setShowStickers(false);
+              setShowEmojiPicker(false);
+            }}
+          />
 
-        {/* Bouton emoji : indépendant des stickers, toujours affiché */}
-        <TouchableOpacity
-          style={st.iconBtn}
-          onPress={() => {
-            setShowAttachMenu(false);
-            setShowStickers(false);
-            setShowEmojiPicker(true);
-          }}
-        >
-          <Smile color={showEmojiPicker ? Colors.primaryGreen : Colors.textSecondary} size={20} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[st.iconBtn, audio.isRecording && st.iconBtnRecording]}
-          onPress={handleMicPress}
-        >
-          {audio.isRecording
-            ? <StopCircle color={Colors.primaryGreen} size={22} />
-            : <Mic color={audio.isAvailable ? Colors.textSecondary : Colors.border} size={20} />}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={st.iconBtn}
+            onPress={() => {
+              setShowAttachMenu((v) => !v);
+              setShowStickers(false);
+              setShowEmojiPicker(false);
+            }}
+            accessibilityLabel="Joindre une image"
+          >
+            <Paperclip color={showAttachMenu ? Colors.gold : Colors.textSecondary} size={21} />
+          </TouchableOpacity>
+        </View>
 
         {sending ? (
-          <View style={[st.sendBtn, st.sendBtnActive]}>
-            <ActivityIndicator color="#000" size="small" />
+          <View style={[st.roundBtn, admin && st.roundBtnAdmin]}>
+            <ActivityIndicator color={btnIcon} size="small" />
           </View>
+        ) : text.trim() ? (
+          <TouchableOpacity style={[st.roundBtn, admin && st.roundBtnAdmin]} onPress={onSendText} accessibilityLabel="Envoyer">
+            <Send color={btnIcon} size={20} />
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[st.sendBtn, text.trim() && st.sendBtnActive]}
-            onPress={onSendText}
-            disabled={!text.trim()}
+            style={[st.roundBtn, admin && st.roundBtnAdmin, audio.isRecording && st.roundBtnRecording, !audio.isAvailable && st.roundBtnOff]}
+            onPress={handleMicPress}
+            accessibilityLabel={audio.isRecording ? 'Arrêter et envoyer le message vocal' : 'Message vocal'}
           >
-            <Send color={text.trim() ? '#000' : Colors.textSecondary} size={18} />
+            {audio.isRecording
+              ? <StopCircle color={audio.isRecording ? Colors.pureWhite : btnIcon} size={24} />
+              : <Mic color={btnIcon} size={22} />}
           </TouchableOpacity>
         )}
       </View>
@@ -287,7 +293,7 @@ const st = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: Colors.border,
   },
   recordingDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#ef4444' },
-  recordingText: { flex: 1, color: Colors.white, fontSize: 14 },
+  recordingText: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 14 },
 
   attachMenu: {
     flexDirection: 'row', gap: 16, paddingHorizontal: 20, paddingVertical: 14,
@@ -301,30 +307,49 @@ const st = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  attachLabel: { color: Colors.textSecondary, fontSize: 11, fontWeight: '600' },
+  attachLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 12 },
 
  inputContainer: {
-  flexDirection: 'row',
-  alignItems: 'flex-end',
-  paddingHorizontal: 8,
-  paddingTop: 10,
-  backgroundColor: Colors.secondaryBg,
-  borderTopWidth: 1,
-  borderTopColor: Colors.border,
-  gap: 6,
-},
-  iconBtn: { padding: 9, justifyContent: 'center', alignItems: 'center' },
-  iconBtnRecording: { opacity: 0.8 },
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    backgroundColor: 'rgba(8,16,44,0.96)',
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 10,
+  },
+  field: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 54,
+    borderRadius: 27,
+    backgroundColor: '#111C3F',
+    borderWidth: 1,
+    borderColor: 'rgba(120,150,230,0.2)',
+    paddingHorizontal: 6,
+  },
+  iconBtn: { padding: 10, justifyContent: 'center', alignItems: 'center' },
   textInput: {
-    flex: 1, backgroundColor: Colors.cardBg,
-    borderRadius: 22, borderWidth: 1, borderColor: Colors.border,
-    paddingHorizontal: 14, paddingVertical: 10,
-    color: Colors.white, fontSize: 14, maxHeight: 100,
+    flex: 1,
+    paddingHorizontal: 4,
+    paddingTop: 15,
+    paddingBottom: 15,
+    color: Colors.chrome,
+    fontFamily: Font.body,
+    fontSize: 16,
+    lineHeight: 22,
+    maxHeight: 110,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}),
   },
-  sendBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.cardBg, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: Colors.border,
+  roundBtn: {
+    width: 54, height: 54, borderRadius: 27,
+    backgroundColor: Colors.blue, alignItems: 'center', justifyContent: 'center',
   },
-  sendBtnActive: { backgroundColor: Colors.primaryGreen, borderColor: Colors.primaryGreen },
+  roundBtnAdmin: { backgroundColor: Colors.admin },
+  inputContainerAdmin: { backgroundColor: 'rgba(6,18,24,0.97)', borderTopColor: Colors.adminBorder },
+  fieldAdmin: { backgroundColor: '#10262D', borderColor: 'rgba(120,210,215,0.2)' },
+  roundBtnRecording: { backgroundColor: '#E5484D' },
+  roundBtnOff: { opacity: 0.55 },
 });

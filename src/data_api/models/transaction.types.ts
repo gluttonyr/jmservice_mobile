@@ -30,6 +30,7 @@ export interface Transaction {
   statut: TransactionStatus;
   montant: number;
   operateur?: string | null;
+  bookmaker?: string | null;
   numeroTelephone?: string | null;
   compteDestinataire?: string | null;
   codeRetrait?: string | null;
@@ -79,6 +80,8 @@ export interface CreateTransactionDto {
   numeroTelephone?: string;
   compteDestinataire?: string;
   codeRetrait?: string;
+  /** Bookmaker code, e.g. "1XBET". */
+  bookmaker?: string;
 }
 
 export interface UpdateTransactionDto {

@@ -134,7 +134,7 @@ export function usePushNotificationRegistration(): void {
         } else {
           router.push({
             pathname: '/user_chats/[id]',
-            params: { id: data.discussionId, name: notificationTitle || 'MatiStore Support' },
+            params: { id: data.discussionId, name: notificationTitle || 'Support JM Services' },
           });
         }
       } else if (data.type === 'ADMIN_BROADCAST') {

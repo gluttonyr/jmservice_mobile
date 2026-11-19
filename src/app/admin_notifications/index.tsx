@@ -1,5 +1,6 @@
 import { useWideWeb } from '@/hooks/useWideWeb';
 import { webSidebarStyles } from '@/components/webSidebarStyles';
+import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { notificationService } from '@/data_api/services/notificationService';
@@ -120,7 +121,7 @@ export default function AdminNotificationsScreen() {
           <ChevronLeft color={Colors.white} size={24} />
         </TouchableOpacity>
         <View style={styles.headerIcon}>
-          <Bell color="#A78BFA" size={18} />
+          <Bell color={Colors.admin} size={18} />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Notifications push</Text>
@@ -131,7 +132,7 @@ export default function AdminNotificationsScreen() {
       <ScrollView contentContainerStyle={[styles.content, wide && webSidebarStyles.readable, { paddingBottom: Math.max(insets.bottom, 24) + 24 }]} keyboardShouldPersistTaps="handled">
         <View style={styles.audienceCard}>
           <View style={styles.audienceIcon}>
-            <Users color="#A78BFA" size={19} />
+            <Users color={Colors.admin} size={19} />
           </View>
           <View style={styles.audienceText}>
             <Text style={styles.audienceTitle}>Tous les utilisateurs</Text>
@@ -175,7 +176,7 @@ export default function AdminNotificationsScreen() {
           </View>
         ) : (
           <TouchableOpacity style={styles.imagePickerButton} onPress={chooseImage} disabled={sending}>
-            <ImagePlus color="#A78BFA" size={18} />
+            <ImagePlus color={Colors.admin} size={18} />
             <Text style={styles.imagePickerText}>Ajouter une image</Text>
           </TouchableOpacity>
         )}
@@ -213,16 +214,16 @@ export default function AdminNotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.darkBg },
+  container: { flex: 1, backgroundColor: Colors.adminBg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: Colors.adminSurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.adminBorder,
   },
   backButton: { padding: 3 },
   headerIcon: {
@@ -231,11 +232,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 11,
-    backgroundColor: 'rgba(167,139,250,0.12)',
+    backgroundColor: 'rgba(25,211,197,0.12)',
   },
   headerText: { flex: 1 },
-  headerTitle: { color: Colors.white, fontSize: 16, fontWeight: '800' },
-  headerSubtitle: { color: Colors.textSecondary, fontSize: 11, marginTop: 2 },
+  headerTitle: { fontFamily: Font.bodyExtraBold, color: Colors.white, fontSize: 16 },
+  headerSubtitle: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11, marginTop: 2 },
   content: { padding: 20 },
   audienceCard: {
     flexDirection: 'row',
@@ -244,8 +245,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(167,139,250,0.25)',
-    backgroundColor: 'rgba(167,139,250,0.07)',
+    borderColor: 'rgba(25,211,197,0.25)',
+    backgroundColor: 'rgba(25,211,197,0.07)',
     marginBottom: 26,
   },
   audienceIcon: {
@@ -254,39 +255,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: 'rgba(167,139,250,0.13)',
+    backgroundColor: 'rgba(25,211,197,0.13)',
   },
   audienceText: { flex: 1, gap: 3 },
-  audienceTitle: { color: Colors.white, fontSize: 13, fontWeight: '700' },
-  audienceSubtitle: { color: Colors.textSecondary, fontSize: 11, lineHeight: 16 },
-  label: { color: Colors.white, fontSize: 13, fontWeight: '700', marginBottom: 8 },
-  input: {
+  audienceTitle: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 13 },
+  audienceSubtitle: { fontFamily: Font.body, color: Colors.textSecondary, fontSize: 11, lineHeight: 16 },
+  label: { fontFamily: Font.bodyBold, color: Colors.white, fontSize: 13, marginBottom: 8 },
+  input: { fontFamily: Font.body,
     color: Colors.white,
-    backgroundColor: Colors.cardBg,
+    backgroundColor: Colors.adminCard,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.adminBorder,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 13,
     fontSize: 14,
   },
   messageInput: { minHeight: 140, maxHeight: 240 },
-  imagePickerButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(167,139,250,0.35)', backgroundColor: 'rgba(167,139,250,0.08)', marginBottom: 20 },
-  imagePickerText: { color: '#C4B5FD', fontWeight: '700', fontSize: 12 },
+  imagePickerButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(25,211,197,0.35)', backgroundColor: 'rgba(25,211,197,0.08)', marginBottom: 20 },
+  imagePickerText: { fontFamily: Font.bodyBold, color: '#C4B5FD', fontSize: 12 },
   imagePreviewWrap: { height: 180, borderRadius: 12, overflow: 'hidden', marginBottom: 20, position: 'relative' },
   imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
   removeImageButton: { position: 'absolute', top: 8, right: 8, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.65)' },
-  counter: { color: Colors.textSecondary, textAlign: 'right', fontSize: 10, marginTop: 5, marginBottom: 20 },
+  counter: { fontFamily: Font.body, color: Colors.textSecondary, textAlign: 'right', fontSize: 10, marginTop: 5, marginBottom: 20 },
   sendButton: {
     minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 9,
-    backgroundColor: '#A78BFA',
+    backgroundColor: Colors.admin,
     borderRadius: 12,
     marginTop: 8,
   },
   sendButtonDisabled: { opacity: 0.65 },
-  sendButtonText: { color: '#171321', fontSize: 13, fontWeight: '800' },
+  sendButtonText: { fontFamily: Font.bodyExtraBold, color: '#171321', fontSize: 13 },
 });

@@ -1,25 +1,24 @@
 import GreenButton from '@/components/ui/GreenButton';
-import MatiLogo from '@/components/ui/MatiLogo';
+import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
 import { authService } from '@/data_api/services/authService';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
-import AppleWebButton from '@/components/AppleWebButton';
 import { authStorage } from '@/storage/authStorage';
 import { useQueryClient } from '@tanstack/react-query';
-import { Image } from 'expo-image';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import { LinearGradient } from 'expo-linear-gradient';
+import { BackButton, HeroIcon, OrbitBackground, OrbitField, SocialAuthButtons } from '@/components/orbit';
+import { Font } from '@/constants/fonts';
 import { router } from 'expo-router';
-import { ChevronLeft, Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { AnyActionArg, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, KeyboardProvider } from 'react-native-keyboard-controller';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Animated, Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput, TouchableOpacity,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -36,6 +35,7 @@ export default function LoginScreen() {
   const queryClient = useQueryClient();
   const { signInWithGoogle, loading: googleLoading, available: googleAvailable } = useGoogleAuth();
   const { signInWithApple } = useAppleAuth();
+  const insets = useSafeAreaInsets();
   
 
   useEffect(() => {
@@ -100,123 +100,67 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <LinearGradient
-        colors={['rgba(125,255,42,0.05)', Colors.darkBg]}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.4 }}
-      />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <ChevronLeft color={Colors.textSecondary} size={24} />
-        </TouchableOpacity>
-
-        {/* Illustration */}
-        <View style={styles.illustrationContainer}>
-          <View style={styles.lockIllustration}>
-            <View style={styles.lockOuter}>
-              <LinearGradient colors={[Colors.cardBg, Colors.secondaryBg]} style={styles.lockInner}>
-                <Lock color={Colors.primaryGreen} size={40} strokeWidth={1.5} />
-              </LinearGradient>
-            </View>
-            <View style={styles.lockGlow} />
-            {[0, 1, 2].map((i) => (
-              <View key={i} style={[styles.lockDot, { left: 20 + i * 24, top: 70 + (i % 2) * 10 }]} />
-            ))}
-          </View>
+      <OrbitBackground orbits={false}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.topBar}>
+          <BackButton onPress={() => router.back()} />
+          <JMLogo size={88} />
         </View>
 
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <MatiLogo size={55} showText={false} />
-          <Text style={styles.title}>Connexion</Text>
-          <Text style={styles.subtitle}>Accédez à votre espace MATI STORE</Text>
+          <HeroIcon size={96}>
+            <Lock color={Colors.pureWhite} size={40} strokeWidth={2} />
+          </HeroIcon>
+          <Text style={styles.title}>CONNEXION</Text>
+          <Text style={styles.subtitle}>Accédez à votre espace JM Services</Text>
 
           {error ? <View style={styles.errorBox}><Text style={styles.errorText}>{error}</Text></View> : null}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputWrapper}>
-              <Mail color={Colors.textSecondary} size={18} style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="votre@email.com"
-                placeholderTextColor={Colors.textSecondary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
+          <View style={styles.card}>
+            <OrbitField
+              label="Email"
+              icon={<Mail color={Colors.blueLight} size={20} />}
+              placeholder="votre@email.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+            <OrbitField
+              label="Mot de passe"
+              icon={<Lock color={Colors.blueLight} size={20} />}
+              placeholder="••••••••"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoComplete="password"
+              onSubmitEditing={handleLogin}
+              right={(
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={10} accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                  {showPassword
+                    ? <EyeOff color={Colors.chrome} size={22} />
+                    : <Eye color={Colors.chrome} size={22} />}
+                </TouchableOpacity>
+              )}
+            />
+
+            <GreenButton
+              title="Se connecter"
+              onPress={handleLogin}
+              size="lg"
+              style={styles.loginBtn}
+              loading={loading}
+            />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Mot de passe</Text>
-            <View style={styles.inputWrapper}>
-              <Lock color={Colors.textSecondary} size={18} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, styles.inputPadRight]}
-                placeholder="••••••••"
-                placeholderTextColor={Colors.textSecondary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
-                {showPassword
-                  ? <EyeOff color={Colors.textSecondary} size={18} />
-                  : <Eye color={Colors.textSecondary} size={18} />
-                }
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* <TouchableOpacity style={styles.forgotBtn}>
-            <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
-          </TouchableOpacity> */}
-
-          <GreenButton
-            title="Se connecter"
-            onPress={handleLogin}
-            size="lg"
-            style={styles.loginBtn}
-            loading={loading}
+          <SocialAuthButtons
+            mode="signin"
+            googleAvailable={googleAvailable}
+            googleLoading={googleLoading}
+            onGoogle={signInWithGoogle}
+            onApple={signInWithApple}
           />
-
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {googleAvailable && (
-          <TouchableOpacity
-            style={styles.googleBtn}
-            onPress={signInWithGoogle}
-            disabled={googleLoading}
-          >
-            <Image
-              source={require('@/assets/google.webp')}
-              style={styles.googleIcon}
-              resizeMode="contain"
-            />
-
-            <Text style={styles.googleText}>
-              {googleLoading ? 'Connexion...' : 'Continuer avec Google'}
-            </Text>
-          </TouchableOpacity>
-          )}
-
-          {Platform.OS === 'ios' && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              // White on the dark background: a black button would be invisible (App Store guideline 4).
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-              cornerRadius={10}
-              style={styles.appleBtn}
-              onPress={signInWithApple}
-            />
-          )}
-          {Platform.OS === 'web' && <AppleWebButton title="Continuer avec Apple" onPress={signInWithApple} />}
 
           <View style={styles.registerRow}>
             <Text style={styles.registerText}>Pas encore de compte ? </Text>
@@ -226,92 +170,37 @@ export default function LoginScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+      </OrbitBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.darkBg },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
-  backBtn: { padding: 20, paddingTop: 56, alignSelf: 'flex-start' },
-  illustrationContainer: { height: 130, alignItems: 'center', justifyContent: 'center' },
-  lockIllustration: { position: 'relative', width: 130, height: 130, alignItems: 'center', justifyContent: 'center' },
-  lockOuter: {
-    width: 90, height: 90, borderRadius: 45,
-    borderWidth: 1, borderColor: 'rgba(125,255,42,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  lockInner: {
-    width: 76, height: 76, borderRadius: 38,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  lockGlow: {
-    position: 'absolute', width: 110, height: 110, borderRadius: 55,
-    backgroundColor: 'rgba(125,255,42,0.06)',
-  },
-  lockDot: {
-    position: 'absolute', width: 6, height: 6, borderRadius: 3,
-    backgroundColor: Colors.primaryGreen, opacity: 0.5,
-  },
-  content: { paddingHorizontal: 24, paddingTop: 8 },
-  title: { color: Colors.white, fontSize: 28, fontWeight: '800', marginTop: 16, letterSpacing: 0.5 },
-  subtitle: { color: Colors.textSecondary, fontSize: 14, marginTop: 6, marginBottom: 28 },
+  scroll: { flexGrow: 1, paddingBottom: 40, paddingHorizontal: 24 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  content: { paddingTop: 4 },
+  title: { color: Colors.chrome, fontFamily: Font.title, fontSize: 40, textAlign: 'center', marginTop: 4 },
+  subtitle: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 16, textAlign: 'center', marginTop: 4, marginBottom: 22 },
   errorBox: {
-    backgroundColor: 'rgba(255,68,68,0.1)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(255,107,107,0.1)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,68,68,0.3)',
+    borderColor: 'rgba(255,107,107,0.35)',
     padding: 12,
     marginBottom: 16,
   },
-  errorText: { color: Colors.error, fontSize: 13 },
-  inputGroup: { marginBottom: 16 },
-  label: { color: Colors.textSecondary, fontSize: 13, fontWeight: '600', marginBottom: 8, letterSpacing: 0.3 },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
+  errorText: { color: Colors.error, fontFamily: Font.bodyMedium, fontSize: 14 },
+  card: {
+    backgroundColor: 'rgba(17,28,63,0.92)',
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 14,
+    borderColor: 'rgba(120,150,230,0.16)',
+    padding: 20,
+    paddingBottom: 22,
   },
-  inputIcon: { marginRight: 10 },
-  input: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 15,
-    paddingVertical: 14,
-  },
-  inputPadRight: { paddingRight: 40 },
-  eyeBtn: { position: 'absolute', right: 14 },
-  forgotBtn: { alignSelf: 'flex-end', marginBottom: 24 },
-  forgotText: { color: Colors.primaryGreen, fontSize: 13, fontWeight: '600' },
-  loginBtn: { width: '100%', marginBottom: 24 },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerText: { color: Colors.textSecondary, fontSize: 13, marginHorizontal: 16 },
-  googleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.cardBg,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 14,
-    gap: 12,
-    marginBottom: 28,
-  },
-  googleIcon: {
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  googleLetter: { color: '#EA4335', fontSize: 14, fontWeight: '800' },
-  googleText: { color: Colors.white, fontSize: 15, fontWeight: '600' },
-  appleBtn: { width: '100%', height: 50, marginTop: 12 },
-  registerRow: { flexDirection: 'row', justifyContent: 'center' },
-  registerText: { color: Colors.textSecondary, fontSize: 14 },
-  registerLink: { color: Colors.primaryGreen, fontSize: 14, fontWeight: '700' },
+  loginBtn: { width: '100%', marginTop: 6 },
+  registerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
+  registerText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15 },
+  registerLink: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15, textDecorationLine: 'underline' },
 });

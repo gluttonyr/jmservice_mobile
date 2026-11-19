@@ -5,7 +5,10 @@ import { HistoryLoader } from '@/components/historyLoader';
 import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
 import { ChatBackground } from '@/components/ChatBackground';
-import { Colors } from '@/constants/colors';
+import { ChatHeader } from '@/components/orbit';
+import { Colors, Gradients } from '@/constants/colors';
+import { Font } from '@/constants/fonts';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { Discussion } from '@/data_api/models/discussion.types';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
@@ -17,7 +20,7 @@ import {
   FORUM_HAS_NEW_QUERY_KEY,
 } from '@/hooks/useForumHasNew';
 import { forumStorage } from '@/storage/forumStorage';
-import { Lock, MessageSquare, Pin } from 'lucide-react-native';
+import { Lock, Pin, Users } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -139,22 +142,21 @@ useEffect(() => {
       <StatusBar barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerIconWrap}>
-            <MessageSquare color={Colors.primaryGreen} size={18} strokeWidth={2.5} />
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Forum</Text>
-            <Text style={styles.headerSub}>Discussion générale</Text>
-          </View>
-        </View>
-      </View>
+      <ChatHeader
+        title="Forum"
+        titleStyle="brand"
+        subtitle="Discussion générale"
+        avatar={(
+          <LinearGradient colors={Gradients.blue} style={styles.headerIcon} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <Users color={Colors.pureWhite} size={24} />
+          </LinearGradient>
+        )}
+      />
 
       {/* ── Pinned message ── */}
       {pinnedMessage && (
         <View style={styles.pinnedBar}>
-          <Pin color="#F59E0B" size={14} />
+          <Pin color="#FF9F1C" size={20} />
           <View style={{ flex: 1 }}>
             <Text style={styles.pinnedBarLabel}>Message épinglé</Text>
             <Text style={styles.pinnedBarText} numberOfLines={1}>{pinnedMessage.contenu}</Text>
@@ -222,6 +224,7 @@ renderSectionHeader={({ section }) => <DateSeparator label={section.title} />}
           sending={sending}
           audio={audio}
           allowStickers={false}
+          placeholder="Message au forum"
         />
       )}
 
@@ -234,45 +237,22 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.darkBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80 },
-  emptyText: { color: Colors.textSecondary, fontSize: 14 },
+  emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 56,
-    paddingBottom: 14,
-    paddingHorizontal: 20,
-    backgroundColor: Colors.secondaryBg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headerIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: 'rgba(125,255,42,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(125,255,42,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: Colors.white, fontSize: 18, fontWeight: '900' },
-  headerSub: { color: Colors.textSecondary, fontSize: 11, marginTop: 1 },
+  headerIcon: { width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 
   pinnedBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    backgroundColor: 'rgba(245,158,11,0.07)',
+    gap: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    backgroundColor: '#1C1A1F',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(245,158,11,0.15)',
+    borderBottomColor: 'rgba(255,159,28,0.3)',
   },
-  pinnedBarLabel: { color: '#F59E0B', fontSize: 10, fontWeight: '700' },
-  pinnedBarText: { color: Colors.textSecondary, fontSize: 12, marginTop: 1 },
+  pinnedBarLabel: { color: '#FF9F1C', fontFamily: Font.bodyBold, fontSize: 13 },
+  pinnedBarText: { color: Colors.chrome, fontFamily: Font.body, fontSize: 15, marginTop: 1 },
 
   lockedBanner: {
     flexDirection: 'row',
@@ -284,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
-  lockedText: { color: '#F87171', fontSize: 12, fontWeight: '600' },
+  lockedText: { color: '#FF8A8A', fontFamily: Font.bodySemiBold, fontSize: 13 },
 
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },
 
@@ -294,9 +274,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: Colors.secondaryBg,
+    backgroundColor: 'rgba(8,16,44,0.96)',
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  lockedInputText: { color: Colors.textSecondary, fontSize: 13, fontStyle: 'italic' },
+  lockedInputText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, fontStyle: 'italic' },
 });
