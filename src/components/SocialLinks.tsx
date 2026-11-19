@@ -2,10 +2,10 @@ import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 
-// JM Services accounts, not known yet (the copied values were Matistore's TikTok and WhatsApp).
-// An empty link hides its button; with both empty the component renders nothing (home and profile).
+// JM Services accounts. An empty link hides its button; with both empty the component renders nothing.
+// TikTok: link not known yet. WhatsApp: +228 92 37 87 22 (JM Services number, from the flyer).
 const TIKTOK_URL = '';
-const WHATSAPP_URL = '';
+const WHATSAPP_URL = 'https://wa.me/22892378722';
 const TIKTOK_MARK = 'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.01 1.69 4.1 1.06 1.08 2.51 1.66 4.05 1.76v3.97c-1.45-.05-2.87-.43-4.15-1.12-.56-.3-1.08-.65-1.58-1.04-.01 2.83.01 5.66-.02 8.48-.08 1.45-.56 2.86-1.39 4.05-1.34 1.97-3.62 3.25-6 3.34-1.46.08-2.92-.31-4.16-1.1-2.05-1.3-3.45-3.58-3.5-6.03-.05-1.49.36-2.98 1.19-4.22 1.19-1.82 3.22-3.08 5.4-3.27.73-.07 1.46-.03 2.18.11.02 1.46 0 2.92.01 4.38-.98-.32-2.07-.23-2.97.27-.65.36-1.19.92-1.51 1.6-.27.55-.37 1.18-.29 1.79.13 1.06.77 2.04 1.7 2.56.53.3 1.14.44 1.75.42.99-.02 1.95-.51 2.55-1.3.39-.5.62-1.11.67-1.74.03-.32.02-.64.02-.96V.02Z';
 
 type SocialLinksProps = {

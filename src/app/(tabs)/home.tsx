@@ -154,6 +154,8 @@ export default function HomeScreen() {
 
   const cardWidth = Math.max(0, pageWidth - SIDE * 2 - (slides.length > 1 ? 44 : 0));
   const step = cardWidth + CAROUSEL_GAP;
+  // Same 16:7 format as the crop of the admin banner editor (config/slide-editor), so the picture shows whole.
+  const slideHeight = Math.min(Math.round((cardWidth * 7) / 16), 260);
 
   useEffect(() => {
     if (slides.length < 2 || step <= 0) return;
@@ -187,19 +189,19 @@ export default function HomeScreen() {
         <TouchableOpacity
           activeOpacity={banner.lien ? 0.85 : 1}
           onPress={() => openAppLink(banner.lien)}
-          style={[styles.slide, { width: cardWidth }]}
+          style={[styles.slide, { width: cardWidth, height: slideHeight }]}
         >
           <BannerImage image={banner.image} />
+          {/* Shade at the bottom only, under the texts (as on Matistore): the picture stays visible. */}
           <LinearGradient
-            colors={['rgba(13,24,56,0.96)', 'rgba(13,24,56,0.6)', 'rgba(13,24,56,0.05)']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
+            colors={['transparent', 'rgba(6,11,30,0.55)', 'rgba(6,11,30,0.92)']}
+            locations={[0.25, 0.6, 1]}
             style={StyleSheet.absoluteFill}
           />
-          <View style={styles.slideContent}>
+          <View style={[styles.slideContent, styles.slideContentBanner]}>
             <View style={styles.slideBadge}><Text style={styles.slideBadgeText}>OFFRE SPÉCIALE</Text></View>
-            <Text style={styles.slideTitle} numberOfLines={2}>{banner.titre}</Text>
-            {!!banner.sousTitre && <Text style={styles.slideSubtitle} numberOfLines={2}>{banner.sousTitre}</Text>}
+            <Text style={styles.slideTitle} numberOfLines={1}>{banner.titre}</Text>
+            {!!banner.sousTitre && <Text style={styles.slideSubtitle} numberOfLines={1}>{banner.sousTitre}</Text>}
             {!!banner.texteCta && <Text style={styles.slideCta}>{banner.texteCta} ›</Text>}
           </View>
         </TouchableOpacity>
@@ -207,7 +209,7 @@ export default function HomeScreen() {
     }
     if (item.kind === 'promo') {
       return (
-        <TouchableOpacity activeOpacity={0.85} onPress={() => copyPromo(item.code)} style={[styles.slide, { width: cardWidth }]}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => copyPromo(item.code)} style={[styles.slide, { width: cardWidth, height: slideHeight }]}>
           <View style={styles.slideLogo} pointerEvents="none"><JMLogo size={120} /></View>
           <View style={styles.slideContent}>
             <View style={styles.slideBadge}><Text style={styles.slideBadgeText}>OFFRE SPÉCIALE</Text></View>
@@ -218,7 +220,7 @@ export default function HomeScreen() {
       );
     }
     return (
-      <View style={[styles.slide, { width: cardWidth }]}>
+      <View style={[styles.slide, { width: cardWidth, height: slideHeight }]}>
         <View style={styles.slideLogo} pointerEvents="none"><JMLogo size={120} /></View>
         <View style={styles.slideContent}>
           <View style={styles.slideBadge}><Text style={styles.slideBadgeText}>BIENVENUE</Text></View>
@@ -415,11 +417,12 @@ const styles = StyleSheet.create({
   historyLink: { color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 14 },
 
   slide: {
-    height: 150, borderRadius: 24, overflow: 'hidden', backgroundColor: Colors.navy,
+    borderRadius: 24, overflow: 'hidden', backgroundColor: Colors.navy,
     borderWidth: 1, borderColor: 'rgba(255,194,51,0.28)',
   },
   slideLogo: { position: 'absolute', right: -6, bottom: 6 },
   slideContent: { flex: 1, justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 14, maxWidth: '72%' },
+  slideContentBanner: { justifyContent: 'flex-end', maxWidth: '100%', paddingBottom: 12 },
   slideBadge: { alignSelf: 'flex-start', backgroundColor: Colors.gold, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 8 },
   slideBadgeText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 11, letterSpacing: 1.5 },
   slideTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 19, lineHeight: 22 },
