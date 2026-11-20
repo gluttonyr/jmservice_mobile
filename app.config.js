@@ -137,7 +137,7 @@ export default ({ config }) => ({
       ...config.extra,
       // JM_API_URL overrides it, e.g. JM_API_URL=http://localhost:3000 to work against the local backend.
       // TODO JM Services: replace the Matistore default once the JM Services domain is known.
-      apiUrl: process.env.JM_API_URL || "https://matistore.tech",
+      apiUrl: process.env.JM_API_URL || "https://admin.jmservices.io",
       // Client Web (type "Application Web" dans Google Cloud Console) : utilisé
       // uniquement sur la plateforme web (Platform.OS === 'web').
       // JM Services Google web client (project "JM Services" in Google Cloud). Also the audience the

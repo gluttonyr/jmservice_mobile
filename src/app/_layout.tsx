@@ -1,3 +1,4 @@
+import '@/components/legacyBrowserPolyfills';
 
 import '@/components/completeAuthPopup';
 import '@/components/hideScrollbars';
@@ -11,9 +12,9 @@ import { useWideWeb } from '@/hooks/useWideWeb';
 import { Colors } from '@/constants/colors';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, type ErrorBoundaryProps } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { FONT_ASSETS } from '@/constants/fonts';
 import { StatusBar } from 'expo-status-bar';
@@ -26,6 +27,27 @@ import Toast from 'react-native-toast-message';
 const webTheme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: Colors.darkBg, card: Colors.darkBg } };
 function WebTheme({ children }: { children: ReactNode }) {
   return Platform.OS === 'web' ? <ThemeProvider value={webTheme}>{children}</ThemeProvider> : <>{children}</>;
+}
+
+// Shown instead of an empty blue page when a screen crashes, with the error text so it can be reported.
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const restart = () => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.assign('/');
+    else retry();
+  };
+  return (
+    <View style={{ flex: 1, backgroundColor: Colors.darkBg, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <Text style={{ color: Colors.white, fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 10 }}>
+        Une erreur est survenue
+      </Text>
+      <Text style={{ color: Colors.textSecondary, fontSize: 13, textAlign: 'center', marginBottom: 22 }}>
+        {String(error?.message ?? error)}
+      </Text>
+      <Pressable onPress={restart} style={{ backgroundColor: Colors.primaryGreen, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 12 }}>
+        <Text style={{ color: Colors.darkBg, fontWeight: '700' }}>Recharger</Text>
+      </Pressable>
+    </View>
+  );
 }
 
 export default function RootLayout() {
