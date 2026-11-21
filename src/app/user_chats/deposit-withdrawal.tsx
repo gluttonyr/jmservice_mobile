@@ -86,6 +86,9 @@ const LAST_SEEN_TRANSACTIONS_KEY = 'transactions_last_seen_at';
 const LAST_USED_TRANSACTION_INPUTS_KEY = 'transaction_last_inputs:';
 // Opened by the « Ouvrir 1xBet » button on the website when the 1xBet app cannot be opened.
 const XBET_WEBSITE = 'https://1xbet.com';
+// Website opened on an Android phone: a tel: link opens the Phone app with the USSD code typed in.
+// (iPhone refuses * and # in tel: links, so there the client keeps copying the code.)
+const ANDROID_WEB = Platform.OS === 'web' && typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
 type SavedPhoneInput = {
   phoneNumber?: string;
@@ -706,6 +709,37 @@ export default function DepositWithdrawalScreen() {
         text2: depositError.message,
       });
     }
+  };
+
+  // Website on an Android phone: records the deposit, copies the code, then opens the Phone app with it.
+  const openDialerFromWeb = async () => {
+    if (!depositCaptureAvailable) {
+      Alert.alert('Dépôts temporairement indisponibles', 'Le service de vérification des paiements est temporairement indisponible. Réessayez un peu plus tard.');
+      return;
+    }
+    if (!currentOperator || creatingTransaction || depositPaymentAlreadyReceived) return;
+    if (!depositPhoneValid) {
+      Toast.show({ type: 'error', text1: 'Numéro invalide', text2: 'Vérifiez le format du numéro pour le pays sélectionné.' });
+      return;
+    }
+    const parsedAmount = parseAmount(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 300) {
+      Alert.alert('Montant invalide', 'Saisissez un montant valide pour continuer.');
+      return;
+    }
+    const code = buildUssdCode(currentOperator, depositNumero, rawAmount);
+    setProcessing(true);
+    try {
+      await createDepositTransaction();
+    } catch (error) {
+      setProcessing(false);
+      const depositError = getDepositCreationError(error);
+      Toast.show({ type: 'error', text1: depositError.title, text2: depositError.message });
+      return;
+    }
+    try { Clipboard.setString(code); } catch {}
+    // « # » must be written %23 in a tel: link, otherwise the phone cuts the code there.
+    window.location.href = `tel:${code.replace(/#/g, '%23')}`;
   };
 
   const stopTransactionPolling = useCallback(() => {
@@ -1368,7 +1402,9 @@ export default function DepositWithdrawalScreen() {
                   <Text style={st.codeLabel}>Code de paiement {currentOperator.nom}</Text>
                 )}
                 <Text style={st.codeInstructions}>
-                  {Platform.OS === 'web'
+                  {ANDROID_WEB
+                    ? 'Touchez « Effectuer le paiement » : le code s’affiche dans votre composeur, il ne reste qu’à appeler. Nous vérifierons la réception de votre paiement.'
+                    : Platform.OS === 'web'
                     ? 'Copiez ce code, puis composez-le sur votre téléphone avec le numéro indiqué. Nous vérifierons la réception de votre paiement.'
                     : Platform.OS === 'ios'
                     ? 'Touchez « Copier le code de paiement », ouvrez l’app Téléphone, collez le code puis appelez. Nous vérifierons la réception de votre paiement.'
@@ -1376,12 +1412,15 @@ export default function DepositWithdrawalScreen() {
                 </Text>
                 {/* A browser can't dial USSD: on web the client copies the code and dials it on the phone.
                     iOS keeps only the copy button. */}
-                {Platform.OS === 'android' && (
+                {(Platform.OS === 'android' || ANDROID_WEB) && (
                 <GreenButton
                   title={depositPaymentAlreadyReceived
                     ? 'Paiement déjà reçu'
                     : creatingTransaction ? 'Enregistrement...' : 'Effectuer le paiement →'}
-                  onPress={() => { if (!manualDialOpened) void beginDeposit(); }}
+                  onPress={() => {
+                    if (ANDROID_WEB) void openDialerFromWeb();
+                    else if (!manualDialOpened) void beginDeposit();
+                  }}
                   disabled={creatingTransaction || depositPaymentAlreadyReceived}
                   style={st.pageBtn}
                 />
