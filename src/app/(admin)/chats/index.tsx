@@ -306,7 +306,7 @@ export default function AdminChatsScreen() {
 
     router.push({
       pathname: '/admin_chats/[id]',
-      params: { id: discussion.trackingId, name: discussion.username || discussion.titre, category },
+      params: { id: discussion.trackingId, name: discussion.username || discussion.titre, category, image: discussion.userImage ?? '' },
     });
   };
 
@@ -446,7 +446,7 @@ export default function AdminChatsScreen() {
                   accessibilityLabel={`Afficher le profil de ${item.username ?? 'cet utilisateur'}`}
                 >
                   <UserAvatar
-                    image={item.userProfile?.image}
+                    image={item.userProfile?.image ?? item.userImage}
                     size={52}
                     fallback={
                       <View
@@ -540,7 +540,7 @@ export default function AdminChatsScreen() {
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <UserAvatar
-                image={profileDiscussion?.userProfile?.image}
+                image={profileDiscussion?.userProfile?.image ?? profileDiscussion?.userImage}
                 size={50}
                 fallback={
                   <View style={styles.profileAvatar}>

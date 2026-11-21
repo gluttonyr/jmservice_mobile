@@ -1,4 +1,5 @@
 import { OrbitBackground } from '@/components/orbit';
+import { UserAvatar } from '@/components/UserAvatar';
 import { Colors } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { Banniere } from '@/data_api/models/banniere.types';
@@ -251,6 +252,7 @@ export default function AdminDashboard() {
         id: discussion.trackingId,
         name: discussion.username || discussion.titre,
         category,
+        image: discussion.userImage ?? '',
       },
     });
   };
@@ -375,9 +377,16 @@ export default function AdminDashboard() {
               const name = discussion.username || discussion.titre;
               return (
                 <TouchableOpacity key={discussion.trackingId} style={styles.activityRow} onPress={() => openDiscussion(discussion)} activeOpacity={0.75}>
-                  <View style={[styles.activityAvatar, { backgroundColor: conf.bg }]}>
-                    <Text style={[styles.activityAvatarText, { color: conf.color }]}>{initials(name)}</Text>
-                  </View>
+                  <UserAvatar
+                    image={discussion.userImage}
+                    size={48}
+                    style={styles.activityPhoto}
+                    fallback={(
+                      <View style={[styles.activityAvatar, { backgroundColor: conf.bg }]}>
+                        <Text style={[styles.activityAvatarText, { color: conf.color }]}>{initials(name)}</Text>
+                      </View>
+                    )}
+                  />
                   <View style={styles.activityContent}>
                     <Text style={styles.activityTitle} numberOfLines={1}>{name} · {conf.label}</Text>
                     <Text style={styles.activityBody} numberOfLines={1}>{discussion.lastMessageContent ?? 'Nouveau message'}</Text>
@@ -535,6 +544,7 @@ const styles = StyleSheet.create({
   liveText: { color: '#FF8A8A', fontFamily: Font.bodyBold, fontSize: 14 },
   activityRow: { ...card, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 24, marginBottom: 8 },
   activityAvatar: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  activityPhoto: { borderRadius: 16 },
   activityAvatarText: { fontFamily: Font.bodyExtraBold, fontSize: 17 },
   activityContent: { flex: 1, minWidth: 0 },
   activityTitle: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15 },

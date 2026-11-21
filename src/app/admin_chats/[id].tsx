@@ -3,6 +3,7 @@ import { ChatMessage } from '@/components/ChatMessage';
 import { DateSeparator } from '@/components/dateSeparator';
 import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ChatBackground } from '@/components/ChatBackground';
+import { UserAvatar } from '@/components/UserAvatar';
 
 import { Font } from '@/constants/fonts';
 import { Colors } from '@/constants/colors';
@@ -83,10 +84,11 @@ const QUICK_REPLIES: Record<MessageCategory, string[]> = {
 };
 
 export default function AdminChatDetailScreen() {
-  const { id, name, category } = useLocalSearchParams<{
+  const { id, name, category, image } = useLocalSearchParams<{
     id: string;
     name: string;
     category: MessageCategory;
+    image?: string;
   }>();
 
   const cat = (category as MessageCategory) || 'support';
@@ -171,9 +173,16 @@ useEffect(() => {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Retour">
           <ChevronLeft color={Colors.chrome} size={28} />
         </TouchableOpacity>
-        <View style={[styles.catIconWrap, { backgroundColor: catConf.bg }]}>
-          {catConf.icon}
-        </View>
+        {/* The client's profile photo when there is one, otherwise the category icon. */}
+        <UserAvatar
+          image={image || null}
+          size={48}
+          fallback={(
+            <View style={[styles.catIconWrap, { backgroundColor: catConf.bg }]}>
+              {catConf.icon}
+            </View>
+          )}
+        />
         <View style={styles.headerInfo}>
           <Text style={styles.headerName} numberOfLines={1} ellipsizeMode="tail">
             {name}

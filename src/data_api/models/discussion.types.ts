@@ -12,6 +12,8 @@ export interface Discussion {
   lastMessageAt?: string | null;
   lastMessageContent?: string | null;
   username?: string | null;
+  /** Profile photo of the client of the discussion (sent with every list). */
+  userImage?: string | null;
   userProfile?: {
     trackingId: string;
     nom: string;
