@@ -9,7 +9,7 @@ const PHOTOS_PERMISSION =
 const SAVE_PHOTOS_PERMISSION =
   "MatiStore enregistre dans vos photos les images que vous choisissez de télécharger depuis un chat, par exemple un reçu envoyé par le support.";
 
-// iOS OAuth client (Google Cloud Console, type "iOS", bundle com.urbain-diligence.matistore-mobile).
+// iOS OAuth client (Google Cloud Console, type "iOS", bundle com.urbain-diligence.jm-services).
 // Until it is set, Google sign-in is hidden on iOS: the Google SDK crashes without it.
 const GOOGLE_IOS_CLIENT_ID = null;
 const googleIosUrlScheme = GOOGLE_IOS_CLIENT_ID
@@ -37,7 +37,7 @@ export default ({ config }) => ({
 
     android: {
       ...config.android,
-      package: "com.urbain_diligence.matistore_mobile",
+      package: "com.urbain_diligence.jm_services",
       versionCode: 3,
       permissions: [
         "android.permission.CALL_PHONE",
@@ -54,7 +54,7 @@ export default ({ config }) => ({
     ios: {
       ...config.ios,
       icon: "./assets/jm-icon.png",
-      bundleIdentifier: "com.urbain-diligence.matistore-mobile",
+      bundleIdentifier: "com.urbain-diligence.jm-services",
       googleServicesFile: "./GoogleService-Info.plist",
       appleTeamId: "98Y4TRJU7W",
       usesAppleSignIn: true,

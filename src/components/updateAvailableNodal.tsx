@@ -9,8 +9,8 @@ const IOS_APP_ID = '0000000000'; // ID numérique App Store (pas le bundle id)
 
 function openStore() {
   if (Platform.OS === 'android') {
-    Linking.openURL("market://details?id=com.urbain_diligence.matistore_mobile").catch(() =>
-      Linking.openURL("https://play.google.com/store/apps/details?id=com.urbain_diligence.matistore_mobile")
+    Linking.openURL("market://details?id=com.urbain_diligence.jm_services").catch(() =>
+      Linking.openURL("https://play.google.com/store/apps/details?id=com.urbain_diligence.jm_services")
     );
   } else {
     Linking.openURL(`itms-apps://itunes.apple.com/app/id${IOS_APP_ID}`).catch(() =>

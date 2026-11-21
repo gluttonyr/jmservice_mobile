@@ -8,7 +8,7 @@
 
 ## Dernières modifications
 
-- Dans `app.config.js`, le package Android est `com.urbain_diligence.matistore_mobile`, cohérent avec l’application native existante.
+- Dans `app.config.js`, le package Android est `com.urbain_diligence.jm_services`, cohérent avec l’application native existante.
 - La configuration Android déclare `android.permission.CALL_PHONE` et `android.permission.READ_PHONE_STATE`. La seconde est demandée lors du dépôt afin d’accéder aux SIM pour la sélection de la SIM vocale.
 - Dans `src/app/user_chats/deposit-withdrawal.tsx`, les boutons **Effectuer le paiement** et **Copier le code et attendre** ne sont plus désactivés simplement parce que le dépôt est en cours de vérification. Ils peuvent ainsi être retentés ou utilisés pour recopier le code.
 - Ces deux boutons restent désactivés pendant la création de la transaction et après confirmation du paiement. Un refus d’autorisation ou un échec USSD remet l’état de traitement à zéro afin de permettre une nouvelle tentative.
