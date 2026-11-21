@@ -1,5 +1,6 @@
 import apiClient from './axios';
 import { logError } from './logger';
+import { resolveFormFiles } from './formFiles';
 
 type RequestMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 type RequestConfig = Record<string, unknown>;
@@ -17,6 +18,8 @@ const api = {
       // (application/json) pour laisser le browser définir multipart/form-data
       // avec le bon boundary automatiquement.
       const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+      // Website: replaces the { uri, name, type } files by real files (see formFiles.ts).
+      if (isFormData) await resolveFormFiles(data);
       const resolvedConfig = isFormData
         ? { headers: { 'Content-Type': undefined }, ...config }
         : config;
