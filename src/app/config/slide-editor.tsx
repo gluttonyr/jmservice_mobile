@@ -221,7 +221,7 @@ export default function SlideEditorScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [3, 2], // same 3:2 frame as the home banner
+      aspect: [16, 9], // same 16:9 frame as the home banner
       quality: 0.85,
     });
     if (!result.canceled && result.assets[0]?.uri) {
@@ -229,6 +229,13 @@ export default function SlideEditorScreen() {
       const name = asset.fileName ?? asset.uri.split('/').pop() ?? `banner_${Date.now()}.jpg`;
       const type = asset.mimeType ?? 'image/jpeg';
       updateSlide(slideId, { pickedImage: { uri: asset.uri, name, type } });
+      // The website cannot crop: warn when the picture is far from the 16:9 banner (its edges will be cut).
+      if (asset.width && asset.height && Math.abs(asset.width / asset.height - 16 / 9) > 0.25) {
+        Alert.alert(
+          'Format de l’image',
+          `Cette image fait ${asset.width} × ${asset.height}. La bannière est horizontale (16:9) : le haut et le bas, ou les côtés, seront coupés. Pour qu’elle s’affiche en entier, utilisez une image de 1600 × 900.`,
+        );
+      }
     }
   };
 
@@ -445,6 +452,10 @@ export default function SlideEditorScreen() {
                         </TouchableOpacity>
                       </LinearGradient>
                     </View>
+
+                    <Text style={styles.imageHint}>
+                      Format conseillé : image horizontale 16:9 (1600 × 900). L’image remplit la bannière, rien n’est écrit dessus.
+                    </Text>
 
                     {/* Fields */}
                     <View style={styles.fieldsContainer}>
@@ -741,7 +752,7 @@ const styles = StyleSheet.create({
   },
   imageSection: {
     width: '100%',
-    aspectRatio: 3 / 2, // same frame as the home banner
+    aspectRatio: 16 / 9, // same frame as the home banner
     position: 'relative',
   },
   imagePreview: {
@@ -773,6 +784,7 @@ const styles = StyleSheet.create({
 
   // Fields
   fieldsContainer: { padding: 14, gap: 14 },
+  imageHint: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 17, paddingHorizontal: 14, paddingTop: 10 },
   fieldGroup: { gap: 6 },
   fieldLabelRow: {
     flexDirection: 'row',

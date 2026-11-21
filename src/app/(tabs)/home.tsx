@@ -40,11 +40,10 @@ import Svg, { Ellipse } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 
 const SIDE = 20;
-// Banners are 3:2 and fill the width of the screen, edge to edge (as on Matistore): one banner at a time,
-// each swipe or automatic slide stops exactly on the next one. The admin editor crops to the same 3:2.
-const BANNER_RATIO = 3 / 2;
-// Text the banner editor used to put in new banners: never shown to clients.
-const PLACEHOLDER_SUBTITLE = 'Sous-titre ici';
+// Banners: a 16:9 card, one per page of the full screen width, so each swipe or automatic slide stops
+// exactly centred on the next one. The picture fills the card (the admin's visuals carry their own text,
+// nothing is written over them). The admin editor crops to the same 16:9.
+const BANNER_RATIO = 16 / 9;
 
 // Event cards without a cover picture take these colours in turn (as in the design).
 const EVENT_GRADIENTS = [
@@ -65,26 +64,10 @@ function EventCover({ coverImage, index }: { coverImage?: string | null; index: 
   );
 }
 
-// A picture in the banner's 3:2 shape fills it. One in another shape is shown whole over a blurred copy
-// of itself: the picture is never cut.
 function BannerImage({ image }: { image?: string | null }) {
   const uri = useFileUrl('banners', image);
-  const [ratio, setRatio] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!uri) return;
-    Image.getSize(uri, (w, h) => { if (h) setRatio(w / h); }, () => {});
-  }, [uri]);
-
   if (!uri) return null;
-  const fits = ratio === null || Math.abs(ratio - BANNER_RATIO) < 0.05;
-  return (
-    <>
-      {!fits && <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={20} />}
-      {!fits && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(6,11,30,0.35)' }]} />}
-      <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode={fits ? 'cover' : 'contain'} />
-    </>
-  );
+  return <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />;
 }
 
 /** Initials on the blue tile when the user has no profile photo. */
@@ -173,8 +156,10 @@ export default function HomeScreen() {
   if (slides.length === 0 && bannersLoaded) slides.push({ kind: 'welcome' });
 
   const slideWidth = pageWidth;
-  const slideHeight = Math.round(slideWidth / BANNER_RATIO);
   const step = slideWidth;
+  const cardWidth = Math.max(0, slideWidth - SIDE * 2);
+  const cardHeight = Math.min(Math.round(cardWidth / BANNER_RATIO), 240);
+  const card = { width: cardWidth, height: cardHeight };
 
   useEffect(() => {
     if (slides.length < 2 || step <= 0) return;
@@ -208,29 +193,24 @@ export default function HomeScreen() {
         <TouchableOpacity
           activeOpacity={banner.lien ? 0.85 : 1}
           onPress={() => openAppLink(banner.lien)}
-          style={[styles.slide, { width: slideWidth, height: slideHeight }]}
+          accessibilityLabel={banner.titre}
+          style={[styles.slide, card]}
         >
-          <BannerImage image={banner.image} />
-          {/* Shade at the bottom only, under the texts: the picture stays visible above. */}
-          <LinearGradient
-            colors={['transparent', 'rgba(6,11,30,0.6)', 'rgba(6,11,30,0.95)']}
-            locations={[0.45, 0.72, 1]}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-          <View style={[styles.slideContent, styles.slideContentBanner]}>
-            <Text style={styles.slideTitle} numberOfLines={1}>{banner.titre}</Text>
-            {!!banner.sousTitre && banner.sousTitre.trim() !== PLACEHOLDER_SUBTITLE && (
-              <Text style={styles.slideSubtitle} numberOfLines={1}>{banner.sousTitre}</Text>
-            )}
-            {!!banner.texteCta && !!banner.lien && <Text style={styles.slideCta}>{banner.texteCta} ›</Text>}
-          </View>
+          {banner.image ? (
+            <BannerImage image={banner.image} />
+          ) : (
+            // No picture: the title on the brand card.
+            <View style={styles.slideContent}>
+              <Text style={styles.slideTitle} numberOfLines={2}>{banner.titre}</Text>
+              {!!banner.sousTitre && <Text style={styles.slideSubtitle} numberOfLines={1}>{banner.sousTitre}</Text>}
+            </View>
+          )}
         </TouchableOpacity>
       );
     }
     if (item.kind === 'promo') {
       return (
-        <TouchableOpacity activeOpacity={0.85} onPress={() => copyPromo(item.code)} style={[styles.slide, { width: slideWidth, height: slideHeight }]}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => copyPromo(item.code)} style={[styles.slide, card]}>
           <View style={styles.slideLogo} pointerEvents="none"><JMLogo size={120} /></View>
           <View style={styles.slideContent}>
             <View style={styles.slideBadge}><Text style={styles.slideBadgeText}>OFFRE SPÉCIALE</Text></View>
@@ -241,7 +221,7 @@ export default function HomeScreen() {
       );
     }
     return (
-      <View style={[styles.slide, { width: slideWidth, height: slideHeight }]}>
+      <View style={[styles.slide, card]}>
         <View style={styles.slideLogo} pointerEvents="none"><JMLogo size={120} /></View>
         <View style={styles.slideContent}>
           <View style={styles.slideBadge}><Text style={styles.slideBadgeText}>BIENVENUE</Text></View>
@@ -290,7 +270,7 @@ export default function HomeScreen() {
               data={slides}
               horizontal
               keyExtractor={(item, i) => (item.kind === 'banner' ? item.banner.trackingId : `${item.kind}-${i}`)}
-              renderItem={renderSlide}
+              renderItem={(info) => <View style={{ width: slideWidth, paddingHorizontal: SIDE }}>{renderSlide(info)}</View>}
               showsHorizontalScrollIndicator={false}
               pagingEnabled
               getItemLayout={(_, i) => ({ length: slideWidth, offset: slideWidth * i, index: i })}
@@ -440,11 +420,12 @@ const styles = StyleSheet.create({
   historyTitle: { flex: 1, color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 15 },
   historyLink: { color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 14 },
 
-  // Edge to edge, no rounded corners: the banner is the top of the page.
-  slide: { overflow: 'hidden', backgroundColor: Colors.navy },
+  slide: {
+    borderRadius: 22, overflow: 'hidden', backgroundColor: Colors.navy,
+    borderWidth: 1, borderColor: 'rgba(255,194,51,0.28)',
+  },
   slideLogo: { position: 'absolute', right: -6, bottom: 6 },
   slideContent: { flex: 1, justifyContent: 'center', paddingHorizontal: SIDE, paddingVertical: 14, maxWidth: '72%' },
-  slideContentBanner: { justifyContent: 'flex-end', maxWidth: '100%', paddingHorizontal: SIDE, paddingBottom: 16 },
   slideBadge: { alignSelf: 'flex-start', backgroundColor: Colors.gold, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 8 },
   slideBadgeText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 11, letterSpacing: 1.5 },
   slideTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 19, lineHeight: 22 },
