@@ -84,6 +84,8 @@ type DepositStep = 0 | 1 | 2 | 3 | 4 | 5;
 type WithdrawalStep = 0 | 1 | 2 | 3;
 const LAST_SEEN_TRANSACTIONS_KEY = 'transactions_last_seen_at';
 const LAST_USED_TRANSACTION_INPUTS_KEY = 'transaction_last_inputs:';
+// Opened by the « Ouvrir 1xBet » button on the website when the 1xBet app cannot be opened.
+const XBET_WEBSITE = 'https://1xbet.com';
 
 type SavedPhoneInput = {
   phoneNumber?: string;
@@ -953,9 +955,15 @@ export default function DepositWithdrawalScreen() {
   // ── Ouvrir le composeur USSD ─────────────────────────────────────────────
   // ── Ouvrir 1xBet ────────────────────────────────────────────────────────
   const open1xBet = async () => {
-    // A browser cannot open the 1xBet app: open the 1xBet website in a new tab instead.
     if (Platform.OS === 'web') {
-      window.open('https://1xbet.com', '_blank');
+      // Android browser: an "intent" link opens the 1xBet app (same xbet:// link as the native app);
+      // without the app, the browser goes to the 1xBet website instead. Elsewhere: the website in a new tab.
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        window.location.href = `intent://open#Intent;scheme=xbet;S.browser_fallback_url=${encodeURIComponent(XBET_WEBSITE)};end`;
+      } else {
+        window.open(XBET_WEBSITE, '_blank');
+      }
       return;
     }
     const appSchemes = ['xbet://open', 'xbet://openapp'];
