@@ -9,7 +9,10 @@ import { Colors } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import GreenButton from '@/components/ui/GreenButton';
 import JMLogo from '@/components/ui/JMLogo';
-import { BackButton, OrbitBackground, OrbitField, SocialAuthButtons, StarStepper } from '@/components/orbit';
+import {
+  BackButton, ContactMethodTabs, DEFAULT_PHONE, OrbitBackground, OrbitField, PhoneField, SocialAuthButtons, StarStepper,
+  fullPhone, type ContactMethod, type PhoneValue,
+} from '@/components/orbit';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -18,23 +21,34 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function RegisterStep1() {
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
+  // Some clients have no email address: they sign up with their phone number (the other one can be added in the profile).
+  const [method, setMethod] = useState<ContactMethod>('phone');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState<PhoneValue>(DEFAULT_PHONE);
   const [error, setError] = useState('');
   const { signInWithGoogle, loading: googleLoading, available: googleAvailable } = useGoogleAuth();
   const { signInWithApple } = useAppleAuth();
   const insets = useSafeAreaInsets();
 
   const handleNext = () => {
-    if ((!prenom && !nom) || !email) {
+    const telephone = fullPhone(phone);
+    if ((!prenom && !nom) || (method === 'email' ? !email.trim() : !telephone)) {
       setError('Veuillez remplir tous les champs.');
       return;
     }
-    if (!email.includes('@')) {
+    if (method === 'email' && !email.includes('@')) {
       setError('Adresse email invalide.');
       return;
     }
+    if (method === 'phone' && phone.number.replace(/\D/g, '').length < 8) {
+      setError('Numéro de téléphone invalide.');
+      return;
+    }
     setError('');
-    router.push({ pathname: '/(auth)/register-step2', params: { prenom, nom, email } });
+    router.push({
+      pathname: '/(auth)/register-step2',
+      params: method === 'email' ? { prenom, nom, email: email.trim() } : { prenom, nom, telephone },
+    });
   };
 
   return (
@@ -76,16 +90,22 @@ export default function RegisterStep1() {
               autoCapitalize="words"
               autoComplete="family-name"
             />
-            <OrbitField
-              label="Email"
-              icon={<Mail color={Colors.blueLight} size={20} />}
-              placeholder="votre@email.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <ContactMethodTabs value={method} onChange={(m) => { setMethod(m); setError(''); }} />
+            {method === 'phone' ? (
+              <PhoneField label="Numéro de téléphone" value={phone} onChange={setPhone} onSubmitEditing={handleNext} />
+            ) : (
+              <OrbitField
+                label="Email"
+                icon={<Mail color={Colors.blueLight} size={20} />}
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                onSubmitEditing={handleNext}
+              />
+            )}
 
             <GreenButton
               title="Continuer"

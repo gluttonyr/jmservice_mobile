@@ -102,11 +102,12 @@ interface EditableFieldProps {
   editable: boolean;
   keyboardType?: 'default' | 'email-address' | 'phone-pad';
   autoCapitalize?: 'none' | 'words' | 'sentences' | 'characters';
+  placeholder?: string;
 }
 
 function EditableField({
   label, value, onChange, icon, editable,
-  keyboardType = 'default', autoCapitalize = 'words',
+  keyboardType = 'default', autoCapitalize = 'words', placeholder,
 }: EditableFieldProps) {
   return (
     <View style={styles.fieldGroup}>
@@ -118,6 +119,7 @@ function EditableField({
           value={value}
           onChangeText={onChange}
           editable={editable}
+          placeholder={placeholder}
           placeholderTextColor={Colors.textSecondary}
           keyboardType={keyboardType}
           accessibilityLabel={label}
@@ -182,8 +184,8 @@ export default function ProfilePage() {
   const hasChanges =
     prenom !== user?.prenom ||
     nom !== user?.nom ||
-    email !== user?.email ||
-    telephone !== user?.telephone ||
+    email !== (user?.email ?? '') ||
+    telephone !== (user?.telephone ?? '') ||
     pickedImage !== null;
 
   const handleCancel = () => {
@@ -254,18 +256,31 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user?.trackingId) return;
-    if ((!prenom && !nom) || !email) {
-      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Veuillez remplir tous les champs.' });
+    // The account signs in with its email or its phone number: at least one must stay.
+    const cleanEmail = email.trim();
+    const phoneDigits = telephone.replace(/\D/g, '');
+    if (!prenom && !nom) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Indiquez au moins votre prénom ou votre nom.' });
       return;
     }
-    if (!email.includes('@')) {
+    if (!cleanEmail && !phoneDigits) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Gardez au moins une adresse e-mail ou un numéro de téléphone.' });
+      return;
+    }
+    if (cleanEmail && !cleanEmail.includes('@')) {
       Toast.show({ type: 'error', text1: 'Erreur', text2: 'Adresse email invalide.' });
       return;
     }
+    if (phoneDigits && phoneDigits.length < 8) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Numéro de téléphone invalide.' });
+      return;
+    }
+    // A number typed without its country code is a Togo number.
+    const cleanPhone = !phoneDigits ? '' : telephone.trim().startsWith('+') ? `+${phoneDigits}` : phoneDigits.length === 8 ? `+228${phoneDigits}` : `+${phoneDigits}`;
 
     try {
       setLoading(true);
-      const profileData = { prenom, nom, email, telephone };
+      const profileData = { prenom, nom, email: cleanEmail, telephone: cleanPhone };
       let updateData: FormData | typeof profileData = profileData;
       if (pickedImage) {
         const formData = new FormData();
@@ -283,9 +298,13 @@ export default function ProfilePage() {
       await authStorage.setUser(updatedUser);
       setPickedImage(null);
       Toast.show({ type: 'success', text1: 'Profil mis à jour', text2: 'Vos informations ont été enregistrées.' });
+      setEmail(updatedUser?.email ?? '');
+      setTelephone(updatedUser?.telephone ?? '');
       setIsEditing(false);
-    } catch {
-      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible de mettre à jour le profil.' });
+    } catch (err: any) {
+      // e.g. « Ce numéro de téléphone est déjà utilisé par un autre compte ».
+      const message = err?.response?.data?.message;
+      Toast.show({ type: 'error', text1: 'Erreur', text2: typeof message === 'string' ? message : 'Impossible de mettre à jour le profil.' });
     } finally {
       setLoading(false);
     }
@@ -352,7 +371,7 @@ export default function ProfilePage() {
 
           <View style={styles.heroInfo}>
             <Text style={styles.heroName}>{prenom} {nom}</Text>
-            <Text style={styles.heroUsername}>@{user.username ?? user.email.split('@')[0]}</Text>
+            <Text style={styles.heroUsername}>@{user.username ?? user.email?.split('@')[0] ?? ''}</Text>
             <RoleBadge role={user.role} />
           </View>
         </View>
@@ -398,6 +417,7 @@ export default function ProfilePage() {
             editable={isEditing}
             keyboardType="email-address"
             autoCapitalize="none"
+            placeholder={isEditing ? 'votre@email.com' : 'Non renseigné'}
           />
           <EditableField
             label="Téléphone"
@@ -407,6 +427,7 @@ export default function ProfilePage() {
             editable={isEditing}
             keyboardType="phone-pad"
             autoCapitalize="none"
+            placeholder={isEditing ? '+228 90 00 00 00' : 'Non renseigné'}
           />
         </View>
 

@@ -1,4 +1,6 @@
-import { BackButton, OrbitBackground, OrbitField, OrbitStar, StarStepper, orbitFieldStyles } from '@/components/orbit';
+import {
+  BackButton, DEFAULT_PHONE, OrbitBackground, OrbitField, OrbitStar, PhoneField, StarStepper, fullPhone, type PhoneValue,
+} from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
 import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
@@ -6,7 +8,7 @@ import { Font } from '@/constants/fonts';
 import { authService } from '@/data_api/services/authService';
 import Constants from 'expo-constants';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronDown, Eye, EyeOff, Lock, User } from 'lucide-react-native';
+import { Eye, EyeOff, Lock, User } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   Linking,
@@ -14,14 +16,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput, TouchableOpacity,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import CountryPicker, {
-  Country,
-  CountryCode,
-  DARK_THEME,
-} from '@/components/CountryPicker';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -34,11 +31,11 @@ export default function RegisterStep2() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
 
-  // Togo par défaut (pays de l'utilisateur)
-  const [countryCode, setCountryCode] = useState<CountryCode>('TG');
-  const [callingCode, setCallingCode] = useState('228');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [showPicker, setShowPicker] = useState(false);
+  // Sign-up with a phone number (step 1) or with an email: the phone is then optional here.
+  // Google / Apple accounts arriving here also have an email.
+  const email = ((params.email as string) ?? '').trim();
+  const phoneFromStep1 = ((params.telephone as string) ?? '').trim();
+  const [phone, setPhone] = useState<PhoneValue>(DEFAULT_PHONE);
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -53,18 +50,16 @@ export default function RegisterStep2() {
   const prenom = nameFromProvider ? ((params.prenom as string) ?? '').trim() : typedPrenom.trim();
   const nom = ((params.nom as string) ?? '').trim();
 
-  const fullTelephone = `+${callingCode}${phoneNumber}`;
-
-  const onSelectCountry = (country: Country) => {
-    setCountryCode(country.cca2);
-    setCallingCode(country.callingCode[0]);
-    setShowPicker(false);
-  };
+  const telephone = phoneFromStep1 || fullPhone(phone);
 
   const handleCreate = async () => {
     try {
-      if (!phoneNumber || !password || !confirm || (!prenom && !nom)) {
+      if (!password || !confirm || (!prenom && !nom) || (!email && !telephone)) {
         setError('Veuillez remplir tous les champs.');
+        return;
+      }
+      if (!phoneFromStep1 && phone.number.trim() && phone.number.replace(/\D/g, '').length < 8) {
+        setError('Numéro de téléphone invalide.');
         return;
       }
       if (password.length < 8) {
@@ -81,8 +76,8 @@ export default function RegisterStep2() {
         prenom,
         nom,
         username: [nom, prenom].filter(Boolean).join(' '),
-        email: params.email as string,
-        telephone: fullTelephone,
+        ...(email ? { email } : {}),
+        ...(telephone ? { telephone } : {}),
         password,
         ...(params.googleId ? { googleId: params.googleId as string, provider: 'google' } : {}),
         ...(params.appleId ? {
@@ -99,7 +94,8 @@ export default function RegisterStep2() {
       });
 
       setLoading(false);
-      router.replace('/(auth)/login');
+      // The sign-in screen opens on the identifier just used.
+      router.replace({ pathname: '/(auth)/login', params: { method: email && !phoneFromStep1 ? 'email' : 'phone' } });
 
     } catch (err: any) {
       const message =
@@ -145,7 +141,7 @@ export default function RegisterStep2() {
           {nameFromProvider ? (
             <View style={styles.summaryCard}>
               <Text style={styles.summaryText}>
-                {[prenom, nom].filter(Boolean).join(' ')} · {params.email}
+                {[prenom, nom].filter(Boolean).join(' ')} · {email || phoneFromStep1}
               </Text>
             </View>
           ) : null}
@@ -157,7 +153,7 @@ export default function RegisterStep2() {
           ) : null}
 
           <View style={styles.card}>
-            {!nameFromProvider && params.email ? (
+            {!nameFromProvider && email ? (
               <OrbitField
                 label="Prénom"
                 icon={<User color={Colors.blueLight} size={20} />}
@@ -168,43 +164,10 @@ export default function RegisterStep2() {
               />
             ) : null}
 
-            {/* Téléphone avec sélecteur de pays */}
-            <OrbitField label="Téléphone">
-              <TouchableOpacity
-                style={styles.countrySelector}
-                onPress={() => setShowPicker(true)}
-                activeOpacity={0.7}
-                accessibilityLabel="Choisir le pays"
-              >
-                <CountryPicker
-                  countryCode={countryCode}
-                  withFlag
-                  withEmoji
-                  withFilter
-                  withCallingCode
-                  withAlphaFilter
-                  theme={DARK_THEME}
-                  onSelect={onSelectCountry}
-                  visible={showPicker}
-                  onClose={() => setShowPicker(false)}
-                  // Le composant rend le drapeau inline, on le cache visuellement
-                  // car on le déclenche via notre bouton
-                  containerButtonStyle={styles.pickerHidden}
-                />
-                <Text style={styles.callingCodeText}>+{callingCode}</Text>
-                <ChevronDown color={Colors.textSecondary} size={16} style={{ marginLeft: 2 }} />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-              <TextInput
-                style={orbitFieldStyles.input}
-                placeholder="XX XX XX XX"
-                placeholderTextColor={Colors.textSecondary}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-              />
-            </OrbitField>
+            {/* Phone: not asked again when it was the sign-up identifier; optional when signing up by email. */}
+            {!phoneFromStep1 ? (
+              <PhoneField label={email ? 'Téléphone (facultatif)' : 'Téléphone'} value={phone} onChange={setPhone} />
+            ) : null}
 
             <OrbitField
               label="Mot de passe"
@@ -287,13 +250,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 22,
   },
-
-  // Sélecteur de pays
-  countrySelector: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingRight: 4 },
-  // On cache le rendu natif du bouton CountryPicker car on gère l'ouverture nous-mêmes
-  pickerHidden: { opacity: 0, position: 'absolute', width: 0, height: 0 },
-  callingCodeText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16, marginLeft: 2 },
-  divider: { width: 1, height: 24, backgroundColor: Colors.border, marginHorizontal: 12 },
 
   termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20, marginTop: 2 },
   termsText: { flex: 1, color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },

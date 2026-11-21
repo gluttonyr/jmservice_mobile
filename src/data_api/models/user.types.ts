@@ -16,8 +16,9 @@ export interface User {
   nom: string;
   prenom: string;
   username: string;
-  email: string;
-  telephone: string;
+  // A client may sign up with a phone number only, or with an email only.
+  email: string | null;
+  telephone: string | null;
   image?: string | null;
   role: UserRole;
   active: boolean;
@@ -28,8 +29,10 @@ export interface User {
   updatedAt: string;
 }
 
+// Sign-in with an email address or a phone number (international form, e.g. +22890000000).
 export interface LoginRequest {
-  email: string;
+  email?: string;
+  telephone?: string;
   password: string;
 }
 
@@ -49,7 +52,8 @@ export interface CreateUserDto {
 
   username?: string;
 
-  email: string;
+  // Email or telephone: at least one.
+  email?: string;
 
   // Optional for Sign in with Apple: Apple already authenticates the account.
   password?: string;

@@ -6,9 +6,12 @@ import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
 import { authStorage } from '@/storage/authStorage';
 import { useQueryClient } from '@tanstack/react-query';
-import { BackButton, HeroIcon, OrbitBackground, OrbitField, SocialAuthButtons } from '@/components/orbit';
+import {
+  BackButton, ContactMethodTabs, DEFAULT_PHONE, HeroIcon, OrbitBackground, OrbitField, PhoneField, SocialAuthButtons,
+  fullPhone, type ContactMethod, type PhoneValue,
+} from '@/components/orbit';
 import { Font } from '@/constants/fonts';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -24,7 +27,11 @@ import {
 import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
+  // Sign-in with the phone number or the email address of the account (phone first: many clients have no email).
+  const { method: initialMethod } = useLocalSearchParams<{ method?: string }>();
+  const [method, setMethod] = useState<ContactMethod>(initialMethod === 'email' ? 'email' : 'phone');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState<PhoneValue>(DEFAULT_PHONE);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,8 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (loginInProgressRef.current) return;
-    if (!email || !password) {
+    const telephone = fullPhone(phone);
+    if ((method === 'email' ? !email.trim() : !telephone) || !password) {
       setError('Veuillez remplir tous les champs.');
       return;
     }
@@ -56,7 +64,7 @@ export default function LoginScreen() {
     setLoading(true);
     let navigationStarted = false;
     try {
-      const res = await authService.login({ email, password });
+      const res = await authService.login(method === 'email' ? { email: email.trim(), password } : { telephone, password });
       await authStorage.setToken(res.data.access_token);
       await authStorage.setUser(res.data.user);
 
@@ -78,7 +86,7 @@ export default function LoginScreen() {
       const message =
          err?.response?.data?.message ||
          err?.message ||
-         'Une erreur est survenue lors de la création du compte.';
+         'Une erreur est survenue lors de la connexion.';
      
        setError(message);
      
@@ -117,16 +125,21 @@ export default function LoginScreen() {
           {error ? <View style={styles.errorBox}><Text style={styles.errorText}>{error}</Text></View> : null}
 
           <View style={styles.card}>
-            <OrbitField
-              label="Email"
-              icon={<Mail color={Colors.blueLight} size={20} />}
-              placeholder="votre@email.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <ContactMethodTabs value={method} onChange={(m) => { setMethod(m); setError(''); }} />
+            {method === 'phone' ? (
+              <PhoneField label="Numéro de téléphone" value={phone} onChange={setPhone} />
+            ) : (
+              <OrbitField
+                label="Email"
+                icon={<Mail color={Colors.blueLight} size={20} />}
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            )}
             <OrbitField
               label="Mot de passe"
               icon={<Lock color={Colors.blueLight} size={20} />}

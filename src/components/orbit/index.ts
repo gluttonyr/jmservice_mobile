@@ -10,3 +10,5 @@ export { FlowHeader } from './FlowHeader';
 export { ChoiceCard } from './ChoiceCard';
 export { PaymentOrbit } from './PaymentOrbit';
 export { ChatHeader } from './ChatHeader';
+export { PhoneField, ContactMethodTabs, DEFAULT_PHONE, fullPhone } from './PhoneField';
+export type { PhoneValue, ContactMethod } from './PhoneField';

@@ -117,8 +117,8 @@ export default function ProfilePage() {
   const hasChanges =
     prenom !== user?.prenom ||
     nom !== user?.nom ||
-    email !== user?.email ||
-    telephone !== user?.telephone;
+    email !== (user?.email ?? '') ||
+    telephone !== (user?.telephone ?? '');
 
   const handleCancel = () => {
     setPrenom(user?.prenom ?? '');
@@ -213,7 +213,7 @@ export default function ProfilePage() {
 
           <View style={styles.heroInfo}>
             <Text style={styles.heroName}>{prenom} {nom}</Text>
-            <Text style={styles.heroUsername}>@{user.username ?? user.email.split('@')[0]}</Text>
+            <Text style={styles.heroUsername}>@{user.username ?? user.email?.split('@')[0] ?? ''}</Text>
             <RoleBadge role={user.role} />
           </View>
         </View>
