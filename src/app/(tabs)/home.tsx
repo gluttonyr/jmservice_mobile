@@ -39,8 +39,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Ellipse } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 
-const CAROUSEL_GAP = 14;
 const SIDE = 20;
+// Gap = side margin: only one banner is on screen, the next one stays hidden until it slides in.
+const CAROUSEL_GAP = SIDE;
 
 // Event cards without a cover picture take these colours in turn (as in the design).
 const EVENT_GRADIENTS = [
@@ -152,7 +153,8 @@ export default function HomeScreen() {
   if (Platform.OS !== 'ios' && promoCode) slides.push({ kind: 'promo', code: promoCode });
   if (slides.length === 0 && bannersLoaded) slides.push({ kind: 'welcome' });
 
-  const cardWidth = Math.max(0, pageWidth - SIDE * 2 - (slides.length > 1 ? 44 : 0));
+  // One banner fills the width of the screen, then the next one slides in (as on Matistore).
+  const cardWidth = Math.max(0, pageWidth - SIDE * 2);
   const step = cardWidth + CAROUSEL_GAP;
   // Same 16:7 format as the crop of the admin banner editor (config/slide-editor), so the picture shows whole.
   const slideHeight = Math.min(Math.round((cardWidth * 7) / 16), 260);
@@ -261,6 +263,33 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Banners carousel: first thing of the page, above the deposit / withdrawal card. */}
+        {slides.length > 0 && cardWidth > 0 && (
+          <View style={styles.carousel}>
+            <FlatList
+              ref={sliderRef}
+              data={slides}
+              horizontal
+              keyExtractor={(item, i) => (item.kind === 'banner' ? item.banner.trackingId : `${item.kind}-${i}`)}
+              renderItem={renderSlide}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={step}
+              decelerationRate="fast"
+              contentContainerStyle={{ paddingHorizontal: SIDE, gap: CAROUSEL_GAP }}
+              scrollEventThrottle={16}
+              onScroll={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / step);
+                if (index !== activeSlide && index >= 0 && index < slides.length) setActiveSlide(index);
+              }}
+            />
+            {slides.length > 1 && (
+              <View style={styles.pagination}>
+                {slides.map((_, i) => <View key={i} style={[styles.dot, i === activeSlide && styles.dotActive]} />)}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Main card: deposit / withdrawal */}
         <Animated.View style={[styles.heroWrap, { opacity: fadeAnim }]}>
           <LinearGradient colors={['#2F6BF0', '#1A47C2', '#163B9E']} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
@@ -314,29 +343,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </LinearGradient>
         </Animated.View>
-
-        {/* Banners carousel */}
-        {slides.length > 0 && cardWidth > 0 && (
-          <View>
-            <FlatList
-              ref={sliderRef}
-              data={slides}
-              horizontal
-              keyExtractor={(item, i) => (item.kind === 'banner' ? item.banner.trackingId : `${item.kind}-${i}`)}
-              renderItem={renderSlide}
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={step}
-              decelerationRate="fast"
-              contentContainerStyle={{ paddingHorizontal: SIDE, gap: CAROUSEL_GAP }}
-              onMomentumScrollEnd={(e) => setActiveSlide(Math.round(e.nativeEvent.contentOffset.x / step))}
-            />
-            {slides.length > 1 && (
-              <View style={styles.pagination}>
-                {slides.map((_, i) => <View key={i} style={[styles.dot, i === activeSlide && styles.dotActive]} />)}
-              </View>
-            )}
-          </View>
-        )}
 
         {/* Upcoming events */}
         <View style={styles.section}>
@@ -428,6 +434,7 @@ const styles = StyleSheet.create({
   slideTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 19, lineHeight: 22 },
   slideSubtitle: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, marginTop: 4 },
   slideCta: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14, marginTop: 8 },
+  carousel: { marginBottom: 22 },
   pagination: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 12 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(141,154,192,0.35)' },
   dotActive: { width: 22, backgroundColor: Colors.gold },
