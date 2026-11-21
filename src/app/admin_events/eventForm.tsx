@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, Image,
-  ActivityIndicator,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
@@ -88,7 +88,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
   const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      alert('Permission refusée. Autorisez l\'accès à la galerie dans les paramètres.');
+      Alert.alert('Permission refusée', 'Autorisez l\'accès à la galerie dans les paramètres.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -110,7 +110,7 @@ export default function EventForm({ initialValues, onSubmit, onBack, mode }: Pro
   const pickFromCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      alert('Permission refusée. Autorisez l\'accès à la caméra dans les paramètres.');
+      Alert.alert('Permission refusée', 'Autorisez l\'accès à la caméra dans les paramètres.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
