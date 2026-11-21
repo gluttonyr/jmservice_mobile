@@ -11,6 +11,9 @@ export type TransactionStatus =
 
 export interface AdminCaptureStatus {
   available: boolean;
+  // Admin switches (stored in the parametres DEPOTS_FERMES / RETRAITS_FERMES); they win over the capture signal.
+  depositsClosed?: boolean;
+  withdrawalsClosed?: boolean;
   deviceAvailable: boolean;
   manualOverride: boolean;
   reason: string | null;

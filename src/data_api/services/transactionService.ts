@@ -23,6 +23,15 @@ export const transactionService = {
     const response = await api.get<any>('/transactions/capture/status');
     return response.data;
   },
+  // Closes or reopens deposits / withdrawals for every client, whatever the capture phone says.
+  setDepositsClosed: async (closed: boolean): Promise<AdminCaptureStatus> => {
+    const response = await api.post<any>('/transactions/capture/deposits-closed', { closed });
+    return response.data;
+  },
+  setWithdrawalsClosed: async (closed: boolean): Promise<AdminCaptureStatus> => {
+    const response = await api.post<any>('/transactions/capture/withdrawals-closed', { closed });
+    return response.data;
+  },
   setCaptureManualOverride: async (enabled: boolean): Promise<AdminCaptureStatus> => {
     const response = await api.post<any>('/transactions/capture/manual-override', { enabled });
     return response.data;

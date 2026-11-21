@@ -99,7 +99,7 @@ export default function WelcomeScreen() {
             DÉPOSEZ. RETIREZ.{'\n'}<Text style={styles.headlineGold}>EN QUELQUES SECONDES.</Text>
           </Text>
           <Text style={styles.body}>
-            Rechargez et videz votre compte de paris avec Mobile Money. Vos transactions en orbite.
+            Rechargez et videz votre compte de paris avec Mobile Money, en toute sécurité.
           </Text>
           {actions}
         </Animated.View>

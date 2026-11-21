@@ -203,7 +203,7 @@ export default function SplashScreen() {
 
         <Animated.View style={[styles.texts, { opacity: textAnim, transform: [{ translateY: textSlide }] }]}>
           <Text style={styles.headline}>
-            VOS TRANSACTIONS <Text style={styles.headlineGold}>EN ORBITE</Text>
+            RECHARGEZ. ENCAISSEZ.{'\n'}<Text style={styles.headlineGold}>SANS ATTENDRE.</Text>
           </Text>
           <Text style={styles.loading}>Connexion à votre espace{dots}</Text>
         </Animated.View>

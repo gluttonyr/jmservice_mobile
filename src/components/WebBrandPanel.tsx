@@ -14,7 +14,7 @@ export default function WebBrandPanel() {
       <View style={styles.inner}>
         <JMLogo size={300} />
         <Text style={styles.tagline}>
-          VOS TRANSACTIONS <Text style={styles.taglineGold}>EN ORBITE</Text>
+          RECHARGEZ. ENCAISSEZ.{'\n'}<Text style={styles.taglineGold}>SANS ATTENDRE.</Text>
         </Text>
         <View style={styles.points}>
           {POINTS.map((p) => (

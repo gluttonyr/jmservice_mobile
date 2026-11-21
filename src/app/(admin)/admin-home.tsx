@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { Bell, ChevronRight, Crown, Image as ImageIcon, Settings2, Shield } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Image, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const EMPTY_STATS: AdminDashboardStats = {
@@ -70,6 +70,7 @@ function formatSignal(iso: string): string {
 // Same wording as the capture panel of admin_transactions (server state only).
 function captureTitle(status: AdminCaptureStatus | null): string {
   if (!status) return 'État de la capture inconnu';
+  if (status.depositsClosed) return 'Dépôts fermés par l’administrateur';
   if (status.available) {
     return status.manualOverride && !status.deviceAvailable
       ? 'Dépôts ouverts manuellement'
@@ -82,6 +83,84 @@ function captureTitle(status: AdminCaptureStatus | null): string {
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
+
+// ─── Ouverture de la caisse : interrupteurs Dépôts / Retraits ─────────────────
+
+type CashDeskKind = 'deposits' | 'withdrawals';
+
+/**
+ * The admin opens or closes deposits and withdrawals for every client (parametres DEPOTS_FERMES /
+ * RETRAITS_FERMES). The switch wins over the capture phone: deposits stay closed even when it sends its signal.
+ */
+function CashDeskSwitches({ status, onChange }: { status: AdminCaptureStatus | null; onChange: (s: AdminCaptureStatus) => void }) {
+  const [saving, setSaving] = useState<CashDeskKind | null>(null);
+  // Servers older than these switches do not send the state: nothing is shown rather than a wrong state.
+  const known = !!status && typeof status.depositsClosed === 'boolean' && typeof status.withdrawalsClosed === 'boolean';
+
+  const toggle = (kind: CashDeskKind, open: boolean) => {
+    const label = kind === 'deposits' ? 'les dépôts' : 'les retraits';
+    const apply = async () => {
+      setSaving(kind);
+      try {
+        const next = kind === 'deposits'
+          ? await transactionService.setDepositsClosed(!open)
+          : await transactionService.setWithdrawalsClosed(!open);
+        onChange(next);
+      } catch {
+        Alert.alert('Erreur', `Impossible de modifier l’ouverture de ${label}. Réessayez.`);
+      } finally {
+        setSaving(null);
+      }
+    };
+    Alert.alert(
+      open ? `Ouvrir ${label} ?` : `Fermer ${label} ?`,
+      open
+        ? `Les clients pourront de nouveau faire ${kind === 'deposits' ? 'des dépôts (si la capture des paiements est active)' : 'des retraits'}.`
+        : `Plus aucun client ne pourra faire ${kind === 'deposits' ? 'de dépôt' : 'de retrait'} tant que vous ne les rouvrez pas, même si le téléphone de capture envoie son signal.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: open ? 'Ouvrir' : 'Fermer', style: open ? 'default' : 'destructive', onPress: () => { void apply(); } },
+      ],
+    );
+  };
+
+  if (!known) return null;
+  const rows: { kind: CashDeskKind; title: string; open: boolean }[] = [
+    { kind: 'deposits', title: 'Dépôts', open: !status!.depositsClosed },
+    { kind: 'withdrawals', title: 'Retraits', open: !status!.withdrawalsClosed },
+  ];
+  return (
+    <View style={styles.cashDeskCard}>
+      <Text style={styles.cashDeskTitle}>Ouverture de la caisse</Text>
+      {rows.map((row, index) => (
+        <View key={row.kind} style={[styles.cashDeskRow, index > 0 && styles.cashDeskRowBorder]}>
+          <View style={[styles.cashDeskDot, { backgroundColor: row.open ? Colors.success : Colors.error }]} />
+          <View style={styles.cashDeskCopy}>
+            <Text style={styles.cashDeskLabel}>{row.title}</Text>
+            <Text style={[styles.cashDeskState, { color: row.open ? Colors.success : Colors.error }]}>
+              {row.open ? 'Ouverts aux clients' : 'Fermés pour tous les clients'}
+            </Text>
+          </View>
+          {saving === row.kind ? (
+            <ActivityIndicator color={Colors.admin} />
+          ) : (
+            <Switch
+              value={row.open}
+              onValueChange={(value) => toggle(row.kind, value)}
+              disabled={saving !== null}
+              trackColor={{ false: 'rgba(255,107,107,0.45)', true: 'rgba(25,211,197,0.55)' }}
+              thumbColor={row.open ? Colors.admin : '#E8EDF7'}
+              accessibilityLabel={`${row.title} ${row.open ? 'ouverts' : 'fermés'}`}
+            />
+          )}
+        </View>
+      ))}
+      <Text style={styles.cashDeskHint}>
+        Prioritaire sur la capture : des dépôts fermés ici restent fermés même si le téléphone de capture envoie son signal.
+      </Text>
+    </View>
+  );
+}
 
 // ─── Composant image (respecte les règles des hooks dans une liste) ───────────
 
@@ -229,6 +308,8 @@ export default function AdminDashboard() {
               <Text style={styles.captureLink}>Transactions et capture ›</Text>
             </View>
           </TouchableOpacity>
+
+          <CashDeskSwitches status={captureStatus} onChange={setCaptureStatus} />
 
           <View style={styles.countersRow}>
             <TouchableOpacity style={[styles.counter, styles.counterClaims]} onPress={openTransactions} activeOpacity={0.85}>
@@ -416,6 +497,16 @@ const styles = StyleSheet.create({
   captureTitle: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 17 },
   captureSignal: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13 },
   captureLink: { color: Colors.admin, fontFamily: Font.bodyBold, fontSize: 14, marginTop: 2 },
+
+  cashDeskCard: { ...card, marginTop: 12, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 14 },
+  cashDeskTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, marginBottom: 6 },
+  cashDeskRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  cashDeskRowBorder: { borderTopWidth: 1, borderTopColor: 'rgba(25,211,197,0.14)' },
+  cashDeskDot: { width: 10, height: 10, borderRadius: 5 },
+  cashDeskCopy: { flex: 1, minWidth: 0 },
+  cashDeskLabel: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
+  cashDeskState: { fontFamily: Font.bodySemiBold, fontSize: 13, marginTop: 1 },
+  cashDeskHint: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 17, marginTop: 4 },
 
   countersRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
   counter: { flex: 1, borderRadius: 24, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 16, gap: 4 },
