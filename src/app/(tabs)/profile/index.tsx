@@ -7,6 +7,7 @@ import { userService } from '@/data_api/services/userService';
 import { useAuth } from '@/hooks/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFileUrl } from '@/hooks/useFileUrl';
+import { InstallAppButton } from '@/components/InstallAppButton';
 import { SocialLinks } from '@/components/SocialLinks';
 import { authStorage } from '@/storage/authStorage';
 import { useQueryClient } from '@tanstack/react-query';
@@ -433,6 +434,9 @@ export default function ProfilePage() {
 
         {/* ── Séparateur ── */}
         <View style={styles.separator} />
+
+        {/* ── Site : installer l'application ── */}
+        <InstallAppButton variant="row" style={{ marginBottom: 12 }} />
 
         {/* ── Déconnexion ── */}
         <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.75}>

@@ -1,3 +1,4 @@
+import { InstallAppButton } from '@/components/InstallAppButton';
 import { OrbitBackground, OrbitStar } from '@/components/orbit';
 import { SocialLinks } from '@/components/SocialLinks';
 import { UserAvatar } from '@/components/UserAvatar';
@@ -341,6 +342,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </LinearGradient>
         </Animated.View>
+
+        {/* Website only: install it as an application (hidden once installed). */}
+        <InstallAppButton variant="card" style={{ marginBottom: 24 }} />
 
         {/* Upcoming events */}
         <View style={styles.section}>

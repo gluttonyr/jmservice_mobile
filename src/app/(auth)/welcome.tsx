@@ -1,5 +1,6 @@
 import { OrbitBackground, Plaque } from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
+import { InstallAppButton } from '@/components/InstallAppButton';
 import JMLogo from '@/components/ui/JMLogo';
 import { Colors } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
@@ -49,6 +50,7 @@ export default function WelcomeScreen() {
           variant="outline"
           style={styles.btn}
         />
+        <InstallAppButton variant="link" />
       </View>
       {showPromo && (
         <View style={styles.promoRow}>

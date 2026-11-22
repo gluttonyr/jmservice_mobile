@@ -8,6 +8,35 @@
          while React animates it, which crashed the site ("removeChild" error) on phones with auto-translate. -->
     <meta name="google" content="notranslate" />
     <title>%WEB_TITLE%</title>
+    <!-- Installable as an application (PWA): Android / computer through Chrome's install window,
+         iPhone through Share → « Sur l'écran d'accueil ». Once installed, links to the site open the app. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#060B1E" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="JM Services" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <script>
+      // Chrome's install proposal can come before the app's code is loaded: keep it for the
+      // « Installer l'application » buttons (src/hooks/useInstallApp.ts).
+      window.addEventListener('beforeinstallprompt', function (event) {
+        event.preventDefault();
+        window.__jmInstallPrompt = event;
+        window.dispatchEvent(new Event('jm-install-change'));
+      });
+      window.addEventListener('appinstalled', function () {
+        window.__jmInstallPrompt = null;
+        window.__jmInstalled = true;
+        window.dispatchEvent(new Event('jm-install-change'));
+      });
+      if ('serviceWorker' in navigator && window.isSecureContext) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       /* These styles make the body full-height */
