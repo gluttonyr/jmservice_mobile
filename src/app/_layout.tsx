@@ -4,6 +4,7 @@ import '@/components/completeAuthPopup';
 import '@/components/hideScrollbars';
 import '@/components/lockWebPage';
 import { AlertHost } from '@/components/appAlert';
+import { InstalledAppHost } from '@/components/InstalledAppHost';
 import { UpdateAvailableModal } from '@/components/updateAvailableNodal';
 import { StartAtRoot } from '@/components/StartAtRoot';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -138,6 +139,8 @@ export default function RootLayout() {
             onClose={dismiss}
             onRemindLater={remindLater}
           />
+          {/* Website: « Application installée » right after the install. */}
+          <InstalledAppHost />
           {/* Every Alert.alert of the app, in the JM Services style (last: drawn above everything). */}
           <AlertHost />
         </QueryClientProvider>

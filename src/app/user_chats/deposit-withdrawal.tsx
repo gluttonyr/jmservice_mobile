@@ -44,6 +44,7 @@ import {
   ClipboardPaste,
   Copy,
   ExternalLink,
+  Info,
   WifiOff,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -88,6 +89,18 @@ const LAST_USED_TRANSACTION_INPUTS_KEY = 'transaction_last_inputs:';
 const XBET_WEBSITE = 'https://1xbet.com';
 // Website opened on an Android phone: a tel: link opens the Phone app with the USSD code typed in.
 // (iPhone refuses * and # in tel: links, so there the client keeps copying the code.)
+// Cash point to enter on the bookmaker's site to generate the withdrawal code.
+const WITHDRAWAL_POINT = { ville: 'Lomé', adresse: 'JM SERVICES' };
+
+function WithdrawalPointText({ prefix }: { prefix: string }) {
+  return (
+    <Text>
+      {prefix} notre point : ville <Text style={st.pointStrong}>{WITHDRAWAL_POINT.ville}</Text>, adresse{' '}
+      <Text style={st.pointStrong}>{WITHDRAWAL_POINT.adresse}</Text>.
+    </Text>
+  );
+}
+
 const ANDROID_WEB = Platform.OS === 'web' && typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
 type SavedPhoneInput = {
@@ -1586,7 +1599,7 @@ export default function DepositWithdrawalScreen() {
               <Text style={st.sectionTitle}>Comment effectuer un retrait ?</Text>
               {[
                 { title: 'Connectez-vous à 1xBet', text: 'Ouvrez l’application 1xBet et accédez à votre compte.' },
-                { title: 'Générez votre code de retrait', text: 'Générez un code unique de retrait, copiez-le et revenez dans l’application.' },
+                { title: 'Générez votre code de retrait', text: <WithdrawalPointText prefix="Demandez un retrait en indiquant" /> },
                 { title: 'Revenez ici', text: 'Touchez « Suivant », collez votre code de retrait et indiquez votre numéro Mobile Money.' },
               ].map((item, index) => (
                 <View key={item.title} style={st.instructionCard}>
@@ -1648,6 +1661,12 @@ export default function DepositWithdrawalScreen() {
                 >
                   <ClipboardPaste color={Colors.blueLight} size={20} />
                 </TouchableOpacity>
+              </View>
+              <View style={st.pointBox}>
+                <Info color={Colors.blueLight} size={18} style={{ marginTop: 1 }} />
+                <Text style={st.pointText}>
+                  <WithdrawalPointText prefix="Obtenu sur la plateforme du bookmaker en saisissant" />
+                </Text>
               </View>
 
               <Text style={[st.inputLabel, { marginTop: 20 }]}>
@@ -2174,6 +2193,9 @@ const st = StyleSheet.create({
   instructionCard: { flexDirection: 'row', gap: 12, backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 10 },
   instructionStep: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15, marginBottom: 3 },
   instructionText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
+  pointBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: 'rgba(47,123,255,0.1)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(90,162,255,0.3)', padding: 14, marginTop: 10 },
+  pointText: { flex: 1, color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
+  pointStrong: { color: Colors.pureWhite, fontFamily: Font.bodyExtraBold },
 
   xbetBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 22, marginTop: 6, marginBottom: 4, borderWidth: 1.5, borderColor: Colors.blueLight, backgroundColor: Colors.navy },
   xbetBtnText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
