@@ -29,6 +29,9 @@ import {
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
+// Account deletion button hidden for now (the server route DELETE /users/me stays available).
+const SHOW_DELETE_ACCOUNT = false;
+
 // ─── Avatar initiales ────────────────────────────────────────────────────────
 function AvatarInitials({
   prenom,
@@ -445,7 +448,8 @@ export default function ProfilePage() {
           <ChevronRight color="#FF6B6B" size={16} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
 
-        {/* ── Suppression du compte ── */}
+        {/* ── Suppression du compte : masquée à la demande de JM Services (mettre SHOW_DELETE_ACCOUNT à true) ── */}
+        {SHOW_DELETE_ACCOUNT && (
         <TouchableOpacity
           style={[styles.logoutBtn, styles.deleteAccountBtn]}
           onPress={() => setShowDeleteAccount(true)}
@@ -456,6 +460,7 @@ export default function ProfilePage() {
           <Text style={styles.logoutText}>Supprimer mon compte</Text>
           <ChevronRight color="#FF6B6B" size={16} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
+        )}
         <SocialLinks variant="contact" />
       </ScrollView>
       <InfoModal
