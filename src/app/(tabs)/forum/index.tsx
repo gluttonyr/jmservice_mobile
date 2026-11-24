@@ -6,7 +6,7 @@ import { ImagePreviewModal } from '@/components/ImagePreviewModel';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
 import { ChatBackground } from '@/components/ChatBackground';
 import { ChatHeader } from '@/components/orbit';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Discussion } from '@/data_api/models/discussion.types';
@@ -177,7 +177,7 @@ useEffect(() => {
         <ConnectionErrorState onRetry={loadForum} fullscreen />
       ) : forumLoading || loading || !discussionId ? (
         <View style={styles.loader}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.goldText} size="large" />
         </View>
       ) : (
         <SectionList
@@ -247,11 +247,11 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: '#1C1A1F',
+    backgroundColor: pick('#1C1A1F', '#FFF6E5'),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,159,28,0.3)',
   },
-  pinnedBarLabel: { color: '#FF9F1C', fontFamily: Font.bodyBold, fontSize: 13 },
+  pinnedBarLabel: { color: pick('#FF9F1C', '#B86B00'), fontFamily: Font.bodyBold, fontSize: 13 },
   pinnedBarText: { color: Colors.chrome, fontFamily: Font.body, fontSize: 15, marginTop: 1 },
 
   lockedBanner: {
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
-  lockedText: { color: '#FF8A8A', fontFamily: Font.bodySemiBold, fontSize: 13 },
+  lockedText: { color: pick('#FF8A8A', '#D93A3F'), fontFamily: Font.bodySemiBold, fontSize: 13 },
 
   msgList: { padding: 16, gap: 6, paddingBottom: 8 },
 
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: 'rgba(8,16,44,0.96)',
+    backgroundColor: pick('rgba(8,16,44,0.96)', 'rgba(255,255,255,0.97)'),
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },

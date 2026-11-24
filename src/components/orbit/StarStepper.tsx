@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { OrbitStar } from './OrbitStar';
 
@@ -34,7 +34,7 @@ export function StarStepper({ steps, current, color = Colors.gold, activeColor, 
             return (
               <View key={label} style={styles.starSlot}>
                 {active && <View style={[styles.glow, { borderColor: `${color}59` }]} />}
-                <OrbitStar size={(active ? 30 : 24) - (compact ? 4 : 0)} color={active ? activeColor ?? color : done ? color : '#2A3A6E'} />
+                <OrbitStar size={(active ? 30 : 24) - (compact ? 4 : 0)} color={active ? activeColor ?? color : done ? color : pick('#2A3A6E', '#C5CFE6')} />
               </View>
             );
           })}
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   rootCompact: { marginBottom: 0 },
   track: { height: 32, justifyContent: 'center' },
   lineBox: { position: 'absolute', left: 15, right: 15, height: 3 },
-  line: { position: 'absolute', left: 0, right: 0, height: 3, borderRadius: 2, backgroundColor: '#1E2A55' },
+  line: { position: 'absolute', left: 0, right: 0, height: 3, borderRadius: 2, backgroundColor: pick('#1E2A55', '#DCE3F2') },
   lineDone: { right: undefined, backgroundColor: Colors.gold },
   stars: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   starSlot: { width: 30, height: 34, alignItems: 'center', justifyContent: 'center' },
@@ -78,5 +78,5 @@ const styles = StyleSheet.create({
   labelFirst: { textAlign: 'left' },
   labelLast: { textAlign: 'right' },
   labelDone: { color: Colors.chrome },
-  labelActive: { color: Colors.gold },
+  labelActive: { color: Colors.goldText },
 });

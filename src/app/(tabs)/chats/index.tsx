@@ -1,7 +1,7 @@
 import Badge from '@/components/ui/Badge';
 import { ConnectionErrorState } from '@/components/ui/ConnectionErrorState';
 import { OrbitBackground } from '@/components/orbit';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,14 +41,14 @@ const typeConfig: Record<string, { icon: React.ReactNode; colors: readonly [stri
   },
   [DiscussionType.FORUM]: {
     icon: <MessageCircle color="#fff" size={24} />,
-    colors: ['#5C6B92', '#2D3A63'],
+    colors: [pick('#5C6B92', '#8A95B5'), pick('#2D3A63', '#C5CFE6')],
   },
 };
 
 // Fallback si le type n'est pas reconnu
 const defaultConfig = {
   icon: <MessageCircle color="#fff" size={24} />,
-  colors: ['#5C6B92', '#2D3A63'] as const,
+  colors: [pick('#5C6B92', '#8A95B5'), pick('#2D3A63', '#C5CFE6')] as const,
 };
 
 // Formate la date ISO en heure lisible
@@ -145,7 +145,7 @@ export default function ChatsScreen() {
       {/* Loader */}
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.goldText} size="large" />
         </View>
       ) : error ? (
         <ConnectionErrorState onRetry={fetchDiscussions} fullscreen />
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 10,
     borderWidth: 1.5,
-    borderColor: 'rgba(120,150,230,0.18)',
+    borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'),
   },
   searchInput: {
     flex: 1,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 14,
     borderRadius: 24,
-    backgroundColor: 'rgba(17,28,63,0.9)',
+    backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'),
     borderWidth: 1,
     borderColor: Colors.border,
   },

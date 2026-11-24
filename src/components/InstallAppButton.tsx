@@ -32,7 +32,7 @@ export function InstallAppButton({ variant, style }: { variant: 'card' | 'row' |
   if (variant === 'link') {
     return (
       <TouchableOpacity style={[styles.link, style]} onPress={install} activeOpacity={0.8} accessibilityRole="button">
-        <Download color={Colors.gold} size={17} />
+        <Download color={Colors.goldText} size={17} />
         <Text style={styles.linkText}>Installer l'application</Text>
       </TouchableOpacity>
     );
@@ -41,12 +41,12 @@ export function InstallAppButton({ variant, style }: { variant: 'card' | 'row' |
   if (variant === 'row') {
     return (
       <TouchableOpacity style={[styles.row, style]} onPress={install} activeOpacity={0.8} accessibilityRole="button">
-        <Download color={Colors.gold} size={18} />
+        <Download color={Colors.goldText} size={18} />
         <View style={{ flex: 1 }}>
           <Text style={styles.rowText}>Installer l'application</Text>
           <Text style={styles.rowHint}>{hint}</Text>
         </View>
-        <ChevronRight color={Colors.gold} size={16} />
+        <ChevronRight color={Colors.goldText} size={16} />
       </TouchableOpacity>
     );
   }
@@ -110,8 +110,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 14,
   },
-  rowText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 16 },
+  rowText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 16 },
   rowHint: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, marginTop: 2 },
   link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10 },
-  linkText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15 },
+  linkText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 15 },
 });

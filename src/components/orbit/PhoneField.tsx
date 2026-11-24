@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ChevronDown } from 'lucide-react-native';
 import CountryPicker, { Country, CountryCode, DARK_THEME } from '@/components/CountryPicker';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { OrbitField, orbitFieldStyles } from './OrbitField';
 
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.night,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(120,150,230,0.18)',
+    borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'),
     padding: 4,
     marginBottom: 18,
   },

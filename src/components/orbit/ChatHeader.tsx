@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 
 /** Top bar of the discussions: optional back chevron, avatar, title and subtitle, actions on the right. */
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: 'rgba(8,16,44,0.96)',
+    backgroundColor: pick('rgba(8,16,44,0.96)', 'rgba(255,255,255,0.97)'),
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },

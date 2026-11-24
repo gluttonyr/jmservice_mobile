@@ -6,7 +6,7 @@ import { DateSeparator } from '@/components/dateSeparator';
 import { formatDayLabel } from '@/components/chatGrouping';
 import { ChatHeader } from '@/components/orbit';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import type { AppNotification } from '@/data_api/models/appNotification.types';
 import { notificationService } from '@/data_api/services/notificationService';
@@ -198,11 +198,11 @@ export default function UserNotificationsScreen() {
         title="Notifications"
         subtitle="Messages de JM Services"
         onBack={() => router.back()}
-        avatar={<View style={styles.headerAvatar}><Bell color={Colors.gold} size={22} /></View>}
+        avatar={<View style={styles.headerAvatar}><Bell color={Colors.goldText} size={22} /></View>}
       />
 
       {loading ? (
-        <View style={styles.loader}><ActivityIndicator color={Colors.primaryGreen} size="large" /></View>
+        <View style={styles.loader}><ActivityIndicator color={Colors.goldText} size="large" /></View>
       ) : (
         <SectionList
           sections={sections}
@@ -219,7 +219,7 @@ export default function UserNotificationsScreen() {
           renderSectionHeader={({ section }) => <DateSeparator label={section.title} />}
           onEndReached={() => { if (hasMore && !loadingMore) void loadOlder(); }}
           onEndReachedThreshold={0.25}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primaryGreen} style={{ padding: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.goldText} style={{ padding: 16 }} /> : null}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   list: { flexGrow: 1, padding: 16, gap: 10 },
   emptyList: { justifyContent: 'center' },
   messageWrap: { width: '100%', alignItems: 'flex-start' },
-  messageCard: { alignSelf: 'flex-start', maxWidth: '88%', padding: 14, borderRadius: 22, borderTopLeftRadius: 6, backgroundColor: '#16224D', gap: 8 },
+  messageCard: { alignSelf: 'flex-start', maxWidth: '88%', padding: 14, borderRadius: 22, borderTopLeftRadius: 6, backgroundColor: pick('#16224D', '#F1F4FB'), gap: 8 },
   messageHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   messageIcon: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: Colors.navy, overflow: 'hidden' },
   sender: { color: Colors.blueLight, fontFamily: Font.bodyBold, fontSize: 13 },
@@ -267,5 +267,5 @@ const styles = StyleSheet.create({
   emptyTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, textTransform: 'uppercase', marginBottom: 5 },
   emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 20 },
   retryButton: { marginTop: 14, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1.5, borderColor: Colors.gold, backgroundColor: 'rgba(255,194,51,0.1)' },
-  retryText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
+  retryText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 14 },
 });

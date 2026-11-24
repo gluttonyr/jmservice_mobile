@@ -2,7 +2,7 @@ import { OrbitBackground, Plaque } from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { usePromoCode } from '@/hooks/usePromoCode';
 import { useWideWeb } from '@/hooks/useWideWeb';
@@ -81,7 +81,7 @@ export default function WelcomeScreen() {
       <ScrollView contentContainerStyle={styles.scroll} bounces={false} showsVerticalScrollIndicator={false}>
         <View style={[styles.hero, { paddingTop: insets.top + 24 }]}>
           <Badge
-            icon={<Zap color={Colors.gold} size={18} />}
+            icon={<Zap color={Colors.goldText} size={18} />}
             label="Rapide"
             style={[styles.badgeRight, { top: insets.top + 16 }]}
           />
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 22,
-    backgroundColor: 'rgba(6,11,30,0.72)',
+    backgroundColor: pick('rgba(6,11,30,0.72)', 'rgba(255,255,255,0.95)'),
     borderWidth: 1,
   },
   badgeRight: { right: 20, borderColor: 'rgba(255,194,51,0.45)' },
@@ -133,12 +133,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 36,
     borderWidth: 1,
     borderBottomWidth: 0,
-    borderColor: 'rgba(120,150,230,0.14)',
+    borderColor: pick('rgba(120,150,230,0.14)', 'rgba(40,70,150,0.12)'),
     paddingHorizontal: 24,
     paddingTop: 30,
   },
   headline: { color: Colors.chrome, fontFamily: Font.title, fontSize: 34, lineHeight: 40 },
-  headlineGold: { color: Colors.gold },
+  headlineGold: { color: Colors.goldText },
   body: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 16, lineHeight: 24, marginTop: 14, marginBottom: 26 },
   buttons: { width: '100%', gap: 14 },
   btn: { width: '100%' },

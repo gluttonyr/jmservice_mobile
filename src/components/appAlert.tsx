@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, type AlertButton, type AlertOptions } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 
 // Every Alert.alert of the app (website and phones) is drawn by the app in the JM Services style, instead of
@@ -103,7 +103,7 @@ export function AlertHost() {
                   <Text
                     style={[
                       styles.buttonText,
-                      { color: filled ? (isDanger ? '#FFFFFF' : Colors.night) : isCancel ? Colors.chrome : accent },
+                      { color: filled ? (isDanger ? '#FFFFFF' : Colors.onGold) : isCancel ? Colors.chrome : accent },
                     ]}
                     numberOfLines={2}
                   >
@@ -122,7 +122,7 @@ export function AlertHost() {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(3,6,16,0.74)',
+    backgroundColor: pick('rgba(3,6,16,0.74)', 'rgba(12,22,52,0.45)'),
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     overflow: 'hidden',
   },
-  cardClient: { backgroundColor: '#111C3F', borderColor: 'rgba(120,150,230,0.28)' },
+  cardClient: { backgroundColor: pick('#111C3F', '#FFFFFF'), borderColor: pick('rgba(120,150,230,0.28)', 'rgba(40,70,150,0.2)') },
   cardAdmin: { backgroundColor: '#0E2229', borderColor: 'rgba(25,211,197,0.35)' },
   accentBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4 },
   title: { color: Colors.chrome, fontFamily: Font.title, fontSize: 21, lineHeight: 27 },
@@ -153,6 +153,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   buttonInRow: { flex: 1 },
-  buttonCancel: { borderWidth: 1, borderColor: 'rgba(232,237,247,0.22)' },
+  buttonCancel: { borderWidth: 1, borderColor: pick('rgba(232,237,247,0.22)', 'rgba(22,33,90,0.18)') },
   buttonText: { fontFamily: Font.bodyBold, fontSize: 15, textAlign: 'center' },
 });

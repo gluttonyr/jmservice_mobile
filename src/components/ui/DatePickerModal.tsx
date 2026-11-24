@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -139,7 +139,7 @@ export default function DatePickerModal({ visible, value, minimumDate, title, on
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+    flex: 1, backgroundColor: pick('rgba(0,0,0,0.7)', 'rgba(12,22,52,0.45)'),
     justifyContent: 'center', alignItems: 'center', padding: 24,
   },
   sheet: {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   title: { color: Colors.white, fontSize: 16, fontWeight: '900' },
   closeBtn: {
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: Colors.veil,
     alignItems: 'center', justifyContent: 'center',
   },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

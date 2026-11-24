@@ -1,6 +1,6 @@
 import { OrbitStar } from '@/components/orbit';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { UserRole } from '@/data_api/models/user.types';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,12 +17,12 @@ const MIN_SPLASH_MS = 3400;
 const RING = { rx: 0.452, ry: 0.21, tilt: -5 };
 // Stars sitting on the gold orbit: angle on the ellipse (degrees, 90 = bottom), size (box width units), colour.
 const RING_STARS = [
-  { angle: 152, size: 0.07, color: Colors.gold, glow: true },
-  { angle: 126, size: 0.075, color: Colors.gold, glow: true },
-  { angle: 104, size: 0.065, color: Colors.gold, glow: true },
+  { angle: 152, size: 0.07, color: Colors.goldText, glow: true },
+  { angle: 126, size: 0.075, color: Colors.goldText, glow: true },
+  { angle: 104, size: 0.065, color: Colors.goldText, glow: true },
   { angle: 84, size: 0.09, color: Colors.pureWhite, glow: true },
-  { angle: 22, size: 0.045, color: '#7E8DB8', glow: false },
-  { angle: -4, size: 0.055, color: '#7E8DB8', glow: false },
+  { angle: 22, size: 0.045, color: pick('#7E8DB8', '#7A86A8'), glow: false },
+  { angle: -4, size: 0.055, color: pick('#7E8DB8', '#7A86A8'), glow: false },
 ] as const;
 // Faint dots in the night sky (fractions of the screen).
 const SKY_DOTS = [
@@ -228,12 +228,12 @@ const styles = StyleSheet.create({
   },
   texts: { alignItems: 'center', marginTop: 34, paddingHorizontal: 24, maxWidth: 420 },
   headline: { color: Colors.chrome, fontFamily: Font.title, fontSize: 32, lineHeight: 46, textAlign: 'center' },
-  headlineGold: { color: Colors.gold },
-  loading: { color: '#B9C3DA', fontFamily: Font.bodyMedium, fontSize: 16, marginTop: 18, minWidth: 220, textAlign: 'center' },
+  headlineGold: { color: Colors.goldText },
+  loading: { color: pick('#B9C3DA', '#4A5886'), fontFamily: Font.bodyMedium, fontSize: 16, marginTop: 18, minWidth: 220, textAlign: 'center' },
   footer: {
     position: 'absolute',
     bottom: 44,
-    color: '#8D9AC0',
+    color: pick('#8D9AC0', '#66739A'),
     fontFamily: Font.bodyBold,
     fontSize: 11,
     letterSpacing: 2.2,

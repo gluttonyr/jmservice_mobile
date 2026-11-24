@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { MessageType } from '@/data_api/models/message.types';
 import { Sticker } from '@/data_api/models/sticker.types';
@@ -314,7 +314,7 @@ const st = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingTop: 10,
-    backgroundColor: 'rgba(8,16,44,0.96)',
+    backgroundColor: pick('rgba(8,16,44,0.96)', 'rgba(255,255,255,0.97)'),
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     gap: 10,
@@ -325,9 +325,9 @@ const st = StyleSheet.create({
     alignItems: 'center',
     minHeight: 54,
     borderRadius: 27,
-    backgroundColor: '#111C3F',
+    backgroundColor: pick('#111C3F', '#FFFFFF'),
     borderWidth: 1,
-    borderColor: 'rgba(120,150,230,0.2)',
+    borderColor: pick('rgba(120,150,230,0.2)', 'rgba(40,70,150,0.16)'),
     paddingHorizontal: 6,
   },
   iconBtn: { padding: 10, justifyContent: 'center', alignItems: 'center' },

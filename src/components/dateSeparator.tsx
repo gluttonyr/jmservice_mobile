@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -19,7 +19,7 @@ const st = StyleSheet.create({
     paddingVertical: 8,
   },
   pill: {
-    backgroundColor: '#16224D',
+    backgroundColor: pick('#16224D', '#F1F4FB'),
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 6,

@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Pause, Play } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -143,7 +143,7 @@ export function AudioPlayer({ uri, isMe }: Props) {
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   // Own messages sit on a blue bubble; the others on navy with a blue play button.
   const fgColor = isMe ? Colors.pureWhite : Colors.chrome;
-  const trackColor = isMe ? 'rgba(255,255,255,0.3)' : 'rgba(141,154,192,0.35)';
+  const trackColor = isMe ? 'rgba(255,255,255,0.3)' : pick('rgba(141,154,192,0.35)', 'rgba(80,95,140,0.3)');
   const fillColor = isMe ? Colors.pureWhite : Colors.blueLight;
   const btnBg = isMe ? 'rgba(255,255,255,0.22)' : Colors.blue;
 

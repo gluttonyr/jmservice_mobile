@@ -1,5 +1,5 @@
 import { OrbitBackground } from '@/components/orbit';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Categorie } from '@/data_api/models/categorie.types';
@@ -133,7 +133,7 @@ export default function EventsScreen() {
                 onPress={() => setActiveFilter(item.key)}
                 activeOpacity={0.8}
               >
-                {item.isExpired && <AlertTriangle color={isActive ? '#FF7B7B' : Colors.textSecondary} size={13} />}
+                {item.isExpired && <AlertTriangle color={isActive ? pick('#FF7B7B', '#D93A3F') : Colors.textSecondary} size={13} />}
                 <Text
                   style={[
                     styles.filterText,
@@ -156,7 +156,7 @@ export default function EventsScreen() {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.goldText} size="large" />
         </View>
       ) : error ? (
         <View style={styles.empty}>
@@ -211,13 +211,13 @@ export default function EventsScreen() {
                   <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
                   <View style={styles.cardMeta}>
                     <View style={styles.metaItem}>
-                      <Calendar color={expired ? '#FF7B7B' : Colors.blueLight} size={15} />
+                      <Calendar color={expired ? pick('#FF7B7B', '#D93A3F') : Colors.blueLight} size={15} />
                       <Text style={styles.metaText}>
                         {new Date(item.dateDebut).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </Text>
                     </View>
                     <View style={styles.metaItem}>
-                      <MapPin color={expired ? '#FF7B7B' : Colors.blueLight} size={15} />
+                      <MapPin color={expired ? pick('#FF7B7B', '#D93A3F') : Colors.blueLight} size={15} />
                       <Text style={styles.metaText} numberOfLines={1}>{item.lieu ?? 'Lieu non précisé'}</Text>
                     </View>
                   </View>
@@ -226,7 +226,7 @@ export default function EventsScreen() {
                     onPress={() => router.push({ pathname: '/user_events/[id]', params: { id: item.trackingId } })}
                   >
                     <Text style={styles.viewBtnText}>Voir les détails</Text>
-                    <ChevronRight color={Colors.gold} size={18} />
+                    <ChevronRight color={Colors.goldText} size={18} />
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -241,7 +241,7 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   coverFallback: { alignItems: 'center', justifyContent: 'center' },
   dateBadge: { position: 'absolute', top: 14, left: 14, backgroundColor: 'rgba(6,11,30,0.72)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  dateBadgeText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 13 },
+  dateBadgeText: { color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 13 },
   header: { paddingBottom: 14, paddingHorizontal: 20 },
   headerTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 30, textTransform: 'uppercase' },
   headerSub: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, marginTop: 2 },
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
   filterExpiredActive: { backgroundColor: 'rgba(255,107,107,0.16)', borderColor: 'rgba(255,107,107,0.5)' },
   filterText: { color: Colors.chrome, fontFamily: Font.bodySemiBold, fontSize: 14, flexShrink: 0 },
   filterTextActive: { color: Colors.onGold, fontFamily: Font.bodyExtraBold },
-  filterTextExpiredActive: { color: '#FF7B7B', fontFamily: Font.bodyExtraBold },
-  filterCount: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(141,154,192,0.18)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+  filterTextExpiredActive: { color: pick('#FF7B7B', '#D93A3F'), fontFamily: Font.bodyExtraBold },
+  filterCount: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: pick('rgba(141,154,192,0.18)', 'rgba(80,95,140,0.14)'), alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   filterCountActive: { backgroundColor: 'rgba(26,20,5,0.15)' },
   filterCountExpiredActive: { backgroundColor: 'rgba(255,107,107,0.2)' },
   filterCountText: { color: Colors.textSecondary, fontFamily: Font.bodyExtraBold, fontSize: 12 },
@@ -263,8 +263,8 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60, gap: 16 },
   emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, textAlign: 'center', paddingHorizontal: 20 },
   emptyBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14, backgroundColor: 'rgba(255,194,51,0.1)', borderWidth: 1.5, borderColor: Colors.gold },
-  emptyBtnText: { color: Colors.gold, fontFamily: Font.bodyBold },
-  card: { borderRadius: 26, overflow: 'hidden', backgroundColor: 'rgba(17,28,63,0.95)', borderWidth: 1, borderColor: Colors.border },
+  emptyBtnText: { color: Colors.goldText, fontFamily: Font.bodyBold },
+  card: { borderRadius: 26, overflow: 'hidden', backgroundColor: pick('rgba(17,28,63,0.95)', '#FFFFFF'), borderWidth: 1, borderColor: Colors.border },
   gridRow: { gap: 20 },
   cardGrid: { width: '31.5%' },
   cardExpired: { borderColor: 'rgba(255,107,107,0.3)', opacity: 0.8 },
@@ -282,5 +282,5 @@ const styles = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   metaText: { color: Colors.chrome, fontFamily: Font.bodySemiBold, fontSize: 13, flexShrink: 1 },
   viewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
-  viewBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15 },
+  viewBtnText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 15 },
 });

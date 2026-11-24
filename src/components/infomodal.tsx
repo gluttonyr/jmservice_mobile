@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -108,7 +108,7 @@ export function InfoModal({
 }
 
 const st = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 28 },
+  overlay: { flex: 1, backgroundColor: pick('rgba(0,0,0,0.6)', 'rgba(12,22,52,0.45)'), alignItems: 'center', justifyContent: 'center', padding: 28 },
   card: {
     width: '100%',
     maxWidth: 340,

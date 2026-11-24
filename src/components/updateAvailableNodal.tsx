@@ -1,5 +1,5 @@
 // components/UpdateAvailableModal.tsx
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Rocket, X } from 'lucide-react-native';
 import { Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -35,7 +35,7 @@ export function UpdateAvailableModal({ visible, onClose, onRemindLater }: Props)
           </TouchableOpacity>
 
           <View style={st.iconWrap}>
-            <Rocket color={Colors.primaryGreen} size={28} />
+            <Rocket color={Colors.goldText} size={28} />
           </View>
 
           <Text style={st.title}>Nouvelle version disponible</Text>
@@ -60,7 +60,7 @@ export function UpdateAvailableModal({ visible, onClose, onRemindLater }: Props)
 const st = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: pick('rgba(0,0,0,0.65)', 'rgba(12,22,52,0.45)'),
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,

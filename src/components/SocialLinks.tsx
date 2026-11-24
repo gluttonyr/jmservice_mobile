@@ -1,3 +1,4 @@
+import { pick } from '@/constants/colors';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   sectionTitle: {
-    color: '#fff',
+    color: pick('#fff', '#16215A'),
     fontSize: 16,
     fontWeight: '800',
   },
@@ -96,20 +97,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: pick('rgba(255,255,255,0.12)', 'rgba(40,70,150,0.14)'),
   },
   toolbarButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#0D1838',
-    borderColor: 'rgba(120,150,230,0.16)',
+    backgroundColor: pick('#0D1838', '#FFFFFF'),
+    borderColor: pick('rgba(120,150,230,0.16)', 'rgba(40,70,150,0.13)'),
   },
   contactButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
   },
-  tiktokButton: { backgroundColor: '#0D1838', borderColor: 'rgba(120,150,230,0.16)' },
+  tiktokButton: { backgroundColor: pick('#0D1838', '#FFFFFF'), borderColor: pick('rgba(120,150,230,0.16)', 'rgba(40,70,150,0.13)') },
   whatsappButton: { backgroundColor: '#25D366' },
 });

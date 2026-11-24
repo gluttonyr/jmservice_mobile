@@ -3,7 +3,7 @@ import {
 } from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { authService } from '@/data_api/services/authService';
 import Constants from 'expo-constants';
@@ -243,16 +243,16 @@ const styles = StyleSheet.create({
   errorText: { color: Colors.error, fontFamily: Font.bodyMedium, fontSize: 14 },
 
   card: {
-    backgroundColor: 'rgba(17,28,63,0.92)',
+    backgroundColor: pick('rgba(17,28,63,0.92)', '#FFFFFF'),
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(120,150,230,0.16)',
+    borderColor: pick('rgba(120,150,230,0.16)', 'rgba(40,70,150,0.13)'),
     padding: 20,
     paddingBottom: 22,
   },
 
   termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20, marginTop: 2 },
   termsText: { flex: 1, color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
-  termsLink: { color: Colors.gold, fontFamily: Font.bodySemiBold },
+  termsLink: { color: Colors.goldText, fontFamily: Font.bodySemiBold },
   btn: { width: '100%' },
 });

@@ -1,3 +1,4 @@
+import { pick } from '@/constants/colors';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Font } from '@/constants/fonts';
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: '#000',
     borderWidth: 1,
-    borderColor: '#2A3558',
+    borderColor: pick('#2A3558', '#D5DCEB'),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

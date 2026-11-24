@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Check } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { OrbitStar } from './OrbitStar';
 
@@ -121,14 +121,14 @@ const styles = StyleSheet.create({
     width: NODE,
     height: NODE,
     borderRadius: NODE / 2,
-    backgroundColor: '#0B1438',
+    backgroundColor: pick('#0B1438', '#FFFFFF'),
     borderWidth: 2,
-    borderColor: '#2A3A6E',
+    borderColor: pick('#2A3A6E', '#C5CFE6'),
     alignItems: 'center',
     justifyContent: 'center',
   },
   nodeDone: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   nodeActive: { backgroundColor: Colors.gold, borderColor: '#FFE29A' },
   label: { position: 'absolute', color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 13, lineHeight: 17 },
-  labelOn: { color: Colors.gold },
+  labelOn: { color: Colors.goldText },
 });

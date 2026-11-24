@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
@@ -32,7 +32,7 @@ export function InstalledAppHost() {
           <LinearGradient colors={['#FFD255', '#FF9F1C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.accentBar} />
           <View style={styles.iconWrap}>
             <Image source={ICON} style={styles.icon} />
-            <View style={styles.badge}><Check color={Colors.night} size={16} strokeWidth={3.5} /></View>
+            <View style={styles.badge}><Check color={Colors.onGold} size={16} strokeWidth={3.5} /></View>
           </View>
           <Text style={styles.title}>APPLICATION INSTALLÉE !</Text>
           <Text style={styles.message}>
@@ -63,14 +63,14 @@ export function InstalledAppHost() {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(3,6,16,0.78)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  backdrop: { flex: 1, backgroundColor: pick('rgba(3,6,16,0.78)', 'rgba(12,22,52,0.45)'), alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: {
     width: '100%',
     maxWidth: 400,
     borderRadius: 26,
     borderWidth: 1,
     borderColor: 'rgba(255,194,51,0.35)',
-    backgroundColor: '#111C3F',
+    backgroundColor: pick('#111C3F', '#FFFFFF'),
     paddingHorizontal: 22,
     paddingTop: 30,
     paddingBottom: 20,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   accentBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4 },
   iconWrap: { marginBottom: 18 },
-  icon: { width: 84, height: 84, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(120,150,230,0.3)' },
+  icon: { width: 84, height: 84, borderRadius: 22, borderWidth: 1, borderColor: pick('rgba(120,150,230,0.3)', 'rgba(40,70,150,0.22)') },
   badge: {
     position: 'absolute',
     right: -8,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: Colors.success,
     borderWidth: 3,
-    borderColor: '#111C3F',
+    borderColor: pick('#111C3F', '#FFFFFF'),
     alignItems: 'center',
     justifyContent: 'center',
   },

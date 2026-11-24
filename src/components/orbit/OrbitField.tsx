@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 
 type Props = TextInputProps & {
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.night,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: 'rgba(120,150,230,0.18)',
+    borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'),
     paddingHorizontal: 16,
   },
   boxFocused: {

@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Sticker } from '@/data_api/models/sticker.types';
 import { stickerService } from '@/data_api/services/stickerService';
 import { useFileUrl } from '@/hooks/useFileUrl';
@@ -50,7 +50,7 @@ export function StickerPicker({ visible, onSelect, onClose }: Props) {
           <Text style={st.title}>Stickers</Text>
           {loading ? (
             <View style={st.loaderWrap}>
-              <ActivityIndicator color={Colors.primaryGreen} />
+              <ActivityIndicator color={Colors.goldText} />
             </View>
           ) : stickers.length === 0 ? (
             <Text style={st.empty}>Aucun sticker disponible pour le moment.</Text>
@@ -75,7 +75,7 @@ export function StickerPicker({ visible, onSelect, onClose }: Props) {
 }
 
 const st = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: pick('rgba(0,0,0,0.5)', 'rgba(12,22,52,0.45)') },
   sheet: {
     backgroundColor: Colors.secondaryBg,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,

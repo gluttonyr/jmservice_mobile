@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { MessageType } from '@/data_api/models/message.types';
 import { resolveFileUrl } from '@/hooks/useFileUrl';
@@ -31,7 +31,10 @@ type Props = {
 type StructuredLine = { text: string; label?: string; value?: string; copyable: boolean };
 
 // Each sender keeps the same name colour (forum); the team is always blue.
-const SENDER_COLORS = ['#FFC233', '#3DDC97', '#FF9F6B', '#B49CFF', '#FF8FCB', '#5AA2FF'];
+const SENDER_COLORS = pick(
+  ['#FFC233', '#3DDC97', '#FF9F6B', '#B49CFF', '#FF8FCB', '#5AA2FF'],
+  ['#C27800', '#0E8A59', '#C2551F', '#6B4FD8', '#B8357C', '#1F5FE0'],
+);
 function senderColor(sender: any): string {
   if (sender?.role === 'ADMIN') return Colors.blueLight;
   const key = String(sender?.trackingId ?? sender?.username ?? '');
@@ -124,7 +127,7 @@ export function ChatMessage({
         options.push({
           key: 'pin',
           text: 'Épingler',
-          icon: <Pin color={Colors.primaryGreen} size={18} />,
+          icon: <Pin color={Colors.goldText} size={18} />,
           onPress: () => onPin(item.trackingId),
         });
       }
@@ -375,11 +378,11 @@ const st = StyleSheet.create({
   senderName: { fontFamily: Font.bodyBold, fontSize: 13, lineHeight: 17, marginBottom: 3 },
 
   pinBadge: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
-  pinBadgeText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 11, lineHeight: 14, marginLeft: 3 },
+  pinBadgeText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 11, lineHeight: 14, marginLeft: 3 },
 
   bubble: { alignSelf: 'flex-start', maxWidth: '100%', borderRadius: 22, paddingHorizontal: 15, paddingVertical: 10 },
   bubbleMe: { backgroundColor: Colors.blue, borderBottomRightRadius: 6 },
-  bubbleOther: { backgroundColor: '#16224D', borderBottomLeftRadius: 6 },
+  bubbleOther: { backgroundColor: pick('#16224D', '#F1F4FB'), borderBottomLeftRadius: 6 },
   bubbleMeAdmin: { backgroundColor: '#0F7C83', borderBottomRightRadius: 6 },
   bubbleOtherAdmin: { backgroundColor: '#13262E', borderBottomLeftRadius: 6 },
 
@@ -394,14 +397,14 @@ const st = StyleSheet.create({
   msgTime: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 11, lineHeight: 14 },
   msgTimeMe: { color: 'rgba(255,255,255,0.8)' },
 
-  deletedPill: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#16224D', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9 },
+  deletedPill: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: pick('#16224D', '#F1F4FB'), borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9 },
   deletedText: { color: Colors.textSecondary, fontFamily: Font.body, fontStyle: 'italic', fontSize: 14 },
 
-  requestCard: { width: '100%', borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,194,51,0.45)', backgroundColor: '#111C3F' },
+  requestCard: { width: '100%', borderRadius: 24, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,194,51,0.45)', backgroundColor: pick('#111C3F', '#FFFFFF') },
   requestCardAdmin: { backgroundColor: '#10262D' },
   requestHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: 'rgba(255,194,51,0.1)' },
   requestIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
-  requestTitle: { flex: 1, color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 16 },
+  requestTitle: { flex: 1, color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 16 },
   requestBody: { padding: 12, gap: 8 },
   requestField: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.night, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 },
   requestLabel: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, flexShrink: 0, maxWidth: '45%' },
@@ -409,7 +412,7 @@ const st = StyleSheet.create({
 
   imgWrap: { borderRadius: 18, overflow: 'hidden', position: 'relative', borderWidth: 4 },
   imgWrapMe: { borderColor: Colors.blue },
-  imgWrapOther: { borderColor: '#16224D' },
+  imgWrapOther: { borderColor: pick('#16224D', '#F1F4FB') },
   imageMsg: { width: 220, height: 160 },
   imgZoomHint: {
     position: 'absolute', bottom: 8, right: 8, width: 32, height: 32, borderRadius: 16,

@@ -1,7 +1,7 @@
 import { useWideWeb } from '@/hooks/useWideWeb';
 import { webSidebarStyles } from '@/components/webSidebarStyles';
 import { FlowHeader, OrbitBackground, StarStepper } from '@/components/orbit';
-import { Colors, StatusColors } from '@/constants/colors';
+import { Colors, StatusColors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Transaction, TransactionStatus } from '@/data_api/models/transaction.types';
@@ -65,7 +65,7 @@ const STATUS_CONFIG: Record<TransactionStatus, StatusConfig> = {
   VALIDEE: {
     label: 'Transaction validée',
     description: 'Le paiement a été confirmé avec succès.',
-    color: Colors.primaryGreen,
+    color: Colors.goldText,
     step: 3,
     terminal: 'success',
   },
@@ -187,7 +187,7 @@ export default function UserTransactionsScreen() {
 
       {loading ? (
         <View style={st.loader}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.goldText} size="large" />
         </View>
       ) : (
         <FlatList
@@ -208,7 +208,7 @@ export default function UserTransactionsScreen() {
             if (hasMore && !loadingMore && !loading) void load(page + 1, true);
           }}
           onEndReachedThreshold={0.4}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primaryGreen} style={{ padding: 16 }} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.goldText} style={{ padding: 16 }} /> : null}
           ListEmptyComponent={() => (
             <Text style={st.emptyText}>Aucune transaction pour le moment.</Text>
           )}
@@ -295,7 +295,7 @@ export default function UserTransactionsScreen() {
                   {/* In progress, or a finished case with something to explain (Matistore texts). */}
                   {(!finished || (item.type === 'RETRAIT' && item.statut === 'VALIDEE')) && (
                     <View style={[st.statusPanel, { backgroundColor: finished ? tone.bg : 'rgba(47,123,255,0.14)' }]}>
-                      <Text style={[st.statusTitle, { color: finished ? tone.fg : '#7FB2FF' }]}>{config.label}</Text>
+                      <Text style={[st.statusTitle, { color: finished ? tone.fg : pick('#7FB2FF', '#1F5FE0') }]}>{config.label}</Text>
                       <Text style={st.statusDescription}>{config.description}</Text>
                     </View>
                   )}
@@ -305,7 +305,7 @@ export default function UserTransactionsScreen() {
                       steps={FLOW_STEPS}
                       current={Math.min(FLOW_STEPS.length, config.step)}
                       color={Colors.blueLight}
-                      activeColor={Colors.pureWhite}
+                      activeColor={pick(Colors.pureWhite, Colors.blue)}
                       compact
                     />
                   )}
@@ -387,11 +387,11 @@ const st = StyleSheet.create({
   rail: { width: 28, alignItems: 'center', paddingTop: 26 },
   dot: { width: 16, height: 16, borderRadius: 8 },
   dotActive: { width: 22, height: 22, borderRadius: 11, borderWidth: 4, borderColor: 'rgba(90,162,255,0.3)' },
-  railLine: { flex: 1, width: 3, borderRadius: 2, backgroundColor: 'rgba(120,150,230,0.2)', marginTop: 6 },
+  railLine: { flex: 1, width: 3, borderRadius: 2, backgroundColor: pick('rgba(120,150,230,0.2)', 'rgba(40,70,150,0.16)'), marginTop: 6 },
 
   card: {
     flex: 1,
-    backgroundColor: 'rgba(17,28,63,0.95)',
+    backgroundColor: pick('rgba(17,28,63,0.95)', '#FFFFFF'),
     borderRadius: 26,
     borderWidth: 1,
     borderColor: 'transparent',
@@ -410,7 +410,7 @@ const st = StyleSheet.create({
   pillText: { fontFamily: Font.bodyBold, fontSize: 13 },
   amountWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 4, flexShrink: 0 },
   cardAmount: { color: Colors.chrome, fontFamily: Font.title, fontSize: 22 },
-  amountMuted: { color: '#A3AECB' },
+  amountMuted: { color: pick('#A3AECB', '#5B6789') },
   cardCurrency: { color: Colors.textSecondary, fontFamily: Font.titleBold, fontSize: 12 },
   amountUnknown: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, maxWidth: 100, textAlign: 'right' },
 
@@ -419,8 +419,8 @@ const st = StyleSheet.create({
   statusDescription: { color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
 
   rejectionBox: { backgroundColor: 'rgba(255,107,107,0.1)', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 11 },
-  rejectionLabel: { color: '#FF9A9A', fontFamily: Font.bodyBold },
-  rejectionText: { color: '#FFC2C2', fontFamily: Font.body, fontSize: 14, lineHeight: 20 },
+  rejectionLabel: { color: pick('#FF9A9A', '#C9373C'), fontFamily: Font.bodyBold },
+  rejectionText: { color: pick('#FFC2C2', '#C9373C'), fontFamily: Font.body, fontSize: 14, lineHeight: 20 },
 
   detailLine: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14 },
 
@@ -428,15 +428,15 @@ const st = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.gold, backgroundColor: 'rgba(255,194,51,0.06)',
     borderRadius: 18, paddingVertical: 14, alignItems: 'center',
   },
-  claimButtonText: { color: Colors.gold, fontFamily: Font.title, fontSize: 16 },
+  claimButtonText: { color: Colors.goldText, fontFamily: Font.title, fontSize: 16 },
 
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(3,6,18,0.78)', justifyContent: 'center', padding: 20 },
+  modalBackdrop: { flex: 1, backgroundColor: pick('rgba(3,6,18,0.78)', 'rgba(12,22,52,0.45)'), justifyContent: 'center', padding: 20 },
   modalCard: { backgroundColor: Colors.secondaryBg, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, padding: 20, gap: 13 },
   modalTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20, textTransform: 'uppercase' },
   modalIntro: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
   claimSummary: { backgroundColor: Colors.cardBg, borderRadius: 16, padding: 14, gap: 7 },
   summaryLine: { color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 18 },
-  summaryReason: { color: '#FFA3A3', fontFamily: Font.body, fontSize: 13, lineHeight: 18, marginTop: 3 },
+  summaryReason: { color: pick('#FFA3A3', '#C9373C'), fontFamily: Font.body, fontSize: 13, lineHeight: 18, marginTop: 3 },
   modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 10, marginTop: 2 },
   modalCancel: { paddingHorizontal: 14, paddingVertical: 11 },
   modalCancelText: { color: Colors.textSecondary, fontFamily: Font.bodyBold, fontSize: 14 },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export default function GlassCard({ children, style, glow = false }: GlassCardPr
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(17,28,63,0.92)',
+    backgroundColor: pick('rgba(17,28,63,0.92)', '#FFFFFF'),
     borderRadius: 24,
     borderWidth: 1,
     borderColor: Colors.border,

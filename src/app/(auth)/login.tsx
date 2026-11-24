@@ -1,6 +1,6 @@
 import GreenButton from '@/components/ui/GreenButton';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { authService } from '@/data_api/services/authService';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { useAppleAuth } from '@/hooks/useAppleAuth';
@@ -205,15 +205,15 @@ const styles = StyleSheet.create({
   },
   errorText: { color: Colors.error, fontFamily: Font.bodyMedium, fontSize: 14 },
   card: {
-    backgroundColor: 'rgba(17,28,63,0.92)',
+    backgroundColor: pick('rgba(17,28,63,0.92)', '#FFFFFF'),
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(120,150,230,0.16)',
+    borderColor: pick('rgba(120,150,230,0.16)', 'rgba(40,70,150,0.13)'),
     padding: 20,
     paddingBottom: 22,
   },
   loginBtn: { width: '100%', marginTop: 6 },
   registerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 28 },
   registerText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15 },
-  registerLink: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15, textDecorationLine: 'underline' },
+  registerLink: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 15, textDecorationLine: 'underline' },
 });

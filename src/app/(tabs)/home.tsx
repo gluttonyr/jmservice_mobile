@@ -3,7 +3,7 @@ import { OrbitBackground, OrbitStar } from '@/components/orbit';
 import { SocialLinks } from '@/components/SocialLinks';
 import { UserAvatar } from '@/components/UserAvatar';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { Banniere } from '@/data_api/models/banniere.types';
 import { DiscussionType } from '@/data_api/models/discussion.types';
@@ -41,9 +41,9 @@ import Svg, { Ellipse } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 
 const SIDE = 20;
-// Banners: a 16:9 card, one per page of the full screen width, so each swipe or automatic slide stops
-// exactly centred on the next one. The picture fills the card (the admin's visuals carry their own text,
-// nothing is written over them). The admin editor crops to the same 16:9.
+// Banners: edge to edge like Matistore, one per page of the full width, so each swipe or automatic slide
+// stops exactly on the next one. The banner takes the shape of the first picture (between 1.2:1 and 2.4:1),
+// so the whole picture shows; 16:9 (the admin editor's crop) until it is known. Nothing written over it.
 const BANNER_RATIO = 16 / 9;
 
 // Event cards without a cover picture take these colours in turn (as in the design).
@@ -65,8 +65,12 @@ function EventCover({ coverImage, index }: { coverImage?: string | null; index: 
   );
 }
 
-function BannerImage({ image }: { image?: string | null }) {
+function BannerImage({ image, onRatio }: { image?: string | null; onRatio?: (ratio: number) => void }) {
   const uri = useFileUrl('banners', image);
+  useEffect(() => {
+    if (!uri || !onRatio) return;
+    Image.getSize(uri, (w, h) => { if (w && h) onRatio(w / h); }, () => {});
+  }, [uri, onRatio]);
   if (!uri) return null;
   return <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />;
 }
@@ -152,15 +156,15 @@ export default function HomeScreen() {
 
   // Carousel: the admin's banners, then the promo code (never on iOS: App Store review).
   // Nothing configured or offline: a welcome card, so the layout keeps its place.
+  const [bannerRatio, setBannerRatio] = useState(BANNER_RATIO);
+  const onFirstBannerRatio = useCallback((r: number) => setBannerRatio(Math.min(2.4, Math.max(1.2, r))), []);
   const slides: Slide[] = banners.map((banner) => ({ kind: 'banner', banner }));
   if (Platform.OS !== 'ios' && promoCode) slides.push({ kind: 'promo', code: promoCode });
   if (slides.length === 0 && bannersLoaded) slides.push({ kind: 'welcome' });
 
   const slideWidth = pageWidth;
   const step = slideWidth;
-  const cardWidth = Math.max(0, slideWidth - SIDE * 2);
-  const cardHeight = Math.min(Math.round(cardWidth / BANNER_RATIO), 240);
-  const card = { width: cardWidth, height: cardHeight };
+  const card = { width: slideWidth, height: Math.round(slideWidth / bannerRatio) };
 
   useEffect(() => {
     if (slides.length < 2 || step <= 0) return;
@@ -187,7 +191,7 @@ export default function HomeScreen() {
     Toast.show({ type: 'success', text1: 'Code copié', text2: `Utilisez ${code} lors de votre inscription chez le bookmaker.` });
   };
 
-  const renderSlide = ({ item }: { item: Slide }) => {
+  const renderSlide = ({ item, index }: { item: Slide; index: number }) => {
     if (item.kind === 'banner') {
       const { banner } = item;
       return (
@@ -198,7 +202,7 @@ export default function HomeScreen() {
           style={[styles.slide, card]}
         >
           {banner.image ? (
-            <BannerImage image={banner.image} />
+            <BannerImage image={banner.image} onRatio={index === 0 ? onFirstBannerRatio : undefined} />
           ) : (
             // No picture: the title on the brand card.
             <View style={styles.slideContent}>
@@ -271,7 +275,7 @@ export default function HomeScreen() {
               data={slides}
               horizontal
               keyExtractor={(item, i) => (item.kind === 'banner' ? item.banner.trackingId : `${item.kind}-${i}`)}
-              renderItem={(info) => <View style={{ width: slideWidth, paddingHorizontal: SIDE }}>{renderSlide(info)}</View>}
+              renderItem={renderSlide}
               showsHorizontalScrollIndicator={false}
               pagingEnabled
               getItemLayout={(_, i) => ({ length: slideWidth, offset: slideWidth * i, index: i })}
@@ -416,7 +420,7 @@ const styles = StyleSheet.create({
   actionOutline: { backgroundColor: 'rgba(10,22,70,0.55)', borderWidth: 1.5, borderColor: 'rgba(160,190,255,0.45)' },
   actionIcon: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   actionIconGold: { backgroundColor: 'rgba(26,20,5,0.12)' },
-  actionIconBlue: { backgroundColor: 'rgba(120,160,255,0.22)' },
+  actionIconBlue: { backgroundColor: pick('rgba(120,160,255,0.22)', 'rgba(40,70,150,0.16)') },
   actionCopy: { flex: 1 },
   actionTitle: { color: Colors.pureWhite, fontFamily: Font.title, fontSize: 21, lineHeight: 26 },
   actionSub: { color: 'rgba(232,237,247,0.8)', fontFamily: Font.bodyMedium, fontSize: 13 },
@@ -424,20 +428,17 @@ const styles = StyleSheet.create({
   historyTitle: { flex: 1, color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 15 },
   historyLink: { color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 14 },
 
-  slide: {
-    borderRadius: 22, overflow: 'hidden', backgroundColor: Colors.navy,
-    borderWidth: 1, borderColor: 'rgba(255,194,51,0.28)',
-  },
+  slide: { overflow: 'hidden', backgroundColor: Colors.navy },
   slideLogo: { position: 'absolute', right: -6, bottom: 6 },
   slideContent: { flex: 1, justifyContent: 'center', paddingHorizontal: SIDE, paddingVertical: 14, maxWidth: '72%' },
   slideBadge: { alignSelf: 'flex-start', backgroundColor: Colors.gold, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 8 },
   slideBadgeText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 11, letterSpacing: 1.5 },
   slideTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 19, lineHeight: 22 },
   slideSubtitle: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, marginTop: 4 },
-  slideCta: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14, marginTop: 8 },
+  slideCta: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 14, marginTop: 8 },
   carousel: { marginBottom: 22 },
   pagination: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 12 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(141,154,192,0.35)' },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: pick('rgba(141,154,192,0.35)', 'rgba(80,95,140,0.3)') },
   dotActive: { width: 22, backgroundColor: Colors.gold },
 
   section: { paddingHorizontal: SIDE, marginTop: 24 },
@@ -455,6 +456,6 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(6,11,30,0.7)',
     borderRadius: 10, paddingHorizontal: 9, paddingVertical: 4,
   },
-  eventDateText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 12 },
+  eventDateText: { color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 12 },
   eventTitle: { position: 'absolute', left: 12, right: 12, bottom: 12, color: Colors.pureWhite, fontFamily: Font.bodyBold, fontSize: 15 },
 });

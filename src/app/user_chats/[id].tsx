@@ -102,7 +102,7 @@ useEffect(() => {
       {/* Messages */}
       {loading ? (
         <View style={st.loader}>
-          <ActivityIndicator color={Colors.primaryGreen} size="large" />
+          <ActivityIndicator color={Colors.goldText} size="large" />
         </View>
       ) : (
         <SectionList

@@ -1,5 +1,6 @@
 import * as SecureStore from '@/storage/secureStore';
 import { User } from '@/data_api/models/user.types';
+import { syncThemeWithAccount } from '@/constants/colors';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -31,10 +32,13 @@ export const authStorage = {
   },
 
   async setUser(user: User) {
-    return await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    // Admin: dark theme; client: the theme they chose (the website restarts if it must change).
+    syncThemeWithAccount(user?.role);
   },
 
   async removeUser() {
-    return await SecureStore.deleteItemAsync(USER_KEY);
+    await SecureStore.deleteItemAsync(USER_KEY);
+    syncThemeWithAccount(null);
   },
 };

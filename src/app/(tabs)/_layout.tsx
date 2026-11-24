@@ -15,7 +15,7 @@ import ProfileScreen from './profile';
 import Badge from '@/components/ui/Badge';
 import JMLogo from '@/components/ui/JMLogo';
 import { OrbitBackdropContext, OrbitBackground } from '@/components/orbit';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { usePushNotificationRegistration } from '@/hooks/usePushNotificationRegistration';
 import { useForumHasNew } from '@/hooks/useForumHasNew';
@@ -124,7 +124,7 @@ export default function TabsLayout() {
         )}
         {TABS.map(({ key, label, Icon }, index) => {
           const focused = activeIndex === index;
-          const color = focused ? Colors.primaryGreen : Colors.textSecondary;
+          const color = focused ? Colors.goldText : Colors.textSecondary;
           // const badge = key === 'chats' ? chatsUnread : 0;
           const dot = key === 'forum' && forumHasNew;
           return (
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   page: { flex: 1 },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#070D24',
+    backgroundColor: pick('#070D24', '#FFFFFF'),
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     paddingTop: 12,

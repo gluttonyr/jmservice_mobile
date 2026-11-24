@@ -2,7 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Ellipse } from 'react-native-svg';
-import { Gradients } from '@/constants/colors';
+import { Gradients, pick } from '@/constants/colors';
 import { OrbitStar } from './OrbitStar';
 
 type Props = {
@@ -66,7 +66,7 @@ export function OrbitBackground({ children, style, variant = 'client', orbits = 
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#060B1E' },
+  root: { flex: 1, backgroundColor: pick('#060B1E', '#EEF2FA') },
   transparent: { backgroundColor: 'transparent' },
   orbits: { position: 'absolute', top: 0, left: 0, right: 0, height: 320, overflow: 'hidden' },
   star: { position: 'absolute' },

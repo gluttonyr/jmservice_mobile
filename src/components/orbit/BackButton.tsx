@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableOpacity, type StyleProp, type ViewStyle } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 
 /** Rounded square back button of the « Orbite » screens. */
 export function BackButton({ onPress, style }: { onPress: () => void; style?: StyleProp<ViewStyle> }) {
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: 'rgba(17,28,63,0.85)',
+    backgroundColor: pick('rgba(17,28,63,0.85)', '#FFFFFF'),
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',

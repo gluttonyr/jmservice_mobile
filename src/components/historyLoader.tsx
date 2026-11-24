@@ -6,7 +6,7 @@ export function HistoryLoader({ visible }: { visible: boolean }) {
   if (!visible) return null;
   return (
     <View style={st.wrap}>
-      <ActivityIndicator size="small" color={Colors.primaryGreen} />
+      <ActivityIndicator size="small" color={Colors.goldText} />
       <Text style={st.text}>Chargement des messages précédents…</Text>
     </View>
   );

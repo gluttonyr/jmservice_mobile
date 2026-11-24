@@ -6,7 +6,7 @@ import { ChevronLeft, MapPin, Calendar, Share2, Trophy, Users } from 'lucide-rea
 import * as FileSystem from 'expo-file-system/legacy';
 import Share, { Social } from '@/components/Share';
 import { OrbitStar } from '@/components/orbit';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWideWeb } from '@/hooks/useWideWeb';
@@ -101,7 +101,7 @@ export default function EventDetailScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={Colors.primaryGreen} size="large" />
+        <ActivityIndicator color={Colors.goldText} size="large" />
       </View>
     );
   }
@@ -132,13 +132,13 @@ export default function EventDetailScreen() {
           )}
           <LinearGradient colors={['transparent', Colors.darkBg]} style={styles.heroGrad} />
           <TouchableOpacity style={[styles.backBtn, { top: insets.top + 14 }]} onPress={() => router.back()} accessibilityLabel="Retour">
-            <ChevronLeft color={Colors.chrome} size={24} />
+            <ChevronLeft color={Colors.pureWhite} size={24} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.shareBtn, { top: insets.top + 14 }]} onPress={handleShareWhatsApp} disabled={sharing} accessibilityLabel="Partager">
             {sharing ? (
-              <ActivityIndicator color={Colors.chrome} size="small" />
+              <ActivityIndicator color={Colors.pureWhite} size="small" />
             ) : (
-              <Share2 color={Colors.chrome} size={20} />
+              <Share2 color={Colors.pureWhite} size={20} />
             )}
           </TouchableOpacity>
           <View style={styles.catBadge}>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: Colors.night, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
   errorText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15, textAlign: 'center' },
   backBtnInline: { paddingHorizontal: 22, paddingVertical: 11, borderRadius: 14, backgroundColor: 'rgba(255,194,51,0.1)', borderWidth: 1.5, borderColor: Colors.gold },
-  backBtnInlineText: { color: Colors.gold, fontFamily: Font.bodyBold },
+  backBtnInlineText: { color: Colors.goldText, fontFamily: Font.bodyBold },
   heroContainer: { height: 320, position: 'relative' },
   // website on a computer: picture on the left, details on the right
   wideRow: { flexDirection: 'row', padding: 32, gap: 32, alignItems: 'flex-start' },
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 16 },
   title: { color: Colors.chrome, fontFamily: Font.title, fontSize: 28, lineHeight: 34, textTransform: 'uppercase' },
   metaRow: { gap: 12 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 20, padding: 12 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'), borderRadius: 20, padding: 12 },
   metaIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(47,123,255,0.16)', alignItems: 'center', justifyContent: 'center' },
   metaLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 12 },
   metaValue: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15 },
@@ -233,6 +233,6 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   infoText: { color: Colors.chrome, fontFamily: Font.bodySemiBold, fontSize: 15, flex: 1 },
   infoDivider: { height: 1, backgroundColor: Colors.border },
-  infoHighlight: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 15 },
+  infoHighlight: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 15 },
   shareOutlineBtn: { width: '100%' },
 });

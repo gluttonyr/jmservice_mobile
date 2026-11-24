@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   panel: { borderRightWidth: 1, borderRightColor: Colors.border },
   inner: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 48 },
   tagline: { color: Colors.chrome, fontFamily: Font.title, fontSize: 30, marginTop: 24, marginBottom: 36, textAlign: 'center' },
-  taglineGold: { color: Colors.gold },
+  taglineGold: { color: Colors.goldText },
   points: { gap: 16 },
   point: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pointText: { color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 17 },

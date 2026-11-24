@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import {
   CircleArrowDown,
@@ -38,7 +38,7 @@ const VARIANT_COLORS: Record<keyof typeof ICON_SETS, string> = {
   default: '#5AA2FF',
   finance: '#FFC233',
   admin: '#19D3C5',
-  forum: '#B9C3DA',
+  forum: pick('#B9C3DA', '#4A5886'),
 };
 
 export type ChatBackgroundVariant = keyof typeof ICON_SETS;

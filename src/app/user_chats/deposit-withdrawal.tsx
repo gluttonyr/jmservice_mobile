@@ -9,7 +9,7 @@ import { InfoModal } from '@/components/infomodal';
 import { ChoiceCard, FlowHeader, OrbitBackground, PaymentOrbit, Plaque, StarStepper } from '@/components/orbit';
 import GreenButton from '@/components/ui/GreenButton';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { getApiErrorMessage } from '@/data_api/lib/logger';
 import { DiscussionStatus } from '@/data_api/models/discussion.types';
@@ -475,12 +475,12 @@ export default function DepositWithdrawalScreen() {
   const paymentProgressLabels = ['Paiement', 'Paiement reçu', 'Crédit en cours', 'Compte crédité'];
   // Pill in the middle of the payment orbit.
   const paymentStatus = transaction?.creditError
-    ? { label: 'Crédit à vérifier', bg: 'rgba(255,107,107,0.16)', fg: '#FF8A8A' }
+    ? { label: 'Crédit à vérifier', bg: 'rgba(255,107,107,0.16)', fg: pick('#FF8A8A', '#D93A3F') }
     : transaction?.statut === 'VALIDEE'
       ? { label: 'Compte crédité', bg: 'rgba(61,220,151,0.16)', fg: Colors.success }
       : paymentProgressStep >= 3
-        ? { label: 'Paiement reçu', bg: 'rgba(47,123,255,0.2)', fg: '#8FB4FF' }
-        : { label: 'Paiement en attente', bg: 'rgba(255,194,51,0.16)', fg: Colors.gold };
+        ? { label: 'Paiement reçu', bg: 'rgba(47,123,255,0.2)', fg: pick('#8FB4FF', '#1F5FE0') }
+        : { label: 'Paiement en attente', bg: 'rgba(255,194,51,0.16)', fg: Colors.goldText };
   // Le montant affiché contient des espaces (séparateurs de milliers) : le code USSD
   // composé, lui, ne doit contenir que des chiffres.
   const rawAmount = amount.replace(/[^0-9]/g, '');
@@ -1037,7 +1037,7 @@ export default function DepositWithdrawalScreen() {
       <Text style={st.pageTitle}>Choisir le bookmaker</Text>
       <Text style={st.pageSubtitle}>{subtitle}</Text>
       {loadingBookmakers ? (
-        <ActivityIndicator color={Colors.primaryGreen} style={{ marginVertical: 32 }} />
+        <ActivityIndicator color={Colors.goldText} style={{ marginVertical: 32 }} />
       ) : (
         <View>
           {bookmakers.map((bm) => (
@@ -1134,7 +1134,7 @@ export default function DepositWithdrawalScreen() {
                 </Text>
                 {loadingOperators ? (
                   <ActivityIndicator
-                    color={Colors.primaryGreen}
+                    color={Colors.goldText}
                     style={{ marginVertical: 32 }}
                   />
                 ) : operators.length === 0 ? (
@@ -1288,7 +1288,7 @@ export default function DepositWithdrawalScreen() {
                     onBlur={() => setPhoneNumber((value) => formatPhoneForCountry(value, countryCode))}
                     keyboardType="phone-pad"
                   />
-                  {depositPhoneValid && <CheckCircle2 color={Colors.primaryGreen} size={20} style={st.phoneValidIcon} />}
+                  {depositPhoneValid && <CheckCircle2 color={Colors.goldText} size={20} style={st.phoneValidIcon} />}
                 </View>
                 {!!phoneNumber.trim() && !depositPhoneValid && (
                   <Text style={st.phoneValidationError}>Numéro invalide pour le pays sélectionné.</Text>
@@ -1317,7 +1317,7 @@ export default function DepositWithdrawalScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`Utiliser l’identifiant 1XBET ${lastUsedInputs.accountId} déjà utilisé`}
                   >
-                    <View style={st.lastUsedAccountIcon}><Check color={Colors.primaryGreen} size={18} strokeWidth={2.6} /></View>
+                    <View style={st.lastUsedAccountIcon}><Check color={Colors.goldText} size={18} strokeWidth={2.6} /></View>
                     <View style={st.lastUsedAccountCopy}>
                       <Text style={st.lastUsedAccountLabel}>Identifiant utilisé récemment</Text>
                       <Text style={st.lastUsedAccountValue}>{lastUsedInputs.accountId}</Text>
@@ -1336,7 +1336,7 @@ export default function DepositWithdrawalScreen() {
                     autoCapitalize="none"
                   />
                   {depositPlayerValidation.checking && (
-                    <ActivityIndicator color={Colors.primaryGreen} style={{ marginHorizontal: 10 }} />
+                    <ActivityIndicator color={Colors.goldText} style={{ marginHorizontal: 10 }} />
                   )}
                   <TouchableOpacity
                     style={st.pasteBtn}
@@ -1535,7 +1535,7 @@ export default function DepositWithdrawalScreen() {
               <Text style={st.pageTitle}>Choisir l'opérateur</Text>
               <Text style={st.pageSubtitle}>Sélectionnez le réseau Mobile Money qui recevra votre retrait.</Text>
               {loadingOperators
-                ? <ActivityIndicator color={Colors.primaryGreen} style={{ marginVertical: 32 }} />
+                ? <ActivityIndicator color={Colors.goldText} style={{ marginVertical: 32 }} />
                 : renderOperatorChoices(operators.filter((op) => op.active), 'Reçoit votre retrait')}
               {!loadingOperators && !operators.some((op) => op.active) && <Text style={st.errorText}>Aucun opérateur disponible. Réessayez plus tard.</Text>}
               <GreenButton title="Suivant →" onPress={() => operatorId && setWithdrawalStep(2)} disabled={!operatorId || loadingOperators} style={st.pageBtn} />
@@ -1555,7 +1555,7 @@ export default function DepositWithdrawalScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Utiliser l’identifiant 1XBET ${lastUsedInputs.accountId} déjà utilisé`}
                 >
-                  <View style={st.lastUsedAccountIcon}><Check color={Colors.primaryGreen} size={18} strokeWidth={2.6} /></View>
+                  <View style={st.lastUsedAccountIcon}><Check color={Colors.goldText} size={18} strokeWidth={2.6} /></View>
                   <View style={st.lastUsedAccountCopy}>
                     <Text style={st.lastUsedAccountLabel}>Identifiant utilisé récemment</Text>
                     <Text style={st.lastUsedAccountValue}>{lastUsedInputs.accountId}</Text>
@@ -1574,7 +1574,7 @@ export default function DepositWithdrawalScreen() {
                   autoCapitalize="none"
                 />
                 {withdrawalPlayerValidation.checking && (
-                  <ActivityIndicator color={Colors.primaryGreen} style={{ marginHorizontal: 10 }} />
+                  <ActivityIndicator color={Colors.goldText} style={{ marginHorizontal: 10 }} />
                 )}
                 <TouchableOpacity
                   style={st.pasteBtn}
@@ -1708,7 +1708,7 @@ export default function DepositWithdrawalScreen() {
                   onBlur={() => setWPhoneNumber((value) => formatPhoneForCountry(value, wCountryCode))}
                   keyboardType="phone-pad"
                 />
-                {withdrawalPhoneValid && <CheckCircle2 color={Colors.primaryGreen} size={20} style={st.phoneValidIcon} />}
+                {withdrawalPhoneValid && <CheckCircle2 color={Colors.goldText} size={20} style={st.phoneValidIcon} />}
               </View>
               {!!wPhoneNumber.trim() && !withdrawalPhoneValid && (
                 <Text style={st.phoneValidationError}>Numéro invalide pour le pays sélectionné.</Text>
@@ -1776,7 +1776,7 @@ export default function DepositWithdrawalScreen() {
       >
         <View style={[st.actionCardInner, st.actionCardOutline]}>
           <View style={[st.actionIconWrap, st.actionIconNavy]}>
-            <ArrowUp color={Colors.gold} size={22} strokeWidth={2.5} />
+            <ArrowUp color={Colors.goldText} size={22} strokeWidth={2.5} />
           </View>
           <View style={st.actionCopy}>
             <Text style={st.actionCardTitle}>RETRAIT</Text>
@@ -1815,7 +1815,7 @@ export default function DepositWithdrawalScreen() {
           accessibilityRole="button"
           accessibilityLabel="Mes transactions"
         >
-          <History color={Colors.gold} size={24} />
+          <History color={Colors.goldText} size={24} />
           {hasUnseenTransaction && <View style={st.notifDot} />}
         </TouchableOpacity>
       </View>
@@ -1824,7 +1824,7 @@ export default function DepositWithdrawalScreen() {
         <WideWrap on={wide} style={st.wideChat}>
           {loading ? (
             <View style={st.loader}>
-              <ActivityIndicator color={Colors.primaryGreen} size="large" />
+              <ActivityIndicator color={Colors.goldText} size="large" />
             </View>
           ) : (
             <SectionList
@@ -1905,12 +1905,12 @@ const st = StyleSheet.create({
   choiceLogoImage: { width: '86%', height: '86%' },
   headerAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.navy, borderWidth: 2, borderColor: 'rgba(90,162,255,0.4)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   historyBtn: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,194,51,0.12)', borderWidth: 1, borderColor: 'rgba(255,194,51,0.35)' },
-  amountCard: { borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(47,123,255,0.55)', backgroundColor: 'rgba(6,11,30,0.75)', paddingVertical: 22, paddingHorizontal: 16, alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
+  amountCard: { borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(47,123,255,0.55)', backgroundColor: pick('rgba(6,11,30,0.75)', '#FFFFFF'), paddingVertical: 22, paddingHorizontal: 16, alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
   amountCaption: { color: Colors.blueLight, fontFamily: Font.bodyExtraBold, fontSize: 13, letterSpacing: 3 },
   amountRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', marginVertical: 8, maxWidth: '100%' },
   amountMinimum: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 13 },
   chipInner: { paddingVertical: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.navy },
-  summaryCard: { backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 24, paddingHorizontal: 18, paddingVertical: 14, gap: 10 },
+  summaryCard: { backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'), borderRadius: 24, paddingHorizontal: 18, paddingVertical: 14, gap: 10 },
   summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   summaryLabel: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 15 },
   summaryValue: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15, flexShrink: 1, textAlign: 'right' },
@@ -1925,12 +1925,12 @@ const st = StyleSheet.create({
   processingBox: { paddingVertical: 14, paddingHorizontal: 8 },
   processingText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19, textAlign: 'center' },
   instructionNumber: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,194,51,0.16)', alignItems: 'center', justifyContent: 'center' },
-  instructionNumberText: { color: Colors.gold, fontFamily: Font.title, fontSize: 15 },
+  instructionNumberText: { color: Colors.goldText, fontFamily: Font.title, fontSize: 15 },
   actionCard: { flex: 1, borderRadius: 24, overflow: 'hidden' },
   actionCardOutline: { backgroundColor: Colors.navy, borderWidth: 1.5, borderColor: 'rgba(255,194,51,0.45)' },
   actionCopy: { flex: 1, minWidth: 0 },
   actionIconGold: { backgroundColor: 'rgba(26,20,5,0.12)' },
-  actionIconNavy: { backgroundColor: 'rgba(120,150,230,0.14)' },
+  actionIconNavy: { backgroundColor: pick('rgba(120,150,230,0.14)', 'rgba(40,70,150,0.12)') },
   container: { flex: 1, backgroundColor: Colors.darkBg },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: {
@@ -1941,9 +1941,9 @@ const st = StyleSheet.create({
   },
   emptyText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 14, textAlign: 'center', lineHeight: 22 },
   captureUnavailableBox: { marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 18, backgroundColor: 'rgba(255,176,32,0.12)', borderWidth: 1, borderColor: 'rgba(255,176,32,0.4)', gap: 5 },
-  captureUnavailableTitle: { color: '#FFC94D', fontFamily: Font.bodyExtraBold, fontSize: 13 },
+  captureUnavailableTitle: { color: pick('#FFC94D', '#B26B00'), fontFamily: Font.bodyExtraBold, fontSize: 13 },
   captureUnavailableText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 17 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 14, paddingHorizontal: 14, backgroundColor: 'rgba(8,16,44,0.96)', borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingBottom: 14, paddingHorizontal: 14, backgroundColor: pick('rgba(8,16,44,0.96)', 'rgba(255,255,255,0.97)'), borderBottomWidth: 1, borderBottomColor: Colors.border, gap: 10 },
   backBtn: { padding: 4 },
   headerInfo: { flex: 1 },
   headerName: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 19 },
@@ -1988,7 +1988,7 @@ const st = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,194,51,0.3)',
   },
-  depositPendingText: { color: Colors.primaryGreen, fontSize: 14, fontWeight: '700' },
+  depositPendingText: { color: Colors.goldText, fontSize: 14, fontWeight: '700' },
   paymentProgressCard: {
     gap: 12,
     padding: 14,
@@ -2004,11 +2004,11 @@ const st = StyleSheet.create({
   paymentProgressLabel: { color: Colors.textSecondary, fontSize: 9, lineHeight: 12 },
   paymentProgressLabelActive: { color: Colors.white, fontWeight: '700' },
   creditErrorBox: { gap: 8, padding: 14, marginBottom: 16, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,107,107,0.45)', backgroundColor: 'rgba(255,107,107,0.08)' },
-  creditErrorTitle: { color: '#FF8A8A', fontFamily: Font.bodyExtraBold, fontSize: 14 },
+  creditErrorTitle: { color: pick('#FF8A8A', '#D93A3F'), fontFamily: Font.bodyExtraBold, fontSize: 14 },
   creditErrorText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 12, lineHeight: 18 },
   cancelDepositBtn: { alignItems: 'center', justifyContent: 'center', width: '100%', marginTop: 10, paddingVertical: 14 },
   cancelDepositBtnDisabled: { opacity: 0.5 },
-  cancelDepositText: { color: '#FF7B7B', fontFamily: Font.bodyBold, fontSize: 16 },
+  cancelDepositText: { color: pick('#FF7B7B', '#D93A3F'), fontFamily: Font.bodyBold, fontSize: 16 },
   copyDepositCodeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', marginTop: 12, paddingVertical: 17, borderRadius: 22, borderWidth: 1.5, borderColor: Colors.blueLight, backgroundColor: Colors.navy },
   copyDepositCodeBtnDisabled: { opacity: 0.5 },
   copyDepositCodeText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
@@ -2039,7 +2039,7 @@ const st = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,194,51,0.3)',
   },
-  retryBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 13 },
+  retryBtnText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 13 },
   operatorCardActive: { backgroundColor: 'rgba(255,194,51,0.05)' },
   operatorLogoFrame: {
     width: 88,
@@ -2065,7 +2065,7 @@ const st = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  bookmakerLogoText: { color: Colors.navy, fontFamily: Font.title, fontSize: 16, paddingHorizontal: 4 },
+  bookmakerLogoText: { color: '#0D1838', fontFamily: Font.title, fontSize: 16, paddingHorizontal: 4 },
   bookmakerSoonBadge: {
     position: 'absolute',
     top: 8,
@@ -2094,15 +2094,15 @@ const st = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  amountInput: { color: Colors.pureWhite, fontFamily: Font.title, fontSize: 52, lineHeight: 64, paddingVertical: 0, minWidth: 60, textAlign: 'center' },
-  amountCurrency: { color: Colors.gold, fontFamily: Font.title, fontSize: 24, marginLeft: 8, marginBottom: 8 },
+  amountInput: { color: Colors.chrome, fontFamily: Font.title, fontSize: 52, lineHeight: 64, paddingVertical: 0, minWidth: 60, textAlign: 'center' },
+  amountCurrency: { color: Colors.goldText, fontFamily: Font.title, fontSize: 24, marginLeft: 8, marginBottom: 8 },
   chips: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   chip: { flex: 1, borderRadius: 18, overflow: 'hidden' },
 
   chipText: { color: Colors.chrome, fontFamily: Font.title, fontSize: 17 },
   chipTextActive: { color: Colors.onGold },
 
-  phoneInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingHorizontal: 16, marginBottom: 4 },
+  phoneInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'), paddingHorizontal: 16, marginBottom: 4 },
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2123,7 +2123,7 @@ const st = StyleSheet.create({
     marginHorizontal: 10,
   },
   phoneValidIcon: { marginLeft: 8 },
-  phoneValidationError: { color: '#FF8A8A', fontFamily: Font.bodyMedium, fontSize: 12, marginTop: 4, marginBottom: 8 },
+  phoneValidationError: { color: pick('#FF8A8A', '#D93A3F'), fontFamily: Font.bodyMedium, fontSize: 12, marginTop: 4, marginBottom: 8 },
   phoneInput: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 16, paddingVertical: 16 },
 
   inputWrap: {
@@ -2134,7 +2134,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 4,
   },
-  inputWrapWithIcon: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingLeft: 16, paddingRight: 6 },
+  inputWrapWithIcon: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'), paddingLeft: 16, paddingRight: 6 },
   pageInput: { color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 17, paddingVertical: 16 },
   inputLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 14, marginBottom: 8 },
   pasteBtn: { padding: 10 },
@@ -2150,7 +2150,7 @@ const st = StyleSheet.create({
   lastUsedAccountCopy: { flex: 1, gap: 2 },
   lastUsedAccountLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 12 },
   lastUsedAccountValue: { color: Colors.chrome, fontFamily: Font.bodyExtraBold, fontSize: 18, letterSpacing: 0.3 },
-  lastUsedAccountAction: { color: Colors.gold, fontFamily: Font.bodyExtraBold, fontSize: 13 },
+  lastUsedAccountAction: { color: Colors.goldText, fontFamily: Font.bodyExtraBold, fontSize: 13 },
 
   codeLabel: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16, textAlign: 'center', marginBottom: 4 },
 
@@ -2190,12 +2190,12 @@ const st = StyleSheet.create({
     lineHeight: 18,
   },
 
-  instructionCard: { flexDirection: 'row', gap: 12, backgroundColor: 'rgba(17,28,63,0.9)', borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 10 },
+  instructionCard: { flexDirection: 'row', gap: 12, backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'), borderRadius: 20, borderWidth: 1, borderColor: Colors.border, padding: 14, marginBottom: 10 },
   instructionStep: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 15, marginBottom: 3 },
   instructionText: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
   pointBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: 'rgba(47,123,255,0.1)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(90,162,255,0.3)', padding: 14, marginTop: 10 },
   pointText: { flex: 1, color: Colors.chrome, fontFamily: Font.body, fontSize: 13, lineHeight: 19 },
-  pointStrong: { color: Colors.pureWhite, fontFamily: Font.bodyExtraBold },
+  pointStrong: { color: Colors.chrome, fontFamily: Font.bodyExtraBold },
 
   xbetBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 22, marginTop: 6, marginBottom: 4, borderWidth: 1.5, borderColor: Colors.blueLight, backgroundColor: Colors.navy },
   xbetBtnText: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16 },
@@ -2208,12 +2208,12 @@ const st = StyleSheet.create({
   widePanel: { width: 340, padding: 20, gap: 16, borderRightWidth: 1, borderRightColor: Colors.border, backgroundColor: Colors.secondaryBg },
   widePanelTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20 },
   actionColumn: { flexDirection: 'column', paddingHorizontal: 0 },
-  actionRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: 'rgba(8,16,44,0.96)' },
+  actionRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: pick('rgba(8,16,44,0.96)', 'rgba(255,255,255,0.97)') },
 
   actionCardInner: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 24, minHeight: 82 },
   actionIconWrap: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 
   actionCardTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 20, lineHeight: 24 },
   actionCardSub: { color: Colors.textSecondary, fontFamily: Font.bodyMedium, fontSize: 12, lineHeight: 16 },
-  errorText: { color: '#FF8A8A', fontFamily: Font.bodySemiBold, fontSize: 13, marginTop: 8, marginBottom: 12, textAlign: 'center' },
+  errorText: { color: pick('#FF8A8A', '#D93A3F'), fontFamily: Font.bodySemiBold, fontSize: 13, marginTop: 8, marginBottom: 12, textAlign: 'center' },
 });

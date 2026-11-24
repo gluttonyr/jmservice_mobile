@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -107,14 +107,14 @@ export function ActionSheet({ visible, onClose, title, message, options }: Props
 }
 
 const st = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: pick('rgba(0,0,0,0.55)', 'rgba(12,22,52,0.45)'), justifyContent: 'flex-end' },
   sheet: { paddingHorizontal: 12, paddingTop: 8 },
   handle: {
     alignSelf: 'center',
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: pick('rgba(255,255,255,0.25)', 'rgba(22,33,90,0.18)'),
     marginBottom: 10,
   },
   headerWrap: { alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
@@ -148,5 +148,5 @@ const st = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
   },
-  cancelText: { color: Colors.primaryGreen, fontSize: 15.5, fontWeight: '700' },
+  cancelText: { color: Colors.goldText, fontSize: 15.5, fontWeight: '700' },
 });

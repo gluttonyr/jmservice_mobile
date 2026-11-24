@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { WifiOff } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -22,7 +22,7 @@ export function ConnectionErrorState({
 }: Props) {
   return (
     <View style={[styles.box, fullscreen && styles.fullscreen]}>
-      <View style={styles.icon}><WifiOff color={Colors.gold} size={24} /></View>
+      <View style={styles.icon}><WifiOff color={Colors.goldText} size={24} /></View>
       <Text style={styles.text}>{message}</Text>
       <TouchableOpacity style={styles.retryBtn} onPress={onRetry} activeOpacity={0.8}>
         <Text style={styles.retryBtnText}>Réessayer</Text>
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 28,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(17,28,63,0.9)',
+    backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'),
     borderWidth: 1,
     borderColor: 'rgba(255,194,51,0.25)',
     borderRadius: 22,
@@ -56,5 +56,5 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.gold,
   },
-  retryBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
+  retryBtnText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 14 },
 });

@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 
 // Name kept for the existing screens. « Orbite » buttons: gold = main action,
@@ -70,7 +70,7 @@ export default function GreenButton({
         accessibilityRole="button"
       >
         {loading
-          ? <ActivityIndicator size="small" color={Colors.gold} />
+          ? <ActivityIndicator size="small" color={Colors.goldText} />
           : <Text style={[styles.ghostText, { fontSize: currentSize.fontSize - 2 }, textStyle]}>{title}</Text>}
       </TouchableOpacity>
     );
@@ -85,7 +85,7 @@ export default function GreenButton({
       accessibilityRole="button"
     >
       <LinearGradient
-        colors={disabled ? ['#2A3558', '#222B48'] : Gradients.gold}
+        colors={disabled ? [pick('#2A3558', '#D5DCEB'), pick('#222B48', '#CBD3E5')] : Gradients.gold}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.gradient, padding]}
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   outlineText: { color: Colors.chrome },
   ghostText: {
-    color: Colors.gold,
+    color: Colors.goldText,
     fontFamily: Font.bodyBold,
   },
   disabled: { opacity: 0.6 },

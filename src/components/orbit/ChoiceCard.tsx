@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
-import { Colors } from '@/constants/colors';
+import { Colors, pick } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 
 /**
@@ -52,7 +52,7 @@ export function ChoiceCard({
       accessibilityLabel={soon ? `${title}, bientôt disponible` : title}
     >
       {selected ? (
-        <LinearGradient colors={['#1B3A8C', '#0F1F55']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.card, styles.cardOn]}>
+        <LinearGradient colors={[pick('#1B3A8C', '#EEF4FF'), pick('#0F1F55', '#DCE8FF')]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.card, styles.cardOn]}>
           {body}
         </LinearGradient>
       ) : (
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 14,
     borderRadius: 26,
-    backgroundColor: 'rgba(17,28,63,0.9)',
+    backgroundColor: pick('rgba(17,28,63,0.9)', '#FFFFFF'),
     borderWidth: 1.5,
     borderColor: Colors.border,
   },
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   title: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 18 },
   caption: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13, marginTop: 2 },
   radioOn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
-  radioOff: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: '#2A3A6E' },
+  radioOff: { width: 34, height: 34, borderRadius: 17, borderWidth: 2, borderColor: pick('#2A3A6E', '#C5CFE6') },
   soon: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(255,194,51,0.16)' },
-  soonText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 12 },
+  soonText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 12 },
 });

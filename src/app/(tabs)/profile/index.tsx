@@ -1,5 +1,5 @@
 import { OrbitBackground } from '@/components/orbit';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors, Gradients, pick, theme, setThemePreference, CardShadow } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User as UserModel, UserRole } from '@/data_api/models/user.types';
@@ -12,7 +12,20 @@ import { SocialLinks } from '@/components/SocialLinks';
 import { authStorage } from '@/storage/authStorage';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
-import { Check, ChevronRight, Edit3, ImagePlus, LogOut, Mail, Phone, Trash2, User, X } from 'lucide-react-native';
+import {
+  Check,
+  ChevronRight,
+  Edit3,
+  ImagePlus,
+  LogOut,
+  Mail,
+  Phone,
+  Trash2,
+  User,
+  X,
+  Sun,
+  Moon,
+} from 'lucide-react-native';
 import { InfoModal } from '@/components/infomodal';
 import React, { useState } from 'react';
 import {
@@ -317,7 +330,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={Colors.primaryGreen} size="large" />
+        <ActivityIndicator color={Colors.goldText} size="large" />
       </View>
     );
   }
@@ -339,7 +352,7 @@ export default function ProfilePage() {
 
           {!isEditing ? (
             <TouchableOpacity style={styles.editBtn} onPress={() => setIsEditing(true)} activeOpacity={0.8}>
-              <Edit3 color={Colors.gold} size={16} />
+              <Edit3 color={Colors.goldText} size={16} />
               <Text style={styles.editBtnText}>Modifier</Text>
             </TouchableOpacity>
           ) : (
@@ -438,6 +451,32 @@ export default function ProfilePage() {
         {/* ── Séparateur ── */}
         <View style={styles.separator} />
 
+        {/* ── Apparence : thème clair (par défaut) ou sombre ── */}
+        <View style={styles.themeCard}>
+          <Text style={styles.themeTitle}>Apparence</Text>
+          <View style={styles.themeSwitch}>
+            {([
+              { value: 'light', label: 'Clair', Icon: Sun },
+              { value: 'dark', label: 'Sombre', Icon: Moon },
+            ] as const).map(({ value, label, Icon }) => {
+              const active = theme === value;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  style={[styles.themeOption, active && styles.themeOptionActive]}
+                  onPress={() => setThemePreference(value)}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                >
+                  <Icon color={active ? Colors.onGold : Colors.textSecondary} size={18} />
+                  <Text style={[styles.themeOptionText, active && styles.themeOptionTextActive]}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* ── Site : installer l'application ── */}
         <InstallAppButton variant="row" style={{ marginBottom: 12 }} />
 
@@ -488,7 +527,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 20 },
   pageTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 30, textTransform: 'uppercase' },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,194,51,0.1)', borderWidth: 1.5, borderColor: Colors.gold, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 },
-  editBtnText: { color: Colors.gold, fontFamily: Font.bodyBold, fontSize: 14 },
+  editBtnText: { color: Colors.goldText, fontFamily: Font.bodyBold, fontSize: 14 },
   editActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   cancelBtn: { width: 40, height: 40, borderRadius: 14, backgroundColor: Colors.navy, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.gold, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 9 },
@@ -496,7 +535,7 @@ const styles = StyleSheet.create({
   saveBtnText: { color: Colors.onGold, fontFamily: Font.bodyExtraBold, fontSize: 14 },
 
   // Hero
-  heroCard: { flexDirection: 'row', alignItems: 'center', gap: 18, marginHorizontal: 20, marginBottom: 16, backgroundColor: 'rgba(17,28,63,0.92)', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(90,162,255,0.3)', padding: 20 },
+  heroCard: { flexDirection: 'row', alignItems: 'center', gap: 18, marginHorizontal: 20, marginBottom: 16, backgroundColor: pick('rgba(17,28,63,0.92)', '#FFFFFF'), borderRadius: 28, borderWidth: 1, borderColor: 'rgba(90,162,255,0.3)', padding: 20 },
   avatarRing: { width: 76, height: 76, borderRadius: 24, padding: 3, backgroundColor: 'rgba(47,123,255,0.18)', borderWidth: 2, borderColor: 'rgba(90,162,255,0.45)' },
   avatarContainer: { position: 'relative' },
   avatarGradient: { flex: 1, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
@@ -528,13 +567,13 @@ const styles = StyleSheet.create({
   memberSince: { color: Colors.textSecondary, fontFamily: Font.body, fontSize: 13 },
 
   // Section
-  section: { marginHorizontal: 20, marginBottom: 8, backgroundColor: 'rgba(17,28,63,0.92)', borderRadius: 28, borderWidth: 1, borderColor: Colors.border, padding: 18 },
+  section: { marginHorizontal: 20, marginBottom: 8, backgroundColor: pick('rgba(17,28,63,0.92)', '#FFFFFF'), borderRadius: 28, borderWidth: 1, borderColor: Colors.border, padding: 18 },
   sectionTitle: { color: Colors.chrome, fontFamily: Font.title, fontSize: 18, textTransform: 'uppercase', marginBottom: 14 },
 
   // Champs
   fieldGroup: { marginBottom: 14 },
   fieldLabel: { color: Colors.textSecondary, fontFamily: Font.bodySemiBold, fontSize: 13, marginBottom: 7 },
-  fieldWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(120,150,230,0.18)', paddingHorizontal: 16 },
+  fieldWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.night, borderRadius: 18, borderWidth: 1.5, borderColor: pick('rgba(120,150,230,0.18)', 'rgba(40,70,150,0.16)'), paddingHorizontal: 16 },
   fieldWrapperActive: { borderColor: Colors.blue },
   fieldIcon: { marginRight: 12 },
   fieldInput: { flex: 1, color: Colors.chrome, fontFamily: Font.bodyMedium, fontSize: 16, paddingVertical: 14, ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : {}) },
@@ -544,7 +583,14 @@ const styles = StyleSheet.create({
   separator: { height: 1, backgroundColor: 'transparent', marginVertical: 10 },
 
   // Logout
+  themeCard: { marginHorizontal: 20, marginBottom: 12, padding: 16, borderRadius: 20, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, ...CardShadow },
+  themeTitle: { color: Colors.chrome, fontFamily: Font.bodyBold, fontSize: 16, marginBottom: 12 },
+  themeSwitch: { flexDirection: 'row', gap: 8, padding: 4, borderRadius: 16, backgroundColor: Colors.night, borderWidth: 1, borderColor: Colors.border },
+  themeOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 11, borderRadius: 12 },
+  themeOptionActive: { backgroundColor: Colors.gold },
+  themeOptionText: { color: Colors.textSecondary, fontFamily: Font.bodyBold, fontSize: 15 },
+  themeOptionTextActive: { color: Colors.onGold },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 20, backgroundColor: 'rgba(255,107,107,0.08)', borderWidth: 1, borderColor: 'rgba(255,107,107,0.28)', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 16 },
-  logoutText: { color: '#FF7B7B', fontFamily: Font.bodyBold, fontSize: 16 },
+  logoutText: { color: pick('#FF7B7B', '#D93A3F'), fontFamily: Font.bodyBold, fontSize: 16 },
   deleteAccountBtn: { marginTop: 12, backgroundColor: 'transparent' },
 });

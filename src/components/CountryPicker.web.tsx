@@ -1,3 +1,4 @@
+import { pick } from '@/constants/colors';
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -69,7 +70,7 @@ export default function CountryPicker({ visible, onSelect, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.6)' },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: pick('rgba(0,0,0,0.6)', 'rgba(12,22,52,0.45)') },
   sheet: {
     position: 'absolute',
     alignSelf: 'center',
@@ -77,11 +78,11 @@ const styles = StyleSheet.create({
     width: '92%',
     maxWidth: 420,
     maxHeight: '80%',
-    backgroundColor: '#111C3F',
+    backgroundColor: pick('#111C3F', '#FFFFFF'),
     borderRadius: 16,
     padding: 12,
   },
-  search: { backgroundColor: '#0B1330', color: '#fff', borderRadius: 10, padding: 12, marginBottom: 8 },
+  search: { backgroundColor: pick('#0B1330', '#E4EAF6'), color: '#fff', borderRadius: 10, padding: 12, marginBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 8 },
   flag: { fontSize: 22 },
   name: { flex: 1, color: '#fff', fontSize: 15 },
