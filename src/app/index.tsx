@@ -1,6 +1,6 @@
 import { OrbitStar } from '@/components/orbit';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors, pick } from '@/constants/colors';
+import { Colors, pick, consumeQuickStart } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { UserRole } from '@/data_api/models/user.types';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +12,8 @@ import Svg, { Circle, Defs, Ellipse, RadialGradient, Rect, Stop } from 'react-na
 // Minimum time the splash stays on screen, so the animation is seen even when the session resolves at once.
 // Same length as Matistore's splash (0.8 s fade + 2.2 s progress + 0.4 s).
 const MIN_SPLASH_MS = 3400;
+// Right after a theme change (the app restarts): no splash animation, back to the app at once.
+const QUICK_START = consumeQuickStart();
 
 // Gold orbit around the logo, in units of the ring box width (design 02_Splash).
 const RING = { rx: 0.452, ry: 0.21, tilt: -5 };
@@ -106,7 +108,7 @@ export default function SplashScreen() {
     Animated.timing(textAnim, { toValue: 1, duration: 700, delay: 1100, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
     const orbit = Animated.loop(Animated.timing(orbitAnim, { toValue: 1, duration: 4200, easing: Easing.linear, useNativeDriver: true }));
     orbit.start();
-    const done = setTimeout(() => setAnimationDone(true), MIN_SPLASH_MS);
+    const done = setTimeout(() => setAnimationDone(true), QUICK_START ? 0 : MIN_SPLASH_MS);
     const dotsTimer = setInterval(() => setDots((d) => (d.length >= 3 ? '' : `${d}.`)), 400);
     return () => { orbit.stop(); clearTimeout(done); clearInterval(dotsTimer); };
   }, []);

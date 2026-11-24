@@ -3,7 +3,7 @@ import { OrbitBackground, OrbitStar } from '@/components/orbit';
 import { SocialLinks } from '@/components/SocialLinks';
 import { UserAvatar } from '@/components/UserAvatar';
 import JMLogo from '@/components/ui/JMLogo';
-import { Colors, Gradients, pick } from '@/constants/colors';
+import { Colors, Gradients, pick, isLight, setThemePreference } from '@/constants/colors';
 import { Font } from '@/constants/fonts';
 import { Banniere } from '@/data_api/models/banniere.types';
 import { DiscussionType } from '@/data_api/models/discussion.types';
@@ -22,7 +22,7 @@ import { goToTab } from '@/utils/tabNavigation';
 import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowDown, ArrowRight, ArrowUp, Bell, ChevronRight, History, Trophy } from 'lucide-react-native';
+import { ArrowDown, ArrowRight, ArrowUp, Bell, ChevronRight, History, Moon, Sun, Trophy } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -255,6 +255,15 @@ export default function HomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <SocialLinks variant="toolbar" />
+            {/* Day / night: moon in the light theme (go dark), sun in the dark theme (go light). */}
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setThemePreference(isLight ? 'dark' : 'light')}
+              accessibilityRole="button"
+              accessibilityLabel={isLight ? 'Passer en mode sombre' : 'Passer en mode clair'}
+            >
+              {isLight ? <Moon color={Colors.chrome} size={20} /> : <Sun color={Colors.gold} size={21} />}
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => router.push('/user_notifications' as any)}

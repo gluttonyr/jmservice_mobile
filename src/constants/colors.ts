@@ -53,8 +53,23 @@ export const isLight = theme === 'light';
 /** Value for the dark theme, value for the light theme. */
 export const pick = <T,>(dark: T, light: T): T => (isLight ? light : dark);
 
+const QUICK_START_KEY = 'jm_quick_start';
+
+/** True once after a theme change: the splash then goes straight on instead of playing its animation. */
+export function consumeQuickStart(): boolean {
+  try {
+    if (Platform.OS !== 'web') return false;
+    const quick = globalThis.sessionStorage?.getItem(QUICK_START_KEY) === '1';
+    if (quick) globalThis.sessionStorage?.removeItem(QUICK_START_KEY);
+    return quick;
+  } catch {
+    return false;
+  }
+}
+
 function restartApp() {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    try { globalThis.sessionStorage?.setItem(QUICK_START_KEY, '1'); } catch { /* full splash then */ }
     window.location.replace('/');
     return;
   }
